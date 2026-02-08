@@ -1,24 +1,186 @@
 #!/bin/bash
-# b3ehive - Main entry point
+# b3ehive - Main entry point with validation
+# PCTF-Compliant execution flow
 
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly TASK="${1:-}"
+readonly WORKSPACE="${SCRIPT_DIR}/workspace"
 
-if [[ -z "$TASK" ]]; then
-    echo "Usage: b3ehive \"Your task description\""
-    exit 1
-fi
+# Colors
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
-echo "🐝 b3ehive - Fake it until make it"
-echo "Task: $TASK"
-echo ""
+log_info() { echo -e "${BLUE}[b3ehive]${NC} $1"; }
+log_success() { echo -e "${GREEN}[b3ehive]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[b3ehive]${NC} $1"; }
+log_error() { echo -e "${RED}[b3ehive]${NC} $1"; }
 
-"${SCRIPT_DIR}/scripts/phase1_spawn.sh" "$TASK"
-"${SCRIPT_DIR}/scripts/phase2_evaluate.sh"
-"${SCRIPT_DIR}/scripts/phase3_score.sh"
-"${SCRIPT_DIR}/scripts/phase4_deliver.sh"
+# Validation functions
+assert_task_provided() {
+    if [[ -z "$TASK" ]]; then
+        log_error "Usage: b3ehive \"Your task description\""
+        log_error "Example: b3ehive \"Implement HTTP retry with exponential backoff\""
+        exit 1
+    fi
+}
 
-echo ""
-echo "✅ Complete! Check workspace/final/"
+assert_workspace_clean() {
+    if [[ -d "$WORKSPACE" ]]; then
+        log_warn "Workspace exists. Cleaning..."
+        rm -rf "$WORKSPACE"
+    fi
+    mkdir -p "$WORKSPACE"
+}
+
+assert_phase1_complete() {
+    local errors=0
+    
+    for agent in a b c; do
+        local impl_dir="${WORKSPACE}/run_${agent}/implementation"
+        local checklist="${WORKSPACE}/run_${agent}/Checklist.md"
+        
+        if [[ ! -d "$impl_dir" ]]; then
+            log_error "Phase 1: Agent ${agent^^} implementation directory missing"
+            ((errors++))
+        fi
+        
+        if [[ ! -f "$checklist" ]]; then
+            log_error "Phase 1: Agent ${agent^^} Checklist.md missing"
+            ((errors++))
+        elif grep -q "\[ \]" "$checklist" 2>/dev/null; then
+            log_error "Phase 1: Agent ${agent^^} has unchecked items"
+            ((errors++))
+        fi
+    done
+    
+    if [[ $errors -gt 0 ]]; then
+        log_error "Phase 1 validation failed with $errors errors"
+        return 1
+    fi
+    
+    log_success "Phase 1 validation passed"
+    return 0
+}
+
+assert_phase2_complete() {
+    local errors=0
+    local eval_count=0
+    
+    for from in a b c; do
+        for to in a b c; do
+            [[ "$from" == "$to" ]] && continue
+            
+            local eval_file="${WORKSPACE}/run_${from}/evaluation/EVALUATION_${from}_TO_${to}.md"
+            if [[ -f "$eval_file" ]]; then
+                ((eval_count++))
+            else
+                log_error "Phase 2: Evaluation ${from^^}→${to^^} missing"
+                ((errors++))
+            fi
+        done
+    done
+    
+    if [[ $eval_count -ne 6 ]]; then
+        log_error "Phase 2: Expected 6 evaluations, found $eval_count"
+        ((errors++))
+    fi
+    
+    if [[ $errors -gt 0 ]]; then
+        log_error "Phase 2 validation failed"
+        return 1
+    fi
+    
+    log_success "Phase 2 validation passed"
+    return 0
+}
+
+assert_phase3_complete() {
+    local errors=0
+    
+    for agent in a b c; do
+        local scorecard="${WORKSPACE}/run_${agent}/SCORECARD.md"
+        
+        if [[ ! -f "$scorecard" ]]; then
+            log_error "Phase 3: Agent ${agent^^} SCORECARD.md missing"
+            ((errors++))
+        fi
+    done
+    
+    if [[ $errors -gt 0 ]]; then
+        log_error "Phase 3 validation failed"
+        return 1
+    fi
+    
+    log_success "Phase 3 validation passed"
+    return 0
+}
+
+assert_phase4_complete() {
+    local errors=0
+    
+    if [[ ! -d "${WORKSPACE}/final" ]]; then
+        log_error "Phase 4: final/ directory missing"
+        ((errors++))
+    fi
+    
+    if [[ ! -f "${WORKSPACE}/COMPARISON_REPORT.md" ]]; then
+        log_error "Phase 4: COMPARISON_REPORT.md missing"
+        ((errors++))
+    fi
+    
+    if [[ ! -f "${WORKSPACE}/DECISION_RATIONALE.md" ]]; then
+        log_error "Phase 4: DECISION_RATIONALE.md missing"
+        ((errors++))
+    fi
+    
+    if [[ $errors -gt 0 ]]; then
+        log_error "Phase 4 validation failed"
+        return 1
+    fi
+    
+    log_success "Phase 4 validation passed"
+    return 0
+}
+
+# Main execution
+main() {
+    echo "🐝 b3ehive - Fake it until make it"
+    echo ""
+    
+    assert_task_provided
+    log_info "Task: $TASK"
+    
+    assert_workspace_clean
+    
+    # Phase 1
+    log_info "Starting Phase 1: Parallel Implementation..."
+    "${SCRIPT_DIR}/scripts/phase1_spawn.sh" "$TASK"
+    assert_phase1_complete || exit 1
+    
+    # Phase 2
+    log_info "Starting Phase 2: Cross-Evaluation..."
+    "${SCRIPT_DIR}/scripts/phase2_evaluate.sh"
+    assert_phase2_complete || exit 1
+    
+    # Phase 3
+    log_info "Starting Phase 3: Objective Scoring..."
+    "${SCRIPT_DIR}/scripts/phase3_score.sh"
+    assert_phase3_complete || exit 1
+    
+    # Phase 4
+    log_info "Starting Phase 4: Final Delivery..."
+    "${SCRIPT_DIR}/scripts/phase4_deliver.sh"
+    assert_phase4_complete || exit 1
+    
+    echo ""
+    log_success "b3ehive complete! 🎉"
+    log_info "Results: ${WORKSPACE}/final/"
+    log_info "Report: ${WORKSPACE}/COMPARISON_REPORT.md"
+}
+
+main "$@"
