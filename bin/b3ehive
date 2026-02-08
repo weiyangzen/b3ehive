@@ -1,0 +1,24 @@
+#!/bin/bash
+# b3ehive - Main entry point
+
+set -euo pipefail
+
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly TASK="${1:-}"
+
+if [[ -z "$TASK" ]]; then
+    echo "Usage: b3ehive \"Your task description\""
+    exit 1
+fi
+
+echo "🐝 b3ehive - Fake it until make it"
+echo "Task: $TASK"
+echo ""
+
+"${SCRIPT_DIR}/scripts/phase1_spawn.sh" "$TASK"
+"${SCRIPT_DIR}/scripts/phase2_evaluate.sh"
+"${SCRIPT_DIR}/scripts/phase3_score.sh"
+"${SCRIPT_DIR}/scripts/phase4_deliver.sh"
+
+echo ""
+echo "✅ Complete! Check workspace/final/"

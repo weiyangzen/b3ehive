@@ -1,0 +1,15 @@
+b3ehive:
+  agents:
+    count: 3
+    model: openai-proxy/gpt-5.3-codex
+    thinking: high
+  evaluation:
+    dimensions:
+      simplicity: 20
+      speed: 25
+      stability: 25
+      corner_cases: 20
+      maintainability: 10
+  delivery:
+    strategy: auto
+    threshold: 15
