@@ -61,3 +61,13 @@ MIT © Weiyang ([@weiyangzen](https://github.com/weiyangzen))
 *"What I cannot create, I do not understand."* — Richard Feynman
 
 **b3ehive**: Create three times. Understand completely.
+
+---
+
+## The Name
+
+**b3** = Build × 3  
+**hive** = Swarm intelligence
+
+> **Build ×3, evaluate each other, and evolve.**  
+> *So called b3ehive.* 🐝
