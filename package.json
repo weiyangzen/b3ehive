@@ -1,7 +1,9 @@
 {
   "name": "b3ehive",
+  "slug": "b3ehive",
+  "displayName": "b3ehive - Triple-Agent Competitive Collaboration",
   "version": "1.0.0",
-  "description": "Feynman-style Triple-Agent Competitive Collaboration System - Three agents implement, evaluate, and compete to produce the optimal solution",
+  "description": "Build x3, evaluate each other, and evolve. Three AI agents implement, compete, and deliver the optimal solution through the Feynman Technique.",
   "author": "weiyangzen",
   "license": "MIT",
   "homepage": "https://github.com/weiyangzen/b3ehive",
@@ -9,13 +11,18 @@
     "type": "git",
     "url": "https://github.com/weiyangzen/b3ehive.git"
   },
+  "bugs": {
+    "url": "https://github.com/weiyangzen/b3ehive/issues"
+  },
   "keywords": [
     "openclaw",
     "skill",
     "multi-agent",
     "competition",
     "code-generation",
-    "feynman"
+    "feynman",
+    "collaboration",
+    "swarm-intelligence"
   ],
   "engines": {
     "openclaw": ">=2026.2.0"
@@ -23,6 +30,14 @@
   "bin": {
     "b3ehive": "./bin/b3ehive"
   },
+  "files": [
+    "bin/",
+    "scripts/",
+    "templates/",
+    "SKILL.md",
+    "README.md",
+    "LICENSE"
+  ],
   "openclaw": {
     "entry": "SKILL.md",
     "emoji": "🐝",
