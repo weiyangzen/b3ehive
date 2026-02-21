@@ -5,6 +5,9 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
+source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
+evo_init
+evo_log "phase2" "start"
 
 echo "🐝 Phase 2: Cross-Evaluation..."
 
@@ -25,7 +28,7 @@ for from in a b c; do
         echo "  Agent ${from^^} evaluating Agent ${to^^}..."
         
         eval_dir="${WORKSPACE}/run_${from}/evaluation"
-        mkdir -p "$eval_dir"
+        run_with_retry 3 mkdir -p "$eval_dir"
         
         eval_file="${eval_dir}/EVALUATION_${from}_TO_${to}.md"
         
@@ -105,7 +108,7 @@ for from in a b c; do
         
         eval_file="${WORKSPACE}/run_${from}/evaluation/EVALUATION_${from}_TO_${to}.md"
         if [[ -f "$eval_file" ]]; then
-            ((eval_count++))
+            eval_count=$((eval_count + 1))
         else
             echo "ERROR: Evaluation ${from}→${to} missing"
             exit 1
@@ -120,3 +123,4 @@ if [[ $eval_count -ne 6 ]]; then
 fi
 
 echo "✅ Phase 2 complete: 6 evaluations created and validated"
+evo_log "phase2" "completed evaluations=6"

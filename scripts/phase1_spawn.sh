@@ -6,6 +6,9 @@ set -euo pipefail
 readonly TASK="${1:-}"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
+source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
+evo_init
+evo_log "phase1" "start task=${TASK:-<empty>}"
 
 # Assertion: Task must be provided
 if [[ -z "$TASK" ]]; then
@@ -17,7 +20,7 @@ echo "🐝 Phase 1: Spawning 3 agents..."
 echo "Task: $TASK"
 
 # Create workspace directories
-mkdir -p "${WORKSPACE}/run_a" "${WORKSPACE}/run_b" "${WORKSPACE}/run_c"
+run_with_retry 3 mkdir -p "${WORKSPACE}/run_a" "${WORKSPACE}/run_b" "${WORKSPACE}/run_c"
 
 # Agent configuration with PCTF-compliant prompts
 declare -A AGENT_FOCUS=(
@@ -31,8 +34,8 @@ for agent in a b c; do
     echo "  Spawning Agent ${agent^^}..."
     
     agent_dir="${WORKSPACE}/run_${agent}"
-    mkdir -p "${agent_dir}/implementation"
-    mkdir -p "${agent_dir}/evaluation"
+    run_with_retry 3 mkdir -p "${agent_dir}/implementation"
+    run_with_retry 3 mkdir -p "${agent_dir}/evaluation"
     
     # PCTF-compliant prompt
     cat > "${agent_dir}/PROMPT.md" << EOF
@@ -158,3 +161,4 @@ for agent in a b c; do
 done
 
 echo "✅ Phase 1 complete: 3 agents spawned and validated"
+evo_log "phase1" "completed agents=3"

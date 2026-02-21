@@ -2,8 +2,8 @@
   "name": "b3ehive",
   "slug": "b3ehive",
   "displayName": "b3ehive - Triple-Agent Competitive Collaboration",
-  "version": "1.0.0",
-  "description": "Build x3, evaluate each other, and evolve. Three AI agents implement, compete, and deliver the optimal solution through the Feynman Technique.",
+  "version": "1.1.0",
+  "description": "EvoMap-evolved b3ehive with retry guards, cross-session event continuity, and reliability-first delivery.",
   "author": "weiyangzen",
   "license": "MIT",
   "homepage": "https://github.com/weiyangzen/b3ehive",
@@ -43,8 +43,12 @@
     "emoji": "🐝",
     "category": "development",
     "requires": {
-      "agents": ["coding"],
-      "models": ["openai-proxy/gpt-5.3-codex"]
+      "agents": [
+        "coding"
+      ],
+      "models": [
+        "openai-proxy/gpt-5.3-codex"
+      ]
     }
   }
 }

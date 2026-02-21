@@ -5,11 +5,14 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
+source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
+evo_init
+evo_log "phase4" "start"
 
 echo "🐝 Phase 4: Final Delivery..."
 
 # Create final directory
-mkdir -p "${WORKSPACE}/final"
+run_with_retry 3 mkdir -p "${WORKSPACE}/final"
 
 # Determine winner (simplified logic)
 echo "  Analyzing scores..."
@@ -21,7 +24,7 @@ winner="a"  # Placeholder
 # Copy winning solution
 echo "  Selecting Agent ${winner^^} as winner..."
 if [[ -d "${WORKSPACE}/run_${winner}/implementation" ]]; then
-    cp -r "${WORKSPACE}/run_${winner}/implementation/"* "${WORKSPACE}/final/"
+    run_with_retry 3 cp -r "${WORKSPACE}/run_${winner}/implementation/"* "${WORKSPACE}/final/"
 else
     echo "ERROR: Winner implementation not found"
     exit 1
@@ -147,7 +150,7 @@ assertions_total=4
 # Assertion 1: Final solution exists
 if [[ -d "${WORKSPACE}/final" ]] && [[ "$(ls -A ${WORKSPACE}/final)" ]]; then
     echo "    ✓ Final solution exists"
-    ((assertions_passed++))
+    assertions_passed=$((assertions_passed + 1))
 else
     echo "    ✗ Final solution missing"
 fi
@@ -155,7 +158,7 @@ fi
 # Assertion 2: Attribution exists
 if [[ -f "${WORKSPACE}/final/ATTRIBUTION.md" ]]; then
     echo "    ✓ Attribution file exists"
-    ((assertions_passed++))
+    assertions_passed=$((assertions_passed + 1))
 else
     echo "    ✗ Attribution file missing"
 fi
@@ -163,7 +166,7 @@ fi
 # Assertion 3: Comparison report exists
 if [[ -f "${WORKSPACE}/COMPARISON_REPORT.md" ]]; then
     echo "    ✓ Comparison report exists"
-    ((assertions_passed++))
+    assertions_passed=$((assertions_passed + 1))
 else
     echo "    ✗ Comparison report missing"
 fi
@@ -171,7 +174,7 @@ fi
 # Assertion 4: Decision rationale exists
 if [[ -f "${WORKSPACE}/DECISION_RATIONALE.md" ]]; then
     echo "    ✓ Decision rationale exists"
-    ((assertions_passed++))
+    assertions_passed=$((assertions_passed + 1))
 else
     echo "    ✗ Decision rationale missing"
 fi
@@ -187,3 +190,4 @@ echo "✅ Phase 4 complete: Final solution delivered"
 echo "📁 Results: ${WORKSPACE}/final/"
 echo "📊 Report: ${WORKSPACE}/COMPARISON_REPORT.md"
 echo "📝 Rationale: ${WORKSPACE}/DECISION_RATIONALE.md"
+evo_log "phase4" "completed winner=${winner}"
