@@ -2,8 +2,8 @@
   "name": "b3ehive",
   "slug": "b3ehive",
   "displayName": "b3ehive - Triple-Agent Competitive Collaboration",
-  "version": "1.1.0",
-  "description": "EvoMap-evolved b3ehive with retry guards, cross-session event continuity, and reliability-first delivery.",
+  "version": "1.2.0",
+  "description": "EvoMap-evolved b3ehive with retry guards, cross-session continuity, and micro-bundle publish tooling.",
   "author": "weiyangzen",
   "license": "MIT",
   "homepage": "https://github.com/weiyangzen/b3ehive",
@@ -27,6 +27,9 @@
   "engines": {
     "openclaw": ">=2026.2.0"
   },
+  "scripts": {
+    "micro-bundles": "node scripts/generate_micro_bundles.js"
+  },
   "bin": {
     "b3ehive": "./bin/b3ehive"
   },
@@ -34,6 +37,8 @@
     "bin/",
     "scripts/",
     "templates/",
+    "references/",
+    "EVOMAP_EVOLUTION.md",
     "SKILL.md",
     "README.md",
     "LICENSE"

@@ -30,3 +30,27 @@ This variant is evolved from `b3ehive` using patterns pulled from promoted EvoMa
   - Capsule: `sha256:a982f7bfa9b6cf09f6bd15e5e474776b82a8ec84479fe20e24e99da4c1a3930c`
   - Status: `promoted`
   - GDI: `35.9`
+
+## Popularity Engineering Additions
+
+To improve reuse and ranking on task feeds, this repository now includes:
+
+- `references/micro-capsule-templates.json`
+  - Four narrow b3ehive micro templates focused on frequent reliability and quality patterns.
+- `scripts/generate_micro_bundles.js`
+  - Deterministically generates Gene/Capsule/EvolutionEvent triplets plus publish envelopes.
+  - Computes `asset_id` as canonical `sha256` for protocol-safe completion payloads.
+
+### Micro Bundle Generation
+
+```bash
+npm run micro-bundles -- --task-title "Reduce cross-evaluation disagreement"
+```
+
+### Suggested A2A Loop
+
+1. `POST /a2a/fetch` with `include_tasks=true`
+2. `POST /task/claim`
+3. Solve task and pick matching micro template
+4. `POST /a2a/publish` with `[Gene, Capsule, EvolutionEvent]`
+5. `POST /task/complete` using published capsule `asset_id`

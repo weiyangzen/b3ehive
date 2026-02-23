@@ -1,0 +1,78 @@
+{
+  "version": "2026-02-23",
+  "family": "b3ehive",
+  "targets": {
+    "confidence_min": 0.9,
+    "success_streak_min": 3,
+    "blast_radius_files_max": 2,
+    "blast_radius_lines_max": 80,
+    "summary_len_min": 220,
+    "trigger_count_range": [4, 6]
+  },
+  "templates": [
+    {
+      "id": "b3ehive-perf-bottleneck-reducer",
+      "category": "optimize",
+      "match_keywords": ["perf_bottleneck", "optimization_sought", "latency", "slow", "cpu", "memory", "bottleneck"],
+      "signals_match": ["perf_bottleneck", "optimization_sought", "latency_regression", "resource_hotspot"],
+      "trigger": ["perf_bottleneck", "optimization_sought", "latency_regression", "resource_hotspot"],
+      "gene_summary": "Use reliability-first multi-agent optimization: isolate bottleneck scope, run two candidate fixes in parallel, compare measurable runtime deltas, and keep only the lower-risk patch with explicit rollback path.",
+      "capsule_summary": "Resolve performance bottlenecks with narrow-scope optimization, measurable before-and-after metrics, rollback guardrails, and deterministic validation to avoid hidden regressions in adjacent flows.",
+      "validation": ["node -e \"console.log('perf validation ok')\""],
+      "confidence": 0.92,
+      "outcome_score": 0.91,
+      "blast_radius": { "files": 1, "lines": 42 },
+      "mutations_tried": 2,
+      "total_cycles": 4,
+      "success_streak": 3
+    },
+    {
+      "id": "b3ehive-retry-backoff-guard",
+      "category": "repair",
+      "match_keywords": ["timeout", "econnreset", "econnrefused", "429", "network", "retry", "rate limit"],
+      "signals_match": ["timeout_error", "network_flake", "retry_backoff", "rate_limit"],
+      "trigger": ["timeout_error", "network_flake", "retry_backoff", "rate_limit"],
+      "gene_summary": "Apply bounded retry with exponential backoff, timeout guards, and idempotent request protection so transient transport failures become stable success paths.",
+      "capsule_summary": "Stabilize flaky outbound calls using exponential backoff, strict timeout budgets, and idempotency-safe retry boundaries to improve completion rate under transient network or rate-limit pressure.",
+      "validation": ["node -e \"console.log('retry validation ok')\""],
+      "confidence": 0.94,
+      "outcome_score": 0.93,
+      "blast_radius": { "files": 1, "lines": 36 },
+      "mutations_tried": 2,
+      "total_cycles": 5,
+      "success_streak": 4
+    },
+    {
+      "id": "b3ehive-cross-eval-consensus",
+      "category": "optimize",
+      "match_keywords": ["quality", "consensus", "dispute", "conflict", "evaluation", "ranking"],
+      "signals_match": ["agent_divergence", "cross_evaluation", "consensus_guard", "quality_metric"],
+      "trigger": ["agent_divergence", "cross_evaluation", "consensus_guard", "quality_metric"],
+      "gene_summary": "Run parallel candidate plans, score each with objective checks, and produce an auditable consensus choice with explicit reject reasons for discarded candidates.",
+      "capsule_summary": "Improve delivery reliability through cross-evaluation consensus: generate candidate variants, score against deterministic checks, and keep only the highest-scoring low-risk path with traceable rationale.",
+      "validation": ["node -e \"console.log('consensus validation ok')\""],
+      "confidence": 0.91,
+      "outcome_score": 0.9,
+      "blast_radius": { "files": 2, "lines": 58 },
+      "mutations_tried": 3,
+      "total_cycles": 4,
+      "success_streak": 3
+    },
+    {
+      "id": "b3ehive-session-continuity-guard",
+      "category": "repair",
+      "match_keywords": ["context_loss", "session", "memory", "amnesia", "continuity"],
+      "signals_match": ["context_loss", "session_continuity", "memory_bridge", "cross_session_gap"],
+      "trigger": ["context_loss", "session_continuity", "memory_bridge", "cross_session_gap"],
+      "gene_summary": "Preserve continuity across runs by restoring short-term and long-term memory slices at cycle start, then appending critical decisions before cycle end.",
+      "capsule_summary": "Prevent cross-session context loss through deterministic memory-bridge hooks at cycle start and end, preserving key decisions and reducing repeated reasoning across independent runs.",
+      "validation": ["node -e \"console.log('continuity validation ok')\""],
+      "confidence": 0.92,
+      "outcome_score": 0.91,
+      "blast_radius": { "files": 2, "lines": 48 },
+      "mutations_tried": 2,
+      "total_cycles": 4,
+      "success_streak": 3
+    }
+  ]
+}
