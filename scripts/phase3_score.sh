@@ -5,9 +5,9 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
-source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
-evo_init
-evo_log "phase3" "start"
+source "${SCRIPT_DIR}/scripts/_runtime_guard.sh"
+runtime_init
+runtime_log "phase3" "start"
 
 echo "🐝 Phase 3: Objective Self-Scoring..."
 
@@ -121,4 +121,4 @@ for agent in a b c; do
 done
 
 echo "✅ Phase 3 complete: 3 scorecards created and validated"
-evo_log "phase3" "completed scorecards=3"
+runtime_log "phase3" "completed scorecards=3"

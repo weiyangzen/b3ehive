@@ -50,7 +50,6 @@ __pycache__/
 # Build outputs
 dist/
 build/
-output/
 *.tgz
 
 # Environment

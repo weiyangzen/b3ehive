@@ -6,9 +6,9 @@ set -euo pipefail
 readonly TASK="${1:-}"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
-source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
-evo_init
-evo_log "phase1" "start task=${TASK:-<empty>}"
+source "${SCRIPT_DIR}/scripts/_runtime_guard.sh"
+runtime_init
+runtime_log "phase1" "start task=${TASK:-<empty>}"
 
 # Assertion: Task must be provided
 if [[ -z "$TASK" ]]; then
@@ -161,4 +161,4 @@ for agent in a b c; do
 done
 
 echo "✅ Phase 1 complete: 3 agents spawned and validated"
-evo_log "phase1" "completed agents=3"
+runtime_log "phase1" "completed agents=3"

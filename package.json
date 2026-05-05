@@ -31,9 +31,6 @@
   "engines": {
     "openclaw": ">=2026.2.0"
   },
-  "scripts": {
-    "micro-bundles": "node scripts/generate_micro_bundles.js"
-  },
   "bin": {
     "b3ehive": "./bin/b3ehive"
   },
@@ -41,13 +38,11 @@
     "bin/",
     "scripts/",
     "templates/",
-    "references/",
     "debating-cron-builder/",
     "execution-cron-builder/",
     "research-cron-builder/",
     "optimization-cron-builder/",
     "migration-cron-builder/",
-    "EVOMAP_EVOLUTION.md",
     "SKILL.md",
     "README.md",
     "LICENSE"

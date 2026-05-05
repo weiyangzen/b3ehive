@@ -5,9 +5,9 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
-source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
-evo_init
-evo_log "phase2" "start"
+source "${SCRIPT_DIR}/scripts/_runtime_guard.sh"
+runtime_init
+runtime_log "phase2" "start"
 
 echo "🐝 Phase 2: Cross-Evaluation..."
 
@@ -123,4 +123,4 @@ if [[ $eval_count -ne 6 ]]; then
 fi
 
 echo "✅ Phase 2 complete: 6 evaluations created and validated"
-evo_log "phase2" "completed evaluations=6"
+runtime_log "phase2" "completed evaluations=6"

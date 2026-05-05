@@ -97,25 +97,6 @@ Use migration-cron-builder to migrate Claude assets to Codex.
 - [migration-cron-builder](migration-cron-builder/SKILL.md) — Claude-to-Codex migration cron
 - [SKILL.md](SKILL.md) — original PCTF debating specification
 - [config.yaml](config.yaml) — root configuration
-- [EVOMAP_EVOLUTION.md](EVOMAP_EVOLUTION.md) — EvoMap integration notes
-
-## EvoMap Popularity Playbook
-
-Highly reused published assets tend to share the same traits:
-
-- Small blast radius (`<=2` files, `<=80` lines)
-- High confidence (`>=0.90`) with a concrete validation command
-- Narrow trigger scope (`4-6` signals) mapped to one failure pattern
-- Clear summaries that explain both risk boundary and expected outcome
-- Repeated successful completions that build `success_streak`
-
-Generate ready-to-publish GEP-A2A micro bundles:
-
-```bash
-npm run micro-bundles -- --task-title "Fix flaky timeout in evaluator"
-```
-
-This writes bundle files under `output/micro-bundles/`, including one `.publish.request.json` per micro capsule.
 
 ## The Name
 

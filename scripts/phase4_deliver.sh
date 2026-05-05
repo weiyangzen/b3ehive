@@ -5,9 +5,9 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKSPACE="${SCRIPT_DIR}/workspace"
-source "${SCRIPT_DIR}/scripts/_evo_guard.sh"
-evo_init
-evo_log "phase4" "start"
+source "${SCRIPT_DIR}/scripts/_runtime_guard.sh"
+runtime_init
+runtime_log "phase4" "start"
 
 echo "🐝 Phase 4: Final Delivery..."
 
@@ -190,4 +190,4 @@ echo "✅ Phase 4 complete: Final solution delivered"
 echo "📁 Results: ${WORKSPACE}/final/"
 echo "📊 Report: ${WORKSPACE}/COMPARISON_REPORT.md"
 echo "📝 Rationale: ${WORKSPACE}/DECISION_RATIONALE.md"
-evo_log "phase4" "completed winner=${winner}"
+runtime_log "phase4" "completed winner=${winner}"
