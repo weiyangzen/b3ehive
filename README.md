@@ -39,7 +39,7 @@ Through **competition**, agents expose blind spots. Through **research**, they m
 | `execution-cron-builder` | Turns one blueprint into a bounded execution cron: daily todo, isolated clone, validation gate, checkpoint, cleanup. It ships code only when the gate is real. | 把一个 blueprint 变成持续执行的 cron：每日 todo、隔离 clone、验证门、checkpoint、完成后清理。只有真实通过 gate 才算完成。 | 一つの blueprint を実行 cron に変えます。daily todo、隔離 clone、validation gate、checkpoint、cleanup まで持ちます。gate を通った実装だけを完了扱いにします。 |
 | `research-cron-builder` | Walks a codebase, writes research notes, tracks progress, runs workers, rotates keys, and stops itself when the map is complete. | 持续扫描代码库，写 research 文档，追踪进度，并行跑 worker，轮换 key，完成后自动停掉。 | コードベースを読み、research docs を書き、進捗を追い、worker と key rotation を管理し、完了したら自分で止まります。 |
 | `optimization-cron-builder` | Starts from a design idea, derives a bounded AR blueprint, researches each item, and pushes the repo toward clearer architecture. | 从设计理念出发，生成有边界的 AR blueprint，逐项研究，把仓库推向更清晰的架构。 | design philosophy から bounded AR blueprint を作り、項目ごとに調査し、repo をより明快な architecture へ寄せます。 |
-| `migration-cron-builder` | Converts Claude-first assets into Codex-ready artifacts one by one, with validation and cleanup. Useful craft should travel cleanly. | 把 Claude-first 的 agents、skills、hooks、rules、docs、templates、settings 逐个迁移成 Codex 可用资产，并做验证和清理。 | Claude-first の assets を Codex-ready な成果物へ一つずつ移します。検証と cleanup 付きです。良い craft をきれいに運びます。 |
+| `migration-cron-builder` | Converts one artifact contract into another: tool assets, docs language, programming language, API shape, schema, or runtime layout. Claude to Codex is just one preset. | 把一种 artifact contract 迁移成另一种：工具资产、文档语言、程序语言、API 形态、schema、runtime 布局都可以。Claude 到 Codex 只是一个 preset。 | 一つの artifact contract を別の contract へ移します。tool assets、docs language、programming language、API shape、schema、runtime layout に使えます。Claude to Codex は preset の一つです。 |
 
 ---
 
@@ -76,7 +76,7 @@ For a repository-local cron, call the matching skill by name:
 Use execution-cron-builder for this repo and this blueprint.
 Use research-cron-builder to research this codebase.
 Use optimization-cron-builder with this design philosophy.
-Use migration-cron-builder to migrate Claude assets to Codex.
+Use migration-cron-builder to migrate one artifact contract into another.
 ```
 
 ## What Makes b3ehive Different
@@ -94,7 +94,7 @@ Use migration-cron-builder to migrate Claude assets to Codex.
 - [execution-cron-builder](execution-cron-builder/SKILL.md) — blueprint-driven implementation cron
 - [research-cron-builder](research-cron-builder/SKILL.md) — code research cron
 - [optimization-cron-builder](optimization-cron-builder/SKILL.md) — design-guided optimization cron
-- [migration-cron-builder](migration-cron-builder/SKILL.md) — Claude-to-Codex migration cron
+- [migration-cron-builder](migration-cron-builder/SKILL.md) — generalized source-to-target migration cron
 - [SKILL.md](SKILL.md) — original PCTF debating specification
 - [config.yaml](config.yaml) — root configuration
 
