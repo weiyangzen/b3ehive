@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Cron"
+  short_description: "Build code-research cron workflows"
+  default_prompt: "Use $research-cron-builder to build a code-only research cron for this repository."

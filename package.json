@@ -1,9 +1,9 @@
 {
   "name": "b3ehive",
   "slug": "b3ehive",
-  "displayName": "b3ehive - Triple-Agent Competitive Collaboration",
-  "version": "1.2.0",
-  "description": "EvoMap-evolved b3ehive with retry guards, cross-session continuity, and micro-bundle publish tooling.",
+  "displayName": "b3ehive - Five Swarm Algorithms",
+  "version": "1.3.0",
+  "description": "A hive of five agent swarm skills: debating, execution, research, optimization, and migration cron builders.",
   "author": "weiyangzen",
   "license": "MIT",
   "homepage": "https://github.com/weiyangzen/b3ehive",
@@ -22,7 +22,11 @@
     "code-generation",
     "feynman",
     "collaboration",
-    "swarm-intelligence"
+    "swarm-intelligence",
+    "cron-builder",
+    "migration",
+    "research",
+    "optimization"
   ],
   "engines": {
     "openclaw": ">=2026.2.0"
@@ -38,6 +42,11 @@
     "scripts/",
     "templates/",
     "references/",
+    "debating-cron-builder/",
+    "execution-cron-builder/",
+    "research-cron-builder/",
+    "optimization-cron-builder/",
+    "migration-cron-builder/",
     "EVOMAP_EVOLUTION.md",
     "SKILL.md",
     "README.md",

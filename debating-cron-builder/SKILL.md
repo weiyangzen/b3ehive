@@ -1,11 +1,11 @@
 ---
-name: triad-orchestrator
-description: Run a three-agent tournament workflow for coding, research, planning, or evaluation tasks. Use when the user asks to launch three agents in parallel, compare multiple agent outputs, write results under run_a/run_b/run_c/implementation, perform verifier checks, cross-critique, update, select a best solution, or synthesize repair assignments.
+name: debating-cron-builder
+description: Run a three-agent debating workflow for coding, research, planning, or evaluation tasks. Use when the user asks to launch three agents in parallel, compare multiple agent outputs, write results under run_a/run_b/run_c/implementation, perform verifier checks, cross-critique, update, select a best solution, or synthesize repair assignments.
 ---
 
-# Triad Orchestrator
+# Debating Cron Builder
 
-Use this skill to turn one task into a structured three-agent workflow:
+Use this skill to turn one task into a structured three-agent debate:
 
 1. Create `run_a/implementation`, `run_b/implementation`, and `run_c/implementation`.
 2. Run three implementation agents in parallel.
@@ -19,9 +19,9 @@ Use this skill to turn one task into a structured three-agent workflow:
 Prefer the bundled script:
 
 ```bash
-python3 scripts/triad_orchestrator.py \
+python3 scripts/debating_cron_builder.py \
   --task "Improve this module and test the result" \
-  --output ./triad-runs/manual-test \
+  --output ./debating-runs/manual-test \
   --runner mock
 ```
 
@@ -38,9 +38,9 @@ Template variables available to `--command`:
 Example:
 
 ```bash
-python3 scripts/triad_orchestrator.py \
+python3 scripts/debating_cron_builder.py \
   --task "Refactor the scheduler" \
-  --output ./triad-runs/scheduler \
+  --output ./debating-runs/scheduler \
   --runner command \
   --command 'my-agent --agent {agent_id} --prompt-file {prompt_file}'
 ```

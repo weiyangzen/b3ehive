@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debating Cron Builder"
+  short_description: "Three-agent critique and selection swarm"
+  default_prompt: "Run a three-agent debating workflow: parallel implementations, verifier check, cross-critiques, updates, best-run selection, and final repair synthesis."

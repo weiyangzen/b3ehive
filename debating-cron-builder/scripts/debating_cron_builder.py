@@ -183,7 +183,7 @@ def run_agent(args, *, agent_id, run_id, stage, prompt, output_file):
 
 
 def orchestrate(args):
-    output = pathlib.Path(args.output or f"triad-runs/{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}")
+    output = pathlib.Path(args.output or f"debating-runs/{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}")
     args.output = str(output)
     plan = build_plan(args.task, output)
     for run in plan["runs"]:
@@ -202,7 +202,7 @@ def orchestrate(args):
                 write_text(run["paths"]["failure"], str(exc))
 
     if all(read_text(run["paths"]["failure"]) and not read_text(run["paths"]["result"]) for run in plan["runs"]):
-        write_text(output / "summary.md", "# Triad Orchestration Failed\n\nAll three implementation agents failed.")
+        write_text(output / "summary.md", "# Debating Cron Failed\n\nAll three implementation agents failed.")
         raise RuntimeError("all three implementation agents failed")
 
     verifier_report = run_agent(
@@ -247,12 +247,12 @@ def orchestrate(args):
     for run in plan["runs"]:
         final_repairs.extend([f"## {run['id']}", read_text(run["paths"]["final_repair"]) or "(empty)", ""])
     write_text(output / "final_repairs.md", "\n".join(final_repairs))
-    write_text(output / "summary.md", f"# Triad Orchestration Summary\n\nTask: {plan['task']}\nBest run: {best}\nOutput: {output}")
+    write_text(output / "summary.md", f"# Debating Cron Summary\n\nTask: {plan['task']}\nBest run: {best}\nOutput: {output}")
     return output, best
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Run a three-agent orchestration workflow.")
+    parser = argparse.ArgumentParser(description="Run a three-agent debating workflow.")
     parser.add_argument("--task", required=True)
     parser.add_argument("--output", default="")
     parser.add_argument("--runner", choices=["mock", "command"], default="mock")
@@ -260,7 +260,7 @@ def main(argv=None):
     parser.add_argument("--verifier-agent", default="verifier")
     args = parser.parse_args(argv)
     output, best = orchestrate(args)
-    print(f"Triad orchestration complete")
+    print(f"Debating cron complete")
     print(f"Best run: {best}")
     print(f"Output: {output}")
 

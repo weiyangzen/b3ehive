@@ -1,4 +1,4 @@
-# Triad Workflow Reference
+# Debating Workflow Reference
 
 ## Stages
 

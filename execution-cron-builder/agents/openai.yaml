@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execution Cron"
+  short_description: "Build blueprint execution cron workflows"
+  default_prompt: "Use $execution-cron-builder to build a blueprint-driven execution cron for this repository."

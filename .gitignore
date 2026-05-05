@@ -44,10 +44,13 @@ workspace/
 # Testing
 coverage/
 .nyc_output/
+__pycache__/
+*.pyc
 
 # Build outputs
 dist/
 build/
+output/
 *.tgz
 
 # Environment

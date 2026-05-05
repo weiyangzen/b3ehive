@@ -1,11 +1,11 @@
-# b3ehive Skill Specification
-## PCTF-Compliant Multi-Agent Competition System
+# debating-cron-builder Skill Specification
+## PCTF-Compliant Multi-Agent Debate System
 
 ---
 
 ## 1. Purpose (PCTF: Purpose)
 
-Enable competitive code generation where three isolated AI agents implement the same functionality, evaluate each other objectively, and deliver the optimal solution through data-driven selection.
+Enable competitive code generation where three isolated agents implement the same functionality, challenge each other objectively, and deliver the optimal solution through data-driven selection.
 
 ---
 
