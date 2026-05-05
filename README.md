@@ -7,19 +7,19 @@
 
 ## The B3ehive Philosophy
 
-I learned from one of the greatest physicists, **Richard Feynman**, whose nature was cheerful and whose intellect moved easily between worlds. He left behind the renowned **Feynman Technique**: learn by teaching.
+I learned from one of the greatest physicists, **Richard Feynman**, whose nature was cheerful and whose intellect moved easily between worlds. He left behind the renowned **Feynman Technique**: learn by teaching, and prove understanding by making the thing clear enough to survive contact with another mind.
 
-That is the seed of **b3ehive**. Let agents teach, argue, check, repair, and keep moving until the work is real. Not one clever answer. A small hive with rules.
+That is the seed of **b3ehive**. Let agents take a problem, give it a shape, divide the work, test the result, and keep moving until the work is real. Sometimes the hive debates. Sometimes it researches quietly. Sometimes it executes a blueprint, refines an architecture, or migrates one contract into another.
 
-This best result is still, fundamentally, **a teacher for humanity**.
+The best result is still, fundamentally, **a teacher for humanity**: not because it speaks well, but because it leaves a path another person can inspect, repeat, and improve.
 
 ### Why Swarms?
 
-Feynman would explain the same thing to a freshman, a colleague, and a child in three different ways. Three angles reveal what one angle hides.
+One agent is a voice. A swarm is an arrangement.
 
-Through **competition**, agents expose blind spots. Through **research**, they map the ground. Through **execution**, they ship. Through **optimization**, they refine. Through **migration**, they carry useful craft from one toolchain to another.
+Different work needs different arrangements. A hard decision may need **debate**. A long implementation needs **execution** with checkpoints. An unknown codebase needs **research**. A mature system needs **optimization**. A useful body of work trapped in the wrong language, runtime, or toolchain needs **migration**.
 
-**b3ehive** is not just code generation. It is collective work shaped like the scientific method: hypothesize, test, debate, conclude, then leave evidence.
+**b3ehive** is not just code generation. It is collective work shaped like the scientific method: observe the ground, choose the right organization, run bounded cycles, validate honestly, and leave evidence.
 
 ---
 
@@ -83,10 +83,10 @@ Use migration-cron-builder to migrate one artifact contract into another.
 
 | Traditional AI | b3ehive |
 |---|---|
-| Single answer | **Swarm process** |
-| One-shot output | **Iterative refinement** |
-| Hidden reasoning | **Inspectable artifacts** |
-| "Trust me" | **Pass the gate** |
+| One assistant, one shape | **Five swarm organizations** |
+| Prompt in, answer out | **Checklist, worker, validator, cleanup** |
+| Hidden state | **Inspectable specs, todos, logs, and artifacts** |
+| "Looks done" | **Pass the gate, then checkpoint** |
 
 ## Repository Map
 
@@ -100,10 +100,10 @@ Use migration-cron-builder to migrate one artifact contract into another.
 
 ## The Name
 
-**b3** = Build x 3  
+**b3** = Blueprint, Batch, Behavior  
 **hive** = Swarm intelligence
 
-> **Build x3, evaluate each other, and evolve.**  
+> **Choose the right swarm, run bounded work, and leave proof.**  
 > So called b3ehive.
 
 ## License
