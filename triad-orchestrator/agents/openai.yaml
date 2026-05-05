@@ -1,0 +1,4 @@
+interface:
+  display_name: "Triad Orchestrator"
+  short_description: "Three-agent critique tournament"
+  default_prompt: "Run a three-agent workflow: parallel implementations, verifier check, cross-critiques, updates, best-run selection, and final repair synthesis."
