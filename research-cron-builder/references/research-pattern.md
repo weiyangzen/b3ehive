@@ -20,23 +20,24 @@ operator-specific evidence directories in committed skill docs.
    - checkpoints progress locally
 4. Remove cron on completion.
 
-## Dual-Cursor Checklist Protocol
+## Checklist Protocol
 
 Research progress uses exactly three checkbox states, and the mark itself is the
 cursor state:
 
 - `[ ]` means not researched. The item is available for a researcher worker
   claim.
-- `[_]` means worker self-tested. The worker produced the required research
-  artifact, ran local output checks, and recorded evidence, but the master
-  curator has not accepted it.
+- `[_]` means worker-produced. The required source-tree-aligned research
+  artifact exists and is waiting for master curator acceptance. Worker self-test
+  files, JSON manifests, or separate evidence files are not required.
 - `[x]` means master accepted. The master curator verified one-to-one coverage,
   source-path alignment, index rows, substantive content, and required gates.
 
-Workers may only move `[ ] -> [_]`. The master lane is the only actor that may
-move `[_] -> [x]`. Cleanup, folder synthesis, and release gates require zero
-`[ ]` and zero `[_]` items. Daily todos must show separate counts for all three
-states and compute `unfinished = count([ ]) + count([_])`.
+The researcher/guard lane may move `[ ] -> [_]` by detecting the required
+non-empty research documents. The master lane is the only actor that may move
+`[_] -> [x]`. Cleanup, folder synthesis, and release gates require zero `[ ]`
+and zero `[_]` items. Daily todos must show separate counts for all three states
+and compute `unfinished = count([ ]) + count([_])`.
 
 Operational queue states such as `live`, `finished`, `curating`, `ok`, or
 `failed` may add detail in ledgers, but they do not replace the checkbox state.
@@ -93,6 +94,7 @@ Every research guard tick must run a bounded cleanup helper before launching or 
 - completed repos left running because cleanup never fires
 - unbounded guard logs, worker logs, or stale workspaces consuming local disk
 - workers marking `[x]` directly instead of stopping at `[_]`
+- requiring worker self-test JSON before recognizing existing research docs
 - treating `[_]` as accepted research for folder synthesis, cleanup, or
   release gates
 - losing `[_]` state when regenerating checklist or daily todo files

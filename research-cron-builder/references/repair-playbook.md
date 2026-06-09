@@ -4,9 +4,11 @@
 
 1. Stop the repo's workers.
 2. Regenerate `Docs/researches/blueprint_checklist.md`.
-3. Reconcile `[x]` marks by scanning existing research docs.
-4. Regenerate today's todo.
-5. Confirm counts before resuming workers.
+3. Reconcile `[_]` marks from existing source-tree-aligned `*_research.md`
+   files; do not require worker self-test JSON.
+4. Reconcile `[x]` marks only from artifacts that pass master validation.
+5. Regenerate today's todo.
+6. Confirm counts before resuming workers.
 
 ## When completed repos keep running
 
