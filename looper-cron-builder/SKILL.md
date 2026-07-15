@@ -5,79 +5,15 @@ description: Build or repair a resource-aware, reward-aware, ROI-tracked bridge 
 
 # Looper Cron Builder
 
-## Overview
+## Controller Contract
 
 Build a repository-local looper cron that monitors explicit bridge surfaces,
-bridge metrics, and DAG nodes, allocates bounded resource leases, launches loop
-daemon attempts, records compact evidence and reward signals, computes ROI,
-pauses loops that consume resources without reward, and resumes paused loops
-only after explicit re-funding plus a strategy change.
+bridge metrics, and DAG nodes; allocates bounded resource leases; launches loop
+daemon attempts; records compact evidence and reward signals; computes ROI;
+pauses resource-consuming loops with no reward; and resumes them only after
+explicit re-funding plus a strategy change.
 
-Looper is a feedback overlay, not a cycle inside the dependency graph:
-
-```text
-DAG = dependency order, still acyclic
-Bridge surface = level of state the loop is trying to move
-Bridge signal = evidence that can prove useful movement
-Bridge delta = before -> after movement on a bridge surface
-Loop daemon = conditional feedback actor around a node, surface, or metric
-Resource broker = budget, lease, pause, and resume authority
-Side-effect gate = boundary around risky writes, spend, publish, or deletion
-Evidence ledger = compact fact index for audit and master acceptance
-Looper log = multi-grain feedback evidence for target work and operating instruments
-Reward ledger = classification that a bridge delta or artifact produced value
-Master lane = only actor allowed to accept final completion
-```
-
-Do not add cyclic dependency edges to the DAG. Attach loop specs beside DAG
-nodes, bridge surfaces, or bridge metrics, and let the master lane close
-checklist items only after validation passes.
-
-Assume the strongest available LLM is already being used. Do not add heavy
-semantic scaffolding by default. Let the model handle relevance, fuzzy scope,
-strategy writing, bridge writing, failure explanation, and handoff synthesis.
-Looper owns resources, leases, concurrency, side effects, evidence, reward
-classification, ROI, pause/resume, operator signals, nested spend attribution,
-and master-only acceptance.
-
-Looper also owns the `LooperLog` surface. Every meaningful run may produce
-feedback for both:
-
-```text
-ObjectLoop: move the TargetObject toward accepted state [x].
-InstrumentLoop: record whether the InstrumentObject helped, blocked,
-over-spent, under-validated, or created friction.
-```
-
-The instrument loop may emit `looper_log` evidence `[_]` and backlog `[ ]`; it
-may not mutate accepted skill/tool/policy surfaces without EvidenceLint, ROI,
-ParetoGate, rollback, and master `[x]`.
-
-## Privacy And Generalization
-
-Generated looper specs, docs, prompts, ledgers, and examples must stay
-project-neutral unless the user explicitly asks for a private, local-only
-artifact.
-
-Public or committed Looper artifacts must not include:
-
-- private repository names
-- customer names
-- local absolute paths
-- personal evidence directories
-- internal product codenames
-- private strategy document paths
-- raw user conversations or account identifiers
-- vendor secrets, API keys, or billing identifiers
-
-Use generic labels such as `product_beta`, `repo_maintenance`,
-`benchmark_lane`, `claim_audit`, `customer_workflow`, `growth_experiment`, and
-`ops_review`. If a private name is necessary for local execution, keep it in
-`.cron/`, `.ops/`, `.b3ehive/looper/*.local.*`, or another ignored surface.
-
-## Core Objects
-
-Every Looper installation must define or deliberately omit these objects:
+Every Looper installation must define each object or deliberately omit it:
 
 ```text
 LoopSpec
@@ -101,9 +37,67 @@ ROILedger
 PauseResumePolicy
 ```
 
-`BridgeMetric` remains valid, but it is one `BridgeSignal` kind. Use
-`BridgeSurface`, `BridgeSignal`, and `BridgeDelta` when movement is qualitative,
-document-based, strategic, handoff-based, or otherwise broader than one metric.
+Their operating relationship is:
+
+```text
+DAG = dependency order, still acyclic
+Bridge surface = level of state the loop is trying to move
+Bridge signal = evidence that can prove useful movement
+Bridge delta = before -> after movement on a bridge surface
+Loop daemon = conditional feedback actor around a node, surface, or metric
+Resource broker = budget, lease, pause, and resume authority
+Side-effect gate = boundary around risky writes, spend, publish, or deletion
+Evidence ledger = compact fact index for audit and master acceptance
+Looper log = multi-grain feedback evidence for target work and operating instruments
+Reward ledger = classification that a bridge delta or artifact produced value
+Master lane = only actor allowed to accept final completion
+```
+
+Keep the DAG acyclic. Attach loop specs beside DAG nodes, bridge surfaces, or
+bridge metrics. The master lane closes checklist items after validation passes.
+
+Treat the selected agent route as the highest-capability route already
+available. It handles relevance, fuzzy scope, strategy writing,
+bridge writing, failure explanation, and handoff synthesis. Heavy semantic
+scaffolding stays outside the default controller. A project may add it through a
+project-specific validator or side-effect gate. Looper owns resources, leases,
+concurrency, side effects, evidence, reward classification, ROI, pause/resume,
+operator signals, nested spend attribution, and master-only acceptance.
+
+Every run with target or instrument feedback may record `LooperLog`
+feedback for both operating lanes:
+
+```text
+ObjectLoop: move the TargetObject toward accepted state [x].
+InstrumentLoop: record whether the InstrumentObject helped, blocked,
+over-spent, under-validated, or created friction.
+```
+
+The instrument loop may emit `looper_log` evidence `[_]` and backlog `[ ]`.
+Accepted skill, tool, or policy mutation requires EvidenceLint, ROI,
+ParetoGate, rollback, and master `[x]`.
+
+## Privacy And Generalization
+
+Generated looper specs, docs, prompts, ledgers, and examples stay
+project-neutral. An explicit user request for a private, local-only artifact
+permits private content only in that artifact.
+
+The following data stays out of public or committed Looper artifacts:
+
+- private repository names
+- customer names
+- local absolute paths
+- personal evidence directories
+- internal product codenames
+- private strategy document paths
+- raw user conversations or account identifiers
+- vendor secrets, API keys, or billing identifiers
+
+Use generic labels such as `product_beta`, `repo_maintenance`,
+`benchmark_lane`, `claim_audit`, `customer_workflow`, `growth_experiment`, and
+`ops_review`. Private names required for local execution stay in `.cron/`,
+`.ops/`, `.b3ehive/looper/*.local.*`, or another ignored surface.
 
 ## LoopSpec
 
@@ -186,9 +180,12 @@ bridge_level =
   context | handoff | memory | artifact | blueprint | strategy | metric | identity
 ```
 
+`BridgeMetric` is one valid `BridgeSignal` kind. Use `BridgeSurface`,
+`BridgeSignal`, and `BridgeDelta` for qualitative, document-based, strategic,
+handoff-based, or other movement broader than one metric.
+
 Rules:
 
-- `BridgeMetric` remains valid, but it is one bridge signal kind.
 - Feedback and durable operating facts are bridge surfaces, not a separate
   public subsystem.
 - Identity-level movement requires explicit master approval.
@@ -328,18 +325,18 @@ integration, nested depth, or cost/reward mismatch.
 
 ## EvidenceLedger
 
-Use compact evidence records, not full transcript adjudication. Each evidence
-record should name the loop, attempt, lease, input contract, owned paths,
-changed files, commands run, validation result, bridge delta refs, side-effect
-decisions, nested run refs, reward candidates, and master decision.
+Use compact evidence records rather than full-transcript adjudication. Each
+evidence record should name the loop, attempt, lease, input contract, owned
+paths, changed files, commands run, validation result, bridge delta refs,
+side-effect decisions, nested run refs, reward candidates, and master decision.
 
 ## LooperLog
 
 Use looper logs for multi-grain feedback evidence. A log can attach to the
-smallest feedback ring that the LLM should not close by itself, or to the whole
-task episode.
+smallest feedback ring whose closure belongs to later review or the master lane,
+or to the whole task episode.
 
-Each meaningful loop attempt has two observation lanes:
+Each loop attempt with target or instrument feedback has two observation lanes:
 
 ```text
 TargetObject = the task, DAG item, artifact, repo change, report, benchmark, or product signal being moved
@@ -593,6 +590,34 @@ print the resolved runner in validate-only output. Do not silently replace a
 requested model, service tier, permission mode, variant, profile, agent,
 toolset, or preloaded skill list.
 
+## Output Discipline And Anti-Slop Contract
+
+- Begin with the requested loop spec, evidence, decision, or action.
+- Give each sentence one checkable fact, rule, decision, consequence, or action.
+- Omit process narration, generic disclaimers, filler, restatements, and closing
+  recaps.
+- Use positive direct statements when truth conditions permit. Preserve
+  technical negation for permissions, safety gates, failure behavior,
+  pause/resume, privacy, and acceptance.
+- Preserve exact object names, field names, schema, enum values, paths, states,
+  numeric limits, gate conditions, and cursor order.
+- Omit unsupported connective assertions among artifacts, metrics, rewards,
+  ROI, decisions, or actions. Handle material uncertainty under the next rule.
+- When unresolved uncertainty changes correctness, safety, legality, a gate
+  decision, or the available action, state the exact unknown, condition, and
+  consequence.
+- Include a boundary only when it changes correctness, safety, legality, or the
+  available action; name the exact constraint and permitted path.
+- Keep the body within 10% above or below a user-supplied length target. With no
+  length target, return the shortest complete output that satisfies every
+  required schema and gate.
+- Verification output contains only the result, its evidence, and its
+  operational consequence.
+- Before delivery, silently check filler, repeated qualifications, empty
+  placeholders, privacy leaks, schema drift, enum drift, path drift, state
+  drift, numeric drift, cursor order, reward and ROI accounting, pause and
+  resume gates, permissions, and cleanup gates.
+
 ## Workflow
 
 1. Inspect the repository and identify the intended bridge surfaces, bridge
@@ -655,8 +680,8 @@ Before declaring a Looper ready:
 - verify looper_log entries exist when attempts produce target or instrument
   feedback at micro, skill, composition, scaffold, tool, or task grain
 - verify looper_log entries include TargetObject/target_feedback and
-  InstrumentObject/instrument_feedback when either side produced meaningful
-  evidence
+  InstrumentObject/instrument_feedback when either side produced evidence that
+  affects a decision, gate, reward, or backlog item
 - verify no-reward accumulator thresholds exist
 - verify ROI ledger fields exist
 - verify paused loops cannot resume without refund and strategy change
@@ -692,7 +717,9 @@ Before declaring a Looper ready:
 - letting heavy ROI reporting block worker refill
 - committing private metric names, local paths, or customer identifiers
 
-## What Not To Add By Default
+## Project-Specific Extensions
+
+Core Looper machinery excludes:
 
 - plan-understanding quizzes
 - draft relevance checkers
@@ -704,9 +731,9 @@ Before declaring a Looper ready:
 - separate looper-log public skill
 - new public bridge or feedback skill
 
-If a project explicitly needs one of these, model it as a project-specific
-validator or side-effect gate under an existing loop, not as core looper
-machinery.
+An explicit project requirement may add one of these as a project-specific
+validator or side-effect gate under an existing loop. It stays outside core
+Looper machinery.
 
 ## References
 

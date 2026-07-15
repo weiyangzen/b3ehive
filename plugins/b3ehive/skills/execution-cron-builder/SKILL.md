@@ -5,12 +5,9 @@ description: Build or repair a blueprint-driven execution cron for a repository 
 
 # Execution Cron Builder
 
-## Overview
+## Controller Contract
 
-Build a repository-local execution cron that wakes on a schedule, clones or syncs isolated automation repos, reads exactly one blueprint, keeps a dependency DAG for open checklist items, runs bounded agent-runner batches, validates real implementation, checkpoints commits, and removes its own cron when the blueprint is truly complete.
-Default gate posture is strict: no mock completion, and no upper-layer completion while finer layers remain open.
-Default commit posture is code-first: never commit cron/private artifacts, never commit tests from automation batches, and keep docs commits less than or equal to code commits per batch.
-Default orchestration posture is split-lane DAG aware: tmux workers claim implementation work in DAG/topological order up to the user-requested max concurrency, while the main session integrates, validates, and closes work strictly in DAG dependency order with conflict and completion gates enforced.
+Build a scheduled, repository-local controller around exactly one authoritative blueprint file and its execution checklist. Isolated `tmux` workers claim DAG-ordered implementation items up to the user's concurrency cap and submit self-tested evidence. The main session integrates, validates, checkpoints, and closes items in dependency order. Real implementation evidence, strict layer order, code-first commits, and the cleanup hard gate govern acceptance.
 
 ## Shared b3ehive Contract
 
@@ -18,28 +15,27 @@ For route selection, estimator decisions, nested calls, evidence handoff,
 looper_log capture, ROI, and self-evolution behavior, follow the suite contract
 in `../looper-cron-builder/references/b3ehive-bridge-contract.md`.
 
-Key local obligations:
+Local obligations:
 
-- Execution advances the target object through the DAG; worker output is `[_]`
-  and only the master/integration lane writes `[x]`.
-- Auto batch size, worker count, split threshold, validator choice, route, and
-  nested skill selection should leave `EstimatorPolicy` and `RouteDecision`
-  evidence when nontrivial.
+- Execution advances the target object through the DAG. Worker output is `[_]`;
+  only the master/integration lane writes `[x]`.
+- Nontrivial automatic choices of batch size, worker count, split threshold,
+  validator, route, or nested skill should leave `EstimatorPolicy` and
+  `RouteDecision` evidence.
 - Emit `looper_log` when execution exposes repeated validator failure, DAG
   split friction, worker prompt/root mismatch, integration bottleneck, stale
   scaffolding, hook/guard overreach, route waste, or tool integration friction.
 - Each `looper_log` must identify the `TargetObject` being implemented or
   integrated and the `InstrumentObject` that produced the signal: DAG split,
   worker batch, validator, guard, route, scaffold, tool, or skill composition.
-- Looper logs are evidence/backlog for improving the instrument set; they must
-  not block normal worker refill unless the issue is a hard safety gate.
+- Looper logs provide evidence and backlog for the instrument set. They do not
+  block normal worker refill unless the issue is a hard safety gate.
 - A looper-log-derived change to execution policy, guards, scaffolds, or skill
   text requires EvidenceLint, ROI, ParetoGate, rollback, and master `[x]`.
 
 ## Dual-Cursor Checklist State Protocol
 
-All execution checklists and generated todos must use exactly these three
-checkbox states:
+All execution checklists and generated todos must use exactly these three states:
 
 - `[ ]` means not done: unclaimed, not yet implemented, or still requiring a worker.
 - `[_]` means worker self-tested: worker output exists and the worker's local
@@ -49,20 +45,18 @@ checkbox states:
   the authoritative checkout, reran the required gates, reconciled completion
   surfaces, and accepted the item as complete.
 
-This is a two-cursor protocol, and the checkbox mark itself is the cursor
-state. The worker cursor advances items from `[ ]` to `[_]`. The master cursor
-advances items from `[_]` to `[x]`. Workers must never write `[x]`, and the
-scheduler must never treat `[_]` as done.
+The checkbox mark is the cursor state. The worker cursor advances `[ ] -> [_]`.
+The master cursor advances `[_] -> [x]`. Workers must never write `[x]`; the
+scheduler treats `[_]` as unfinished.
 
-Required behavior:
+Protocol:
 
 - Checklist parsers must recognize `[ ]`, `[_]`, and `[x]`; any other checkbox
   state is invalid.
 - Generated blueprints, todos, ledgers, progress tables, summaries, and status
-  commands must preserve this exact state vocabulary instead of inventing
-  aliases such as `done`, `pending`, `landed`, or `validated` as replacement
-  completion states. Extra fields may add detail, but the checkbox remains the
-  source of truth.
+  commands preserve this exact state vocabulary. Extra fields may add detail;
+  the checkbox remains the source of truth. They must not invent labels such as
+  `done`, `pending`, `landed`, or `validated` as replacement completion states.
 - Bootstrap generators initialize new items as `[ ]`.
 - Regenerators preserve existing `[ ]`, `[_]`, and `[x]` marks by item id and
   may only downgrade a mark when a guard has explicit evidence that the current
@@ -96,94 +90,13 @@ Required behavior:
 
 ## Workflow
 
-1. Inspect the repository and identify the single blueprint source.
-2. Freeze the execution boundary.
-   The cron must treat exactly one file as the requirement source.
-3. If the blueprint is prose-first, generate an authoritative execution checklist section into that same blueprint before enabling cron.
-   Initialize every execution item as `[ ]` on first bootstrap, preserve existing `[_]` and `[x]` states on regeneration, and generate daily todos from that authoritative checklist section only.
-4. Add private `.ops/` and `.cron/` helpers locally and hide them from git where appropriate.
-5. Create the four required pieces:
-   - authoritative checklist/bootstrap generator
-   - blueprint/todo generator
-   - execution guard
-   - cron installer
-   - cron cleanup script
-6. Run `VALIDATE_ONLY=1` once before enabling cron.
-   `VALIDATE_ONLY=1` is a dry gate only: it must validate configuration, DAG shape, sync state, and budgets, then exit without spawning or claiming workers. Never use validate-only for an execution tick whose purpose is to fill worker lanes.
-7. Install cron only after the automation repo, checklist bootstrap, blueprint seeding, and todo generation all work.
-8. Keep the batch size small and cluster-bounded.
-   For fragmented small files, merge same-directory file tasks into one batch with combined source size <=100KB; if a single file is >100KB, allow it as a single-file batch.
-9. Enforce strict layer gating: only execute the finest still-open layer; if lower layers are open, upper layers must stay unchecked.
-   If a tick finds upper-layer `[x]` while lower layers are still open, auto-reset the violating upper-layer `[x]` items to `[ ]`, report the correction, and continue from the lower layer.
-10. Treat the main session as the integration/master lane, not only a scheduler.
-   The main session may claim checklist items under the active user goal, but its default responsibility is to merge worker output, enforce DAG dependencies, validate the combined tree, and clear merge/conflict blockers caused when worker worktrees or automation branches are merged back to `main`.
-11. Generate todos with the current dependency DAG for all unfinished checklist items.
-   The todo must list item ids, dependency ids, worker-claim order state, integration-ready/blocked state, claimed worker/session, owned paths, and the main-session integration frontier.
-   The DAG must be acyclic; cycle detection is a hard todo-generation failure.
-12. When launching new `tmux` agent workers, use user-saturated ordered DAG concurrency instead of ready-frontier lane limiting.
-   `worker_count = user_max_concurrency - live_worker_count`, capped by the count of unclaimed open DAG nodes available in topological order.
-   Workers must claim nodes from the earliest still-open layer/cluster in stable DAG/topological order, but worker spawn is not blocked by unfinished dependencies or overlapping path families. Dependent or path-overlapping worker results are provisional until the main session integrates them in DAG dependency order.
-13. Maintain a claim ledger for tmux workers.
-   The ledger must record item id, original blueprint id, dependency ids, session name, slot, workspace path, status, claim time, and owned path scopes. Todo generation must display each open item's claim state as `live:<session>`, `finished:<session>`, or `unclaimed`, and must include the claim ledger path.
-14. Every newly launched `tmux` agent worker must use the selected platform's requested/latest high-capability model and effort settings.
-   Honor explicit environment/config values such as `B3EHIVE_AGENT_PLATFORM`, `B3EHIVE_AGENT_RUNNER`, `CODEX_MODEL`, `CODEX_REASONING_EFFORT`, `CODEX_SERVICE_TIER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CLAUDE_PERMISSION_MODE`, `OPENCODE_MODEL`, `OPENCODE_VARIANT`, `OPENCODE_AGENT`, `OPENCLAW_PROFILE`, `OPENCLAW_AGENT`, `OPENCLAW_THINKING`, `HERMES_MODEL`, `HERMES_TOOLSETS`, and `HERMES_SKILLS`; do not silently replace a requested service tier, permission mode, variant, agent, profile, toolset, or preloaded skill list. If no platform-specific runtime option is specified, the cron may choose its repo default and must print that value in the guard output.
-15. Add a main-session integration queue for landed worker outputs.
-   The queue must scan claimed worker workspaces, report changed files and diff byte counts, detect path conflicts, and classify outputs whose combined diff is <=256KiB as small-diff batch candidates.
-16. Keep worker claim and master integration as separate cursors.
-   The worker cursor is saturated from open DAG nodes whose claim state is `unclaimed` or `live`; `finished` claims correspond to `[_]` checklist items, belong to the master integration queue, and must not consume worker capacity or stop later unclaimed nodes from being claimed.
-   Todo generation must show both cursors: the worker claim frontier for concurrency filling, and the master integration frontier/queue for DAG-ordered validation and closure.
-   Heavy integration queue scans must not block worker refill; run them after refill, incrementally, or behind an explicit refresh flag.
-17. Allow batch integration of small worker diffs, with strict closure gates.
-   The main session may batch apply multiple worker diffs when their combined diff is <=256KiB and path conflicts are absent or explicitly resolved. It must still validate and close checklist items in DAG dependency order, and must update the authoritative blueprint/todo after each accepted closure or coherent validated batch.
-   Batch application is an integration acceleration path, not a dependency bypass: apply the non-conflicting diffs together, run validation on the combined tree, then write `[x]` marks only for the longest dependency-ordered prefix whose gates pass.
-18. After every successful batch, sync completion back to the authoritative blueprint and refresh today's todo in the main repo.
-   Worker batches may sync only `[_]` marks and evidence; only the main/master lane may sync `[x]` marks.
-19. Enforce documentation reconciliation as a success gate:
-   - if a batch closes checklist items, all required completion surfaces must be updated in the same batch (for example `Overall Blueprint + Stage Blueprint + today's todo`)
-   - todo references must use stable repository paths, never automation clone absolute paths
-   - "code done but completion docs stale" is a failed tick and must trigger a repair batch
-20. If the same `[ ]` item remains unresolved for repeated ticks (default >=5), auto-split it into child checklist items in the blueprint, regenerate today's todo, and notify the human with the split details.
-21. Clean up the cron when the blueprint is complete and validation passes.
-   Cleanup must use hard conditions:
-   - authoritative blueprint has zero `[ ]` items
-   - authoritative blueprint has zero `[_]` items
-   - latest todo snapshot shows `Unfinished = 0`
-   - no running selected agent-runner process in automation repos
-   - no pending checkpoint artifact remains
-   - cleanup script succeeds and cron entry is actually removed
-22. Enforce commit-surface policy at checkpoint time:
-   - never stage/commit `.cron/`, `.ops/`, logs, state, generated todo snapshots, model binaries
-   - never stage/commit `spec/` or `tests/` changes from execution batches
-   - reject batch commit when staged docs files outnumber staged code files
-   - reject docs-only batch commits
-   - classify executable validation assets that live under docs-style folders as `code/evidence`, not prose docs
-   - at minimum, treat paths like `Docs/Stage3IOSPathValidation/**` and `Docs/scripts/*.sh` as `code/evidence` during commit hygiene counting
-23. Enforce sync-first push policy:
-   - before coding (at tick start) and before checkpoint commit, local authoritative repo must `fetch --prune` + `ff-only` sync
-   - at tick start, explicitly verify development machine branch HEAD equals remote tracking HEAD; if not equal, block the tick before any implementation
-   - after every successful push, local authoritative repo must be synced again and verified equal to remote HEAD
-   - if local sync fails (dirty tracked changes, detached HEAD, non-ff, or network failure), block the tick and do not treat batch as success
-24. Add a `repo force sync` best-practice path for stuck ticks:
-   - trigger condition: repeated sync blocks caused by local tracked changes
-   - sequence: `stash -u` -> `fetch --prune` + `pull/rebase or ff-only merge` -> `stash pop`
-   - if `stash pop` conflicts, stop and resolve conflicts explicitly, then run one consolidation commit+push
-   - always log the force-sync attempt and result so operators can audit it later
-25. Add lock hygiene when the guard uses `flock` and also spawns `tmux` workers:
-   - never let the scheduler's locked file descriptor leak into `tmux new-session`, `tmux new-window`, or `tmux respawn-pane`
-   - explicitly close the lock fd on those launches (for example `9>&-`) before `tmux` starts its server/client process tree
-   - keep scheduler/global state separate from worker/slot state so a no-focus worker cannot overwrite the scheduler's authoritative status
-   - if a historical lock was already leaked into a long-lived `tmux` server, rotate the lock path version or restart the affected `tmux` server/session before resuming cron
-26. Ensure worker prompts use the actual automation clone as `Repository root`.
-   If a worker process is launched with `cd .cron/automation_repo_slotN`, the prompt must name that clone path as the repository root and explicitly forbid direct edits to the scheduler's authoritative checkout.
-   Never put the main checkout path in a worker prompt unless the worker is intentionally running in the main checkout.
-27. Treat claim and dirty-sync recovery as part of the guard, not manual cleanup:
-   - release claims for items that are already closed in the authoritative blueprint
-   - release claims for still-open items when the assigned worker process is no longer alive
-   - detect active workers with self-match-safe process patterns such as `[c]odex exec...`
-   - if the main checkout has tracked dirty files and no active workers, stash with an audit label before syncing
-   - if tracked dirty files exist while workers are active, block protectively instead of stashing their live work
-28. Add a disk/log budget guard before installing or repairing cron.
-   The guard must run at the start of every scheduler tick, before spawning workers, and must block new workers when budgets are exceeded.
+1. Inspect the repository, identify the single blueprint requirement file, and freeze its execution boundary. Exactly one file serves as the requirement source.
+2. Add an authoritative checklist to a prose-first blueprint. Seed new items as `[ ]`; preserve existing `[_]` and `[x]` marks by item id.
+3. Create the checklist/bootstrap generator, daily todo generator, execution guard, cron installer, and cleanup script. Keep `.ops/` and `.cron/` private.
+4. Create or sync the isolated automation repos and seed any intentionally local blueprint.
+5. Run `VALIDATE_ONLY=1` once before enabling cron. This dry gate validates configuration, DAG shape, sync state, and budgets, then exits before worker claims or process launch. Never use validate-only for an execution tick whose purpose is to fill worker lanes.
+6. Install cron after the automation repo, checklist bootstrap, blueprint seeding, todo generation, and validate-only gate pass.
+7. Run each tick through the guard protocol below: sync, prune claims, generate the DAG, refill workers, integrate landed output, validate, checkpoint, reconcile completion surfaces, and clean up when every hard signal passes.
 
 ## Agent Platform Compatibility
 
@@ -238,12 +151,22 @@ output must print the resolved platform, model/effort/variant/profile settings,
 permission/service-tier/agent setting, and command template without leaking
 secrets.
 
+Explicit runtime settings are authoritative: `B3EHIVE_AGENT_PLATFORM`,
+`B3EHIVE_AGENT_RUNNER`, `CODEX_MODEL`, `CODEX_REASONING_EFFORT`,
+`CODEX_SERVICE_TIER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`,
+`CLAUDE_PERMISSION_MODE`, `OPENCODE_MODEL`, `OPENCODE_VARIANT`,
+`OPENCODE_AGENT`, `OPENCLAW_PROFILE`, `OPENCLAW_AGENT`,
+`OPENCLAW_THINKING`, `HERMES_MODEL`, `HERMES_TOOLSETS`, and `HERMES_SKILLS`.
+Each new worker uses the selected platform's requested or latest high-capability
+model and effort. When no platform-specific runtime option is set, the cron may
+choose a repo default and must print the chosen value in guard output.
+
 ## Required Components
 
 ### Blueprint / Todo Surface
 
 Requirements:
-- Use exactly one blueprint requirement source.
+- Use exactly one file as the blueprint requirement source.
 - Put the authoritative execution checklist in that same blueprint.
 - If the blueprint starts as prose, generate an execution checklist section into the blueprint and seed it with all `[ ]` marks before the first cron tick.
 - Generate a daily `todos_YYYYMMDD.md` from that authoritative checklist section.
@@ -254,9 +177,11 @@ Requirements:
   - worker claim state and integration-ready/blocked state
   - claim owner, if any
   - owned path scope
-  - worker claim frontier, main-session integration frontier, and user concurrency saturation status
+  - worker claim frontier, main-session integration frontier/queue, and user concurrency saturation status
   - cycle detection result
 - Daily todos must show separate counts for `[ ]`, `[_]`, and `[x]`.
+- Daily todos display every open item's claim state as `live:<session>`,
+  `finished:<session>`, or `unclaimed`, plus the claim ledger path.
 - `[_]` items must appear in an integration-ready or integration-blocked section, never in the worker-claim section unless a repair child was generated.
 - Successful batches must update the authoritative blueprint and then refresh today's todo.
 - Worker successful batches update assigned items to `[_]`; master successful integration batches update accepted items to `[x]`.
@@ -281,18 +206,27 @@ Requirements:
 - Local authoritative repo must also stay synced (`fetch + merge --ff-only`) so "remote updated but local stale" is impossible by design.
 - Newly launched `tmux` agent workers must honor the selected platform configuration; for Codex, preserve the requested service tier in `codex exec`; for Claude Code, preserve the requested `--permission-mode`; for opencode, preserve the requested `--variant` and `--agent`; for OpenClaw, preserve profile, agent, and thinking level; for Hermes, preserve model, toolsets, and preloaded skill list; if unset, use and print the repo default.
 - Worker count is saturated from the todo DAG order: never exceed the user's max concurrency, but do not reduce worker count merely because dependencies are unfinished or owned paths overlap.
-- The main session is allowed to claim work directly, but should preferentially own integration, validation, dependency-gated closure, merge, and conflict-unblocking tasks when worker branches/worktrees land.
+- Compute `worker_count = user_max_concurrency - live_worker_count`, capped by
+  unclaimed open DAG nodes available in topological order.
+- The main session may claim work under the active user goal. It should
+  preferentially own integration, validation, dependency-gated closure, merge,
+  and conflict-unblocking when worker branches or worktrees land.
 - Workers must not mark checklist items `[x]`. Their terminal success state is `[_]` plus evidence.
 - The main session is the only actor allowed to promote `[_]` to `[x]`.
 - Worker prompt root rule:
   - the prompt's `Repository root` must equal the automation clone path where the command is launched
+  - a worker launched with `cd .cron/automation_repo_slotN` names that clone as `Repository root`
   - include a line like `Work only inside this worker automation clone: <clone path>`
   - include a line like `Do not edit the scheduler's authoritative checkout directly: <main checkout path>`
+  - the main checkout path may appear as that forbidden target; it may serve as
+    `Repository root` only when the worker intentionally runs in the main checkout
   - generated todos, evidence paths, and blueprint references inside committed files must remain stable repo-relative paths, not clone absolute paths
 
 ### Execution Guard
 
 Requirements:
+- Run the disk/log budget guard before installing or repairing cron and at the
+  start of every scheduler tick before worker spawn.
 - Maintain `.cron/*state`, log, block-count, pending-checkpoint, and last-message files.
 - Enforce disk/log safety on every tick before worker spawn:
   - default `MIN_FREE_GB=30`; if the Data/root volume has less free space, run cleanup and refuse to start new workers
@@ -321,13 +255,20 @@ Requirements:
   The scheduler must fill available worker slots from the ordered DAG claim frontier up to the user concurrency cap, even when those nodes depend on earlier unfinished work or touch overlapping path families.
   Mark such outputs as provisional and let the main session decide merge order, conflict resolution, validation, and closure.
 - Implement worker and master ledgers as independent queues.
-  The worker claim ledger records reservations and liveness; only `live` reservations reduce available worker lanes.
+  The worker claim ledger records item id, original blueprint id, dependency ids,
+  session name, slot, workspace path, status, claim time, owned path scopes,
+  reservations, and liveness; only `live` reservations reduce available worker lanes.
   `finished` reservations are inputs to the integration queue and must not prevent the scheduler from scanning forward to later unclaimed open DAG nodes.
   Refresh worker self-test manifests into the claim ledger at the start of every guard tick, including drain/no-new-claim mode.
   Drain mode may disable new claims, but it must still promote completed worker self-tests from `live` or `selftest_missing` to `finished` and regenerate the todo so the worker cursor cannot freeze behind stale ledger state.
   Self-test manifest lookup must accept both session-only and item-qualified names, for example `worker_12.json` and `item_id.worker_12.json`.
   The integration queue records landed outputs, diff bytes, changed files, path conflicts, validation hints, and small-diff batch eligibility.
-  Refreshing that integration metadata is master work and must not be placed on the critical path before worker refill unless the operator explicitly requests it.
+  It scans claimed worker workspaces, reports changed files and diff byte counts,
+  detects path conflicts, and classifies combined diffs `<=256KiB` as small-diff
+  batch candidates.
+  Heavy integration queue scans are master work and must not block worker
+  refill; run them after refill, incrementally, or behind an explicit refresh
+  flag.
 - When high concurrency is requested, parallelize worker preparation safely.
   Select claim items in stable DAG/topological order under one lock, append reservations atomically, then prepare isolated workspaces and start `tmux` sessions with bounded parallelism.
   Use a configurable preparation fan-out so clone/rsync/startup overhead does not make a 90-lane request behave like a serial launcher.
@@ -337,29 +278,34 @@ Requirements:
   - if one file alone exceeds 100KB, run it as a single-file batch (do not skip)
 - Enforce strict layer order when the blueprint defines layered work.
   - Allow execution only in the finest still-open layer.
-  - If any lower-layer items remain unchecked, upper-layer items must stay unchecked.
-  - If upper-layer `[x]` is detected while lower-layer `[ ]` still exists, auto-reset those upper-layer `[x]` items to `[ ]` in the authoritative blueprint, regenerate todo, and continue.
+  - If any lower-layer item remains `[ ]` or `[_]`, upper-layer items must stay unchecked.
+  - If upper-layer `[x]` is detected while a lower-layer `[ ]` or `[_]` item remains, auto-reset those upper-layer `[x]` items to `[ ]` in the authoritative blueprint, report the correction, regenerate the todo, and continue from the lower layer.
   - Block only when autoclear is disabled or re-validation still fails after autoclear.
-- Detect repeated unresolved items: when the same checklist item remains unresolved for repeated ticks (default >=5), split it into child checklist items and sync blueprint/todo.
+- Detect repeated unresolved items: when the same checklist item remains unresolved for repeated ticks (default >=5), split it into child checklist items, sync the blueprint and todo, and notify the human with the split details.
 - Parent-child closure rule: if all child checklist items are `[x]`, auto-close parent as `[x]`; if any child is `[ ]`, parent must remain `[ ]`; if any child is `[_]` and none are `[ ]`, parent may become `[_]` but not `[x]`.
 - Record milestone progress counts for successful commit/push batches when the repo uses notifications.
 - Treat the main session as worker id `main-session` for integration claims, progress, and conflict cleanup.
   The main session may claim integration-ready DAG nodes under the active goal and may claim repair nodes that unblock merge/rebase conflicts from worker worktrees.
-  Conflict cleanup must be explicit: identify both sides, preserve user/worker changes where possible, run validation, and checkpoint the consolidation only after the merged tree is coherent.
+  Conflict cleanup must be explicit: identify both sides, preserve user/worker changes where possible, run validation, and checkpoint the consolidation only after the merged tree is coherent. Clear blockers created when worker worktrees or automation branches merge back to `main`.
 - On success, checkpoint and push changes, then sync completion back to the main blueprint and today's todo.
 - Worker success means `[_]`; master success means `[x]`.
 - Treat incomplete completion-surface backfill as a hard failure (for example: stage blueprint updated but overall blueprint or today's todo not updated when required).
+- A batch that closes items reconciles every required completion surface in the
+  same batch, including `Overall Blueprint + Stage Blueprint + today's todo`
+  when those surfaces exist. Code completion with stale completion docs creates
+  a repair batch and fails the tick.
 - On no-op completion, validate and then stop instead of inventing work.
 - Enforce commit-surface filtering before commit:
   - hard-drop `.cron/`, `.ops/`, logs/state artifacts, generated todo files, and model binaries from staged set
   - hard-drop `spec/` and `tests/` from staged set
   - fail commit when `docs_count > code_count` or when `code_count == 0` and `docs_count > 0`
   - if a repo keeps runnable validation packages or executable scripts under `Docs/`, classify those paths as `code/evidence` instead of prose docs for commit hygiene
-  - at minimum, treat paths like `Docs/Stage3IOSPathValidation/**` and `Docs/scripts/*.sh` as `code/evidence` when they contain runnable validation logic
+  - at minimum, treat paths like `Docs/Stage3IOSPathValidation/**` and `Docs/scripts/*.sh` as `code/evidence`
 - Enforce sync gate around push:
   - start-of-tick sync check: local authoritative repo must complete `fetch --prune` + `ff-only` sync and HEAD equality verification before any coding
-  - pre-commit sync check: local authoritative repo must be clean enough for `ff-only` sync
+  - pre-commit sync check: local authoritative repo must complete `fetch --prune` plus `ff-only` sync before checkpoint commit
   - post-push sync check: local authoritative repo must fast-forward to and match remote HEAD
+  - dirty tracked changes, detached HEAD, non-fast-forward divergence, or network failure block the tick and its success state
   - never swallow sync errors with `|| true` on the success path
   - when blocked by local tracked changes, prefer a bounded `repo force sync` (`stash -u` -> sync -> `stash pop`) before escalating to manual intervention
 - Enforce live claim hygiene:
@@ -367,6 +313,7 @@ Requirements:
   - remove claims for completed blueprint items
   - remove claims for open items whose worker pid/process is gone
   - keep claims for open items whose worker process is still live
+  - detect active workers with self-match-safe patterns such as `[c]odex exec...`
   - append released claims to an audit ledger with timestamp, original claim time, item id, and worker id
   - run stale-claim pruning before sync and again after sync, so a dirty main checkout cannot trap stale reservations forever
 - Enforce safe dirty-sync behavior:
@@ -374,11 +321,19 @@ Requirements:
   - if tracked dirty files exist and no worker is active, create an audit-named `git stash push -u`, then `fetch --prune` and `merge --ff-only`
   - after syncing, verify local HEAD equals upstream HEAD before spawning workers
   - never auto-apply a stash during the success path; stash-pop conflicts require explicit operator repair
+  - repeated sync blocks caused by local tracked changes trigger an audited operator recovery path:
+    `stash -u` -> `fetch --prune` plus `pull/rebase or ff-only merge` ->
+    `stash pop`; a pop conflict stops automation until explicit resolution and
+    one consolidation commit plus push
+  - log every force-sync attempt and result
 - For multi-worker mode, use a scheduler lock plus worker-specific locks.
 - When lock files are managed with `flock`, treat lock-fd inheritance as a first-class failure mode:
-  - close the held lock fd before every `tmux` spawn/respawn path
+  - close the held lock fd, for example with `9>&-`, before `tmux new-session`,
+    `tmux new-window`, and `tmux respawn-pane`
   - keep workers on their own state files instead of sharing the scheduler state file
   - if the guard reports repeated "previous run still active" while no real scheduler is active, inspect inherited lock holders (for example `/proc/<pid>/fd/*`) and repair before continuing
+  - repair a historical lock leaked into a long-lived `tmux` server by rotating
+    the lock-path version or restarting the affected server or session
 - Prefer split-lane DAG ownership over worker-side dependency throttling:
   - workers own `[ ]` implementation claims from the first-open layer/cluster in stable DAG/topological order, up to the user concurrency cap
   - the main session owns `[_]` integration closure, validation, dependency gating, and merge/conflict repair by default
@@ -387,9 +342,11 @@ Requirements:
   - maintain a queue of landed worker outputs with item id, dependencies, owned paths, changed files, diff bytes, and validation command hints
   - group non-conflicting landed outputs when the combined diff is <=256KiB
   - apply the group as one coherent integration batch, validate the combined tree once or with the smallest sufficient validator set, then close items in DAG order only after each item's gates pass
+  - write `[x]` only for the longest dependency-ordered prefix whose gates pass
   - if a later item in the applied group passes code validation but an earlier dependency is not closable, leave the later item provisional in the todo/queue rather than checking it in the blueprint
   - report both worker saturation and integration throughput so operators can distinguish spawn underfill from master validation bottlenecks
-- Only the integration owner should update the authoritative blueprint/todo after integrated validation; other workers should land code and evidence only.
+- Worker batches may sync only `[_]` marks and evidence; only the integration
+  owner may sync `[x]` marks after integrated validation.
 
 ### Cron Space Guard
 
@@ -417,8 +374,8 @@ Requirements:
 A blueprint item may be checked only when all required gates pass.
 
 Minimum gate set:
-- operable entry: CLI, service, console, or UI entry actually works
-- foundation completion: model/algorithm artifacts are really downloaded and runnable; never accept mock weights or fake inference paths
+- operable entry: the CLI, service, console, or UI entry works in its intended operating mode
+- foundation completion: model or algorithm artifacts are downloaded and runnable; mock weights or fake inference paths each fail the gate
 - feature implemented: input -> run -> result -> evidence path is real
 - feature completion: expose a real API path, run a successful call, and verify output quality matches expected behavior
 - algorithm complete: core data/model/scheduling/retrieval logic exists with real inputs/outputs
@@ -433,6 +390,9 @@ Bootstrap and reporting rule:
 Cleanup hard-gate rule:
 - Cron cleanup must not be triggered by blueprint-only signal.
 - Require at least these signals at the same tick: blueprint `[ ]` count=0 + blueprint `[_]` count=0 + latest todo `Unfinished=0` + no active automation agent-runner process + no pending checkpoint files.
+- Parsers may accept the legacy display variant `Unfinished = 0`; generators emit
+  the canonical `Unfinished=0` form.
+- Require current-tick validation to pass before cleanup.
 - Set final state to `completed` only after cleanup script succeeds and crontab no longer contains the target guard line.
 
 Do not mark items done for:
@@ -473,12 +433,11 @@ accounting, and ROI. Execution outputs remain provisional until the master lane
 integrates them in DAG order and validates the authoritative checkout.
 
 Nested execution should emit `looper_log` refs when implementation attempts
-teach something about the instrument set: bad batch grain, missing validator,
+produce instrument evidence: mismatched batch grain, missing validator,
 worker/root confusion, integration bottleneck, route mismatch, guard friction,
 or scaffold/tool weakness.
-The log should separate target feedback from instrument feedback so later
-review can tell whether the implementation item was hard or the execution
-machinery needs adjustment.
+The log should separate target feedback from instrument feedback, distinguishing
+implementation difficulty from execution-instrument defects.
 
 ## Validation
 
@@ -488,6 +447,31 @@ Examples:
 - Rust/Tauri repos: `cargo check`, `cargo test`
 - Python repos: `uv sync --extra dev`, `uv run pytest -q tests`
 - Node repos: `npm`/`pnpm` install plus actual test/build commands
+
+## Output Discipline
+
+- Begin with the requested blueprint, checklist state, implementation result,
+  gate decision, evidence, or action.
+- Give each sentence one fact, condition, decision, action, result, or constraint.
+- State supported claims directly. Omit unsupported connective claims and
+  decorative inference.
+- When unresolved uncertainty changes correctness, safety, legality, a gate
+  decision, or the available action, state the exact unknown, condition, and
+  consequence.
+- Include a boundary only when it changes correctness, safety, legality, or the
+  available action; name the exact constraint and permitted path.
+- Report validation as result, evidence, and consequence. Omit process
+  diaries, routine check narration, previews, restatements, recaps, and generic
+  closing offers.
+- Preserve exact paths, commands, identifiers, states, counts, thresholds,
+  evidence, user-required sections, and safety gates.
+- When the user supplies a target length, keep the delivered output within plus
+  or minus 10 percent. With no target, use the shortest complete output
+  supported by the artifacts and evidence.
+- Before delivery, silently scan prose word by word for stock meta-talk,
+  defensive comparison frames, repeated qualifications, vague fillers, empty
+  placeholders, and generic recommendation lead-ins. Replace them with facts or
+  actions while preserving technical negation and exact strings.
 
 ## Local References
 
