@@ -9,31 +9,32 @@
 [![Hermes Skill](https://img.shields.io/badge/Hermes-Skill-purple)](https://hermes-agent.nousresearch.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **"Fake it until make it"** — The Feynman Way
-
-## b3ehive 是什么
-
-b3ehive 是一组面向 agent 工作的五个 swarm algorithms。它不是单纯的代码生成提示词，而是把工作组织成可检查、可验证、可继续的流程：先观察真实上下文，选择合适组织形态，运行有边界的 worker 循环，通过 validation gate 后再 checkpoint。
+b3ehive 提供五个面向 agent 工作的 swarm skills。每个 skill 定义职责、边界、
+验证门和 cleanup 规则，把工作组织成可检查、可验证、可继续的有界流程。其设计
+受 Feynman Technique 启发，以清晰说明、可检查步骤和可重复证据呈现理解程度。
+每项 workflow 均先观察任务实况，再选择组织形态、运行有界循环、验证结果并留下
+可供他人检查、复现和改进的证据。
 
 ## 五个 Skills
 
 | Skill | 作用 |
 |---|---|
-| `compete-cron-builder` | 多方案竞争：`n` workers、`m` proposals、`choose k`、coverage union、repair queue、blueprint synthesis。 |
-| `execution-cron-builder` | 把一个已确认 blueprint 变成可执行 cron：daily todo、DAG、worker/master 双通道、validation gate、checkpoint、cleanup。 |
-| `learn-cron-builder` | 把 source scope 学成可验证 artifacts：code-to-human notes、subset learning、code-to-code transform、human-language translation。 |
-| `optimization-cron-builder` | 根据 design philosophy 生成 `Stage_*_AR_Blueprint.md`，并为每个 architecture refinement item 产出 research doc。 |
-| `looper-cron-builder` | 给长期或反复尝试加 resource-aware bridge controller：lease、side-effect gate、evidence、reward、ROI、pause/resume。 |
+| `compete-cron-builder` | 运行有边界的方案竞争：`n` 个 workers、`m` 个 proposals、`choose k`、coverage union、repair queue 和 blueprint synthesis。 |
+| `execution-cron-builder` | 把一个已确认的 blueprint 转成 execution cron：daily todo、DAG、worker/master 双通道、validation gate、checkpoint 和 cleanup。 |
+| `learn-cron-builder` | 把 source scope 转成可验证 artifacts：code-to-human notes、subset learning、code-to-code transform 和 human-language translation。 |
+| `optimization-cron-builder` | 根据 design philosophy 生成 `Stage_*_AR_Blueprint.md` 和逐项 architecture-refinement research docs。 |
+| `looper-cron-builder` | 为反复尝试建立 resource-aware bridge controller：lease、side-effect gate、evidence、reward、ROI 和 pause/resume。 |
 
 ## Dual-Cursor Checklist Protocol
 
-执行和学习类 workflows 使用同一个进度语法：
+execution 和 learn workflows 共用一套进度语法：
 
-- `[ ]` 表示未完成，仍可被 worker claim。
+- `[ ]` 表示未完成，worker 可以 claim。
 - `[_]` 表示 worker 已自测，等待 master integration 或 curation。
 - `[x]` 表示 master 已验证、集成并接受。
 
-worker 只能把 `[ ]` 推进到 `[_]`。只有 master lane 可以把 `[_]` 推进到 `[x]`。cleanup 要求没有 `[ ]` 和 `[_]`。
+worker 只能执行 `[ ] -> [_]`；只有 master lane 可以执行 `[_] -> [x]`。
+cleanup 要求 `[ ]` 和 `[_]` 均为零。
 
 ## 安装
 
@@ -45,7 +46,9 @@ git clone https://github.com/weiyangzen/b3ehive.git
 
 ### Codex Plugin
 
-b3ehive 作为 Codex plugin package 位于 [`plugins/b3ehive`](plugins/b3ehive/README.zh-CN.md)。仓库也提供 marketplace catalog： [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json)。
+Codex plugin package 位于
+[`plugins/b3ehive`](plugins/b3ehive/README.zh-CN.md)，marketplace catalog
+位于 [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json)。
 
 从当前 checkout 安装：
 
@@ -61,9 +64,9 @@ codex plugin marketplace add weiyangzen/b3ehive
 codex plugin add b3ehive@b3ehive
 ```
 
-安装后启动新的 Codex thread，让五个 bundled skills 被加载。
+安装后启动新的 Codex thread，加载五个 bundled skills。
 
-### Portable Skill Install
+### Portable Skills
 
 为 Codex、Claude Code、opencode、OpenClaw 和 Hermes 安装全部五个 skills：
 
@@ -72,7 +75,7 @@ cd b3ehive
 scripts/install_skills.sh --target all --scope user
 ```
 
-只安装某个平台：
+安装单个平台：
 
 ```bash
 scripts/install_skills.sh --target codex --scope user
@@ -96,9 +99,9 @@ Use looper-cron-builder to add resource-aware bridge controllers around these br
 
 - [docs/README.zh-CN.md](docs/README.zh-CN.md) — 文档索引和多语言规则
 - [docs/concepts.zh-CN.md](docs/concepts.zh-CN.md) — 核心概念
-- [docs/blueprint.zh-CN.md](docs/blueprint.zh-CN.md) — Blueprint 详解
+- [docs/blueprint.zh-CN.md](docs/blueprint.zh-CN.md) — blueprint 契约和生命周期
 - [docs/codex-plugin.zh-CN.md](docs/codex-plugin.zh-CN.md) — Codex plugin 安装、使用和发布
-- [docs/agent-platforms.zh-CN.md](docs/agent-platforms.zh-CN.md) — Codex / Claude Code / opencode / OpenClaw / Hermes 兼容性
+- [docs/agent-platforms.zh-CN.md](docs/agent-platforms.zh-CN.md) — 平台兼容契约
 
 ## Repository Map
 

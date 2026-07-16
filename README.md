@@ -9,69 +9,44 @@
 [![Hermes Skill](https://img.shields.io/badge/Hermes-Skill-purple)](https://hermes-agent.nousresearch.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **"Fake it until make it"** — The Feynman Way
+b3ehive provides five portable swarm skills for bounded agent work. Each skill
+defines its inputs, worker organization, validation boundary, evidence, and
+cleanup rule. The same skill directories support Codex, Claude Code, opencode,
+OpenClaw, and Hermes.
 
-## The B3ehive Philosophy
+Its design draws on the Feynman Technique: clear explanations, inspectable
+steps, and repeatable evidence expose the current level of understanding.
+Each workflow inspects the task context, selects an organization, runs bounded
+cycles, validates the result, and leaves evidence that another person can
+inspect, repeat, and improve.
 
-I learned from one of the greatest physicists, **Richard Feynman**, whose nature was cheerful and whose intellect moved easily between worlds. He left behind the renowned **Feynman Technique**: learn by teaching, and prove understanding by making the thing clear enough to survive contact with another mind.
-
-That is the seed of **b3ehive**. Let agents take a problem, give it a shape, divide the work, test the result, and keep moving until the work is real. Sometimes the hive runs a bounded competition. Sometimes it learns a codebase until it can remake it. Sometimes it executes a blueprint, refines an architecture, transforms one contract into another, or runs a resource-aware bridge controller around measurable and qualitative feedback surfaces.
-
-The best result is still, fundamentally, **a teacher for humanity**: not because it speaks well, but because it leaves a path another person can inspect, repeat, and improve.
-
-### Why Swarms?
-
-One agent is a voice. A swarm is an arrangement.
-
-Different work needs different arrangements. A hard decision may need **compete**: bounded proposals, selection, synthesis, or coverage union. A long implementation needs **execution** with checkpoints. An unknown codebase, source-to-target transformation, or language translation needs **learn**: understand it until make it. A mature system needs **optimization**. A repeated validation or product bridge needs a **looper** with bridge surfaces, explicit resources, side-effect gates, reward signals, ROI accounting, and no-reward pause rules.
-
-**b3ehive** is not just code generation. It is collective work shaped like the scientific method: observe the ground, choose the right organization, run bounded cycles, validate honestly, and leave evidence.
-
----
-
-## Dual-Cursor Checklist Protocol
-
-The execution and learn skills use one shared progress grammar.
-The checkbox mark is the cursor state:
-
-- `[ ]` means not done, not learned, not transformed, or not translated. The item is still
-  claimable by a worker.
-- `[_]` means worker self-tested. A worker produced output and evidence, but
-  master integration or curation has not accepted it.
-- `[x]` means master accepted. The master lane validated, integrated,
-  reconciled, and closed the item.
-
-Workers may only move `[ ] -> [_]`. The master lane is the only actor that may
-move `[_] -> [x]`. Cleanup requires zero `[ ]` and zero `[_]` items. Todos,
-ledgers, progress summaries, and status commands must preserve these exact
-marks; extra queue labels can add detail, but they do not replace the checkbox
-state.
-
----
-
-## Three Introductions
-
-| English | 中文 | 日本語 |
-|---|---|---|
-| **b3ehive** is a collection of five swarm algorithms for agent work. Each skill has a narrow job, a hard boundary, and a cleanup rule. The point is not to sound smart. The point is to finish with traces you can inspect. | **b3ehive** 是一组面向 agent 工作的五个蜂群算法。每个 skill 都有明确职责、边界和收尾规则。目标不是说得漂亮，而是把事情做完，并留下能检查的证据。 | **b3ehive** は、agent 作業のための五つの swarm algorithm です。それぞれの skill は役割、境界、終了条件を持ちます。賢そうに見せるためではなく、検証できる形で仕事を終えるための道具です。 |
-
----
-
-## The Five Hive Skills
+## Skills
 
 | Skill | English | 中文 | 日本語 |
 |---|---|---|---|
-| `compete-cron-builder` | Runs bounded proposal competitions: n workers, m proposals, choose k, all-valid coverage union, repair queue, blueprint synthesis, or three-way challenge artifact coverage. | 运行有边界的 proposal competition：n 个 worker、m 个 proposal、choose k、all-valid 覆盖合并、修复队列、蓝图综合，或三方竞争 artifact 兼容。 | bounded proposal competition を実行します。n workers、m proposals、choose k、all-valid coverage union、repair queue、blueprint synthesis、three-way challenge artifact coverage に対応します。 |
-| `execution-cron-builder` | Turns one blueprint into a bounded execution cron: daily todo, isolated clone, validation gate, checkpoint, cleanup. It ships code only when the gate is real. | 把一个 blueprint 变成持续执行的 cron：每日 todo、隔离 clone、验证门、checkpoint、完成后清理。只有真实通过 gate 才算完成。 | 一つの blueprint を実行 cron に変えます。daily todo、隔離 clone、validation gate、checkpoint、cleanup まで持ちます。gate を通った実装だけを完了扱いにします。 |
-| `learn-cron-builder` | Learns a source scope into validated artifacts: code-to-human notes, strict subset learning, code-to-code transforms, or human-language translation with route policy. | 把 source scope 学成可验证产物：代码到人类语言笔记、严格 subset 学习、代码到代码转换，或带 route policy 的人类语言翻译。 | source scope を検証可能な artifact へ学習します。code-to-human notes、subset learning、code-to-code transforms、route policy 付き translation に対応します。 |
-| `optimization-cron-builder` | Starts from a design idea, derives a bounded AR blueprint, examines each item, and pushes the repo toward clearer architecture. | 从设计理念出发，生成有边界的 AR blueprint，逐项检查，把仓库推向更清晰的架构。 | design philosophy から bounded AR blueprint を作り、項目ごとに検討し、repo をより明快な architecture へ寄せます。 |
-| `looper-cron-builder` | Builds resource-aware bridge controllers around DAG nodes, bridge surfaces, metrics, nested skill attempts, and operator signals, with leases, side-effect gates, compact evidence, rewards, ROI, no-reward pause, and re-funded resume. | 围绕 DAG 节点、bridge surface、指标、嵌套 skill attempt 和 operator signal 构建资源感知 bridge controller，包含 lease、副作用门、紧凑证据、reward、ROI、无奖励暂停和再注资恢复。 | DAG node、bridge surface、metric、nested skill attempt、operator signal の周りに、lease、side-effect gate、compact evidence、reward、ROI、no-reward pause、re-funded resume を持つ resource-aware bridge controller を作ります。 |
+| `compete-cron-builder` | Runs bounded proposal competitions with `n` workers, `m` proposals, `choose k`, all-valid coverage or risk union, repair queues, blueprint synthesis, and three-way challenge artifacts. | 运行有边界的方案竞争，支持 `n` 个 worker、`m` 个 proposal、`choose k`、全量有效 coverage 或 risk union、修复队列、蓝图综合和三方竞争产物。 | `n` workers、`m` proposals、`choose k`、all-valid coverage / risk union、repair queue、blueprint synthesis、three-way challenge artifact を扱う bounded proposal competition を実行します。 |
+| `execution-cron-builder` | Executes one authoritative blueprint through a DAG, daily todo, isolated automation clone, bounded worker batches, master validation, checkpoints, and cleanup. | 通过 DAG、每日 todo、隔离 automation clone、有界 worker batch、master 验证、checkpoint 和 cleanup 执行一个权威 blueprint。 | 一つの authoritative blueprint を DAG、daily todo、isolated automation clone、bounded worker batch、master validation、checkpoint、cleanup で実行します。 |
+| `learn-cron-builder` | Converts a bounded source scope into validated code-to-human notes, strict subset learning, code-to-code transforms, or routed human-language translations. | 把有边界的 source scope 转成经验证的 code-to-human notes、严格 subset learning、code-to-code transform 或带 route 的人类语言翻译。 | bounded source scope を、検証済みの code-to-human notes、strict subset learning、code-to-code transform、route 付き翻訳へ変換します。 |
+| `optimization-cron-builder` | Converts a design philosophy into a bounded `Stage_*_AR_Blueprint.md` and one architecture-refinement research document per item. Product-code implementation remains downstream. | 根据 design philosophy 生成有边界的 `Stage_*_AR_Blueprint.md` 和逐项 architecture-refinement research doc；产品代码实施属于后续工作。 | design philosophy から bounded `Stage_*_AR_Blueprint.md` と項目別 architecture-refinement research document を生成します。product-code implementation は後続工程です。 |
+| `looper-cron-builder` | Builds resource-aware bridge controllers around DAG nodes, bridge surfaces, metrics, nested skill attempts, and operator signals, with leases, side-effect gates, compact evidence, rewards, ROI, no-reward pause, and re-funded resume. | 围绕 DAG 节点、bridge surface、指标、嵌套 skill attempt 和 operator signal 构建资源感知 bridge controller，包含 lease、副作用门、紧凑证据、reward、ROI、无奖励暂停和再注资恢复。 | DAG node、bridge surface、metric、nested skill attempt、operator signal の周りに、lease、side-effect gate、compact evidence、reward、ROI、no-reward pause、re-funded resume を持つ resource-aware bridge controller を構築します。 |
 
----
+## Dual-Cursor Checklist Protocol
+
+Execution and learn workflows use one progress grammar:
+
+- `[ ]` means unfinished and available for a worker claim.
+- `[_]` means worker self-tested; output and evidence await master integration
+  or curation.
+- `[x]` means master accepted after validation, integration, and reconciliation.
+
+Workers may move only `[ ] -> [_]`. The master lane alone may move
+`[_] -> [x]`. Cleanup requires zero `[ ]` and zero `[_]` items. Todos, ledgers,
+progress summaries, and status commands preserve these exact marks. Extra queue
+labels may add detail but cannot replace the checkbox state.
 
 ## Install
 
-Clone the whole hive:
+Clone the repository:
 
 ```bash
 git clone https://github.com/weiyangzen/b3ehive.git
@@ -79,28 +54,27 @@ git clone https://github.com/weiyangzen/b3ehive.git
 
 ### Codex Plugin
 
-b3ehive ships as a Codex plugin package under
-[`plugins/b3ehive`](plugins/b3ehive). The repo also includes a Codex marketplace
-catalog at [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
-The plugin usage, maintenance, and release contract is documented in
-[docs/codex-plugin.md](docs/codex-plugin.md).
+The Codex plugin package is under
+[`plugins/b3ehive`](plugins/b3ehive). The marketplace catalog is
+[`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
+[The plugin contract](docs/codex-plugin.md) covers installation, maintenance,
+validation, and release.
 
-From this repository checkout:
+Install from this repository checkout:
 
 ```bash
 codex plugin marketplace add .
 codex plugin add b3ehive@b3ehive
 ```
 
-From GitHub:
+Install from GitHub:
 
 ```bash
 codex plugin marketplace add weiyangzen/b3ehive
 codex plugin add b3ehive@b3ehive
 ```
 
-Start a new Codex thread after installing so the five bundled skills are loaded
-into the session:
+Start a new Codex thread after installation so the five bundled skills load:
 
 ```text
 Use b3ehive to create an execution blueprint.
@@ -108,13 +82,13 @@ Use b3ehive to compare routes and evidence.
 Use b3ehive looper for bounded ROI control.
 ```
 
-When editing root skill directories, sync the plugin package before release:
+After editing a root skill directory, sync the plugin package before release:
 
 ```bash
 scripts/sync_codex_plugin.sh
 ```
 
-### Portable Skill Install
+### Portable Skills
 
 Install all five skills for Codex, Claude Code, opencode, OpenClaw, and Hermes:
 
@@ -123,7 +97,7 @@ cd b3ehive
 scripts/install_skills.sh --target all --scope user
 ```
 
-Install only one target when needed:
+Install one target:
 
 ```bash
 scripts/install_skills.sh --target codex --scope user
@@ -133,23 +107,25 @@ scripts/install_skills.sh --target openclaw --scope user
 scripts/install_skills.sh --target hermes --scope user
 ```
 
-Project-local installs are also supported:
+Install all five skills inside a project:
 
 ```bash
 scripts/install_skills.sh --target all --scope project --project-dir /path/to/repo
 ```
 
-The portable skill layout is documented in
-[docs/agent-platforms.md](docs/agent-platforms.md). Codex uses
-`~/.codex/skills/<skill>/SKILL.md`; Claude Code uses
-`~/.claude/skills/<skill>/SKILL.md`; opencode uses
-`~/.config/opencode/skills/<skill>/SKILL.md`; OpenClaw uses
-`~/.openclaw/skills/<skill>/SKILL.md`; Hermes uses
-`~/.hermes/skills/<skill>/SKILL.md`.
+[The platform contract](docs/agent-platforms.md) defines the portable layout:
 
-## Quick Start
+| Target | User skill path |
+|---|---|
+| Codex | `~/.codex/skills/<skill>/SKILL.md` |
+| Claude Code | `~/.claude/skills/<skill>/SKILL.md` |
+| opencode | `~/.config/opencode/skills/<skill>/SKILL.md` |
+| OpenClaw | `~/.openclaw/skills/<skill>/SKILL.md` |
+| Hermes | `~/.hermes/skills/<skill>/SKILL.md` |
 
-Run a three-way competition in dry-run mode:
+## Use
+
+Run a three-way competition with the mock runner:
 
 ```bash
 python3 compete-cron-builder/scripts/compete_cron_builder.py \
@@ -161,7 +137,7 @@ python3 compete-cron-builder/scripts/compete_cron_builder.py \
   --min-free-gb 0
 ```
 
-For a repository-local cron, call the matching skill by name:
+Invoke a repository-local workflow by skill name:
 
 ```text
 Use compete-cron-builder to compare local proposals, synthesize a blueprint, or run coverage union.
@@ -171,22 +147,11 @@ Use optimization-cron-builder with this design philosophy.
 Use looper-cron-builder to add resource-aware bridge controllers around these bridge surfaces and metrics.
 ```
 
-In Claude Code you can also invoke a skill with slash syntax, for example
-`/execution-cron-builder`.
-
-opencode discovers the same `SKILL.md` directories from `.opencode/skills/`,
-`~/.config/opencode/skills/`, `.claude/skills/`, and `~/.claude/skills/`.
-OpenClaw and Hermes also use `SKILL.md`; for repository/tap installs they both
-accept `skills/<skill>/SKILL.md`.
-
-## What Makes b3ehive Different
-
-| Traditional AI | b3ehive |
-|---|---|
-| One assistant, one shape | **Five swarm organizations** |
-| Prompt in, answer out | **Checklist, worker, validator, cleanup** |
-| Hidden state | **Inspectable specs, todos, logs, and artifacts** |
-| "Looks done" | **Pass the gate, then checkpoint** |
+Claude Code also accepts slash syntax such as
+`/execution-cron-builder`. opencode discovers `SKILL.md` directories from
+`.opencode/skills/`, `~/.config/opencode/skills/`, `.claude/skills/`, and
+`~/.claude/skills/`. OpenClaw and Hermes accept
+`skills/<skill>/SKILL.md` for repository or tap installs.
 
 ## Repository Map
 
@@ -195,27 +160,17 @@ accept `skills/<skill>/SKILL.md`.
 - [learn-cron-builder](learn-cron-builder/SKILL.md) — source-to-target learning, transform, and translation cron
 - [optimization-cron-builder](optimization-cron-builder/SKILL.md) — design-guided optimization cron
 - [looper-cron-builder](looper-cron-builder/SKILL.md) — resource-aware bridge controller cron
-- [SKILL.md](SKILL.md) — b3ehive skill index and removed-tool cleanup note
-- [plugins/b3ehive](plugins/b3ehive/README.md) — Codex plugin package containing the five bundled skills
-- [docs/README.md](docs/README.md) — documentation index and multilingual conventions
-- [docs/concepts.md](docs/concepts.md) — core b3ehive concepts
+- [SKILL.md](SKILL.md) — skill index and removed-tool cleanup note
+- [plugins/b3ehive](plugins/b3ehive/README.md) — Codex plugin package
+- [docs/README.md](docs/README.md) — documentation index and language contract
+- [docs/concepts.md](docs/concepts.md) — core concepts
 - [docs/blueprint.md](docs/blueprint.md) — blueprint contract and lifecycle
-- [docs/codex-plugin.md](docs/codex-plugin.md) — Codex plugin install, usage, maintenance, and release contract
-- [docs/agent-platforms.md](docs/agent-platforms.md) — Codex / Claude Code / opencode / OpenClaw / Hermes compatibility contract
+- [docs/codex-plugin.md](docs/codex-plugin.md) — Codex plugin contract
+- [docs/agent-platforms.md](docs/agent-platforms.md) — platform compatibility contract
 - [config.yaml](config.yaml) — root configuration
 
-## The Name
+## Name And License
 
-**b3** = Blueprint, Batch, Behavior  
-**hive** = Swarm intelligence
-
-> **Choose the right swarm, run bounded work, and leave proof.**  
-> So called b3ehive.
-
-## License
+`b3` means Blueprint, Batch, Behavior. `hive` means swarm intelligence.
 
 MIT © Weiyang ([@weiyangzen](https://github.com/weiyangzen))
-
----
-
-*"What I cannot create, I do not understand."* — Richard Feynman
