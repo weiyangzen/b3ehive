@@ -32,13 +32,33 @@ OpenClaw 和 Hermes 也属于 AgentSkills / `SKILL.md` 家族。OpenClaw 当前 
 
 Cron-oriented skills 应该用通用的 agent runner 描述 worker 执行，再在安装或仓库 bootstrap 时选择具体平台命令。
 
-默认 Codex runner：
+默认 Codex 执行 transport：
 
 ```bash
-codex exec --cd "{workspace}" --model "${CODEX_MODEL:-gpt-5.3-codex}" \
-  -c model_reasoning_effort="${CODEX_REASONING_EFFORT:-xhigh}" \
-  < "{prompt_file}" > "{output_file}"
+codex_argv=(codex -C "{workspace}" -c features.goals=true --no-alt-screen)
+[[ -n "${CODEX_MODEL:-}" ]] && codex_argv+=(-m "$CODEX_MODEL")
+[[ -n "${CODEX_REASONING_EFFORT:-}" ]] && \
+  codex_argv+=(-c "model_reasoning_effort=$CODEX_REASONING_EFFORT")
+[[ -n "${CODEX_SERVICE_TIER:-}" ]] && \
+  codex_argv+=(-c "service_tier=$CODEX_SERVICE_TIER")
+tmux -S "{task_root}/tmux.sock" -f /dev/null new-session -d \
+  -s "{session}" -c "{workspace}" \
+  env CODEX_HOME="{task_root}/codex-home" "${codex_argv[@]}"
+tmux -S "{task_root}/tmux.sock" set-buffer -b goal \
+  "/goal {goal} Integrity token: {claim_specific_completion_token}"
+tmux -S "{task_root}/tmux.sock" paste-buffer -b goal -t "{session}" -d
+# 轮询 `capture-pane -p -J`，直到 claim 专属的末尾完整性 token 出现在当前
+# composer；超时则失败，不能提交截断输入。确认后只提交一次。
+tmux -S "{task_root}/tmux.sock" send-keys -t "{session}" C-m
 ```
+
+每个 Codex claim 都必须独占 tmux server/socket/session、interactive Codex
+OS process tree、可写 `CODEX_HOME`、thread 和 active goal。生成的 controller
+只有在这些身份全部认证后才能把 lane 计为 live。禁止 `codex app-server`、
+controller 管理的 JSON-RPC、共享 Codex daemon、`codex exec` 以及不经过 tmux
+的 Codex，且不得 fallback。本仓库不预设 Codex model、provider、effort、
+service tier 或 worker count；优先使用目标仓库或 operator 的显式策略，否则
+使用本机 Codex 默认值并记录实际 route。
 
 默认 Claude Code runner：
 
@@ -80,7 +100,7 @@ hermes chat --toolsets "${HERMES_TOOLSETS:-skills,terminal}" \
 | `B3EHIVE_AGENT_RUNNER` | `CODEX_REASONING_EFFORT` | `CLAUDE_EFFORT` | `OPENCODE_VARIANT` | `OPENCLAW_THINKING` | `HERMES_TOOLSETS` |
 | `B3EHIVE_AGENT_WORKSPACE` | `CODEX_SERVICE_TIER` | `CLAUDE_PERMISSION_MODE` | `OPENCODE_AGENT` | `OPENCLAW_PROFILE` | `HERMES_SKILLS` |
 
-当用户显式设置 `B3EHIVE_AGENT_RUNNER` 时，生成的 cron code 应使用它作为 authoritative command template，并在 validate-only 输出中打印出来。
+当用户显式设置 `B3EHIVE_AGENT_RUNNER` 时，非 Codex 平台应把它作为 authoritative command template，并在 validate-only 输出中打印。Codex 只能用它定制 TUI 参数，不能绕过 task-local tmux + interactive TUI + `/goal` transport。
 
 ## Skill Authoring Rules
 
@@ -88,5 +108,5 @@ hermes chat --toolsets "${HERMES_TOOLSETS:-skills,terminal}" \
 - YAML frontmatter 至少包含 `name` 和 `description`；Codex、Claude Code、opencode、OpenClaw 和 Hermes 都可以复用这个形态。
 - frontmatter 保持可移植。避免 OpenClaw conservative parser 可能跳过的嵌套 YAML。
 - 平台差异放在短兼容性段落、references 或 generated config 中。除非 workflow 真正不同，不要 fork 主说明。
-- 通用 orchestration 文案使用 "agent runner"。只有给平台专用命令模板时才写 `codex exec`、`claude -p`、`opencode run`、`openclaw agent` 或 `hermes chat`。
+- 通用 orchestration 文案使用 "agent runner"。Codex 模板必须使用 task-local tmux 中的 interactive `codex` TUI；其他平台模板可以使用 `claude -p`、`opencode run`、`openclaw agent` 或 `hermes chat`。
 - cleanup gates 应检查当前 selected runner 的 live process，而不是只查 `codex` process。

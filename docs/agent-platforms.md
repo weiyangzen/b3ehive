@@ -46,13 +46,34 @@ Cron-oriented skills should describe worker execution in terms of an agent
 runner, then select a platform command at installation or repository bootstrap
 time.
 
-Default Codex runner:
+Default Codex execution transport:
 
 ```bash
-codex exec --cd "{workspace}" --model "${CODEX_MODEL:-gpt-5.3-codex}" \
-  -c model_reasoning_effort="${CODEX_REASONING_EFFORT:-xhigh}" \
-  < "{prompt_file}" > "{output_file}"
+codex_argv=(codex -C "{workspace}" -c features.goals=true --no-alt-screen)
+[[ -n "${CODEX_MODEL:-}" ]] && codex_argv+=(-m "$CODEX_MODEL")
+[[ -n "${CODEX_REASONING_EFFORT:-}" ]] && \
+  codex_argv+=(-c "model_reasoning_effort=$CODEX_REASONING_EFFORT")
+[[ -n "${CODEX_SERVICE_TIER:-}" ]] && \
+  codex_argv+=(-c "service_tier=$CODEX_SERVICE_TIER")
+tmux -S "{task_root}/tmux.sock" -f /dev/null new-session -d \
+  -s "{session}" -c "{workspace}" \
+  env CODEX_HOME="{task_root}/codex-home" "${codex_argv[@]}"
+tmux -S "{task_root}/tmux.sock" set-buffer -b goal \
+  "/goal {goal} Integrity token: {claim_specific_completion_token}"
+tmux -S "{task_root}/tmux.sock" paste-buffer -b goal -t "{session}" -d
+# Poll `capture-pane -p -J` until the final integrity token is visible in the
+# active composer. On timeout, fail without submitting partial input.
+tmux -S "{task_root}/tmux.sock" send-keys -t "{session}" C-m
 ```
+
+Every Codex claim owns a separate tmux server/socket/session, interactive Codex
+OS process tree, writable `CODEX_HOME`, thread, and active goal. Generated
+controllers must authenticate all of those identities before counting the lane
+as live. `codex app-server`, controller-managed JSON-RPC, shared Codex daemons,
+`codex exec`, and Codex without tmux are forbidden with no fallback. This
+repository does not prescribe a Codex model, provider, effort, service tier, or
+worker count; explicit target-repository/operator policy wins, otherwise the
+installed Codex defaults are used and the resolved route is recorded.
 
 Default Claude Code runner:
 
@@ -95,8 +116,9 @@ Generated cron guards may expose these settings:
 | `B3EHIVE_AGENT_WORKSPACE` | `CODEX_SERVICE_TIER` | `CLAUDE_PERMISSION_MODE` | `OPENCODE_AGENT` | `OPENCLAW_PROFILE` | `HERMES_SKILLS` |
 
 When a user explicitly sets `B3EHIVE_AGENT_RUNNER`, generated cron code should
-use it as the authoritative command template and must print it in validate-only
-output.
+use it as the authoritative command template for non-Codex platforms and print
+it in validate-only output. For Codex it may customize TUI arguments but cannot
+bypass the required task-local tmux + interactive TUI + `/goal` transport.
 
 ## Skill Authoring Rules
 
@@ -110,8 +132,8 @@ output.
 - Keep platform-specific details in short compatibility sections, references,
   or generated config. Do not fork the main instructions unless the workflow
   truly differs.
-- Use "agent runner" for generic orchestration text. Use `codex exec`,
-  `claude -p`, `opencode run`, `openclaw agent`, or `hermes chat` only when
-  giving platform-specific command templates.
+- Use "agent runner" for generic orchestration text. Codex templates use the
+  interactive `codex` TUI in task-local tmux; other platform templates may use
+  `claude -p`, `opencode run`, `openclaw agent`, or `hermes chat`.
 - For cleanup gates, check for a live process matching the selected runner,
   not only for a `codex` process.

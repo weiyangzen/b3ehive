@@ -2,7 +2,19 @@ b3ehive:
   platforms:
     codex:
       install_root: ~/.codex/skills
-      runner_template: 'codex exec --cd "{workspace}" --model "${CODEX_MODEL:-gpt-5.3-codex}" -c model_reasoning_effort="${CODEX_REASONING_EFFORT:-xhigh}" < "{prompt_file}" > "{output_file}"'
+      transport: tmux_codex_tui
+      goal_command: /goal
+      app_server_workers: forbidden
+      process_isolation: one_interactive_process_tree_per_claim
+      state_isolation: one_writable_codex_home_per_claim
+      runner_template: 'tmux -S "{task_root}/tmux.sock" -f /dev/null new-session -d -s "{session}" -c "{workspace}" env -u CODEX_CI -u CODEX_THREAD_ID -u CODEX_REMOTE_PAYLOAD CODEX_HOME="{task_root}/codex-home" codex -C "{workspace}" -c features.goals=true --no-alt-screen'
+      goal_completion_token: required_unique_per_claim
+      goal_template: 'tmux -S "{task_root}/tmux.sock" set-buffer -b goal "/goal {goal} Integrity token: {goal_completion_token}" && tmux -S "{task_root}/tmux.sock" paste-buffer -b goal -t "{session}" -d'
+      goal_delivery_verification: complete_composer_text_required_before_submit
+      goal_delivery_probe_template: 'tmux -S "{task_root}/tmux.sock" capture-pane -p -J -t "{session}"'
+      goal_submit_template: 'tmux -S "{task_root}/tmux.sock" send-keys -t "{session}" C-m'
+      goal_submit_count: 1
+      duplicate_goal_submission: forbidden
     claude:
       install_root: ~/.claude/skills
       runner_template: 'claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" --permission-mode "${CLAUDE_PERMISSION_MODE:-auto}" --add-dir "{workspace}" < "{prompt_file}" > "{output_file}"'
@@ -19,13 +31,13 @@ b3ehive:
     count: 3
     platform: auto
     model:
-      codex: openai-proxy/gpt-5.3-codex
+      codex: null
       claude: sonnet
       opencode: null
       openclaw: null
       hermes: null
     thinking:
-      codex: xhigh
+      codex: null
       claude: max
       opencode: null
       openclaw: high

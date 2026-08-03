@@ -1,480 +1,397 @@
 ---
 name: execution-cron-builder
-description: Build or repair a blueprint-driven execution cron for a repository using one authoritative blueprint, a daily todo snapshot, an isolated automation clone, bounded agent-runner batches for Codex, Claude Code, opencode, OpenClaw, or Hermes, validation gates, checkpoint commits, and cleanup-on-complete. Use when a repo should continuously implement a blueprint, when an execution cron needs to be added to a new repository, or when an existing blueprint-execution cron needs boundary/gate fixes.
+description: Build or repair repository-agnostic, blueprint-driven execution crons with isolated task roots, durable handoff, validation gates, and cleanup-on-complete. When Codex is selected, every claim must use one independent interactive Codex TUI process in its own task-local tmux server with a private CODEX_HOME and exactly one authenticated `/goal`; Codex app-server, `codex exec`, shared daemons, and no-tmux workers are forbidden. Use for continuous blueprint execution or for repairing execution-controller boundaries, transport, concurrency, integration, or cleanup.
 ---
 
 # Execution Cron Builder
 
-## Controller Contract
+Build the controller from the current repository's evidence. Do not reuse a
+generated controller or policy snapshot from another project.
 
-Build a scheduled, repository-local controller around exactly one authoritative blueprint file and its execution checklist. Isolated `tmux` workers claim DAG-ordered implementation items up to the user's concurrency cap and submit self-tested evidence. The main session integrates, validates, checkpoints, and closes items in dependency order. Real implementation evidence, strict layer order, code-first commits, and the cleanup hard gate govern acceptance.
+## Non-Negotiable Invariants
 
-## Shared b3ehive Contract
+1. Exactly one repository file is the authoritative blueprint and checklist.
+2. Checklist state is `[ ]` not done, `[_]` worker self-tested, or `[x]` Master
+   accepted. Workers never edit authoritative checkboxes and never write `[x]`.
+3. Every claim owns an isolated task root and immutable claim identity.
+4. Codex transport is exactly task-local tmux + interactive Codex TUI + one
+   authenticated active `/goal` + private writable `CODEX_HOME`.
+5. Codex app-server, app-server JSON-RPC, `codex exec`, shared Codex daemons,
+   shared tmux servers, shared writable Codex state, and no-tmux Codex workers
+   are hard failures. There is no fallback.
+6. Worker output is provisional until the canonical Master integrates it and
+   reruns the target repository's acceptance gates.
+7. Cleanup is allowed only after all required work and handoffs are resolved.
 
-For route selection, estimator decisions, nested calls, evidence handoff,
-looper_log capture, ROI, and self-evolution behavior, follow the suite contract
-in `../looper-cron-builder/references/b3ehive-bridge-contract.md`.
+## Portability Hard Gate
 
-Local obligations:
+This skill is a generator, not a source of target-project constants. Before
+writing code, inspect the target repository and freeze a repository-local
+execution specification containing:
 
-- Execution advances the target object through the DAG. Worker output is `[_]`;
-  only the master/integration lane writes `[x]`.
-- Nontrivial automatic choices of batch size, worker count, split threshold,
-  validator, route, or nested skill should leave `EstimatorPolicy` and
-  `RouteDecision` evidence.
-- Emit `looper_log` when execution exposes repeated validator failure, DAG
-  split friction, worker prompt/root mismatch, integration bottleneck, stale
-  scaffolding, hook/guard overreach, route waste, or tool integration friction.
-- Each `looper_log` must identify the `TargetObject` being implemented or
-  integrated and the `InstrumentObject` that produced the signal: DAG split,
-  worker batch, validator, guard, route, scaffold, tool, or skill composition.
-- Looper logs provide evidence and backlog for the instrument set. They do not
-  block normal worker refill unless the issue is a hard safety gate.
-- A looper-log-derived change to execution policy, guards, scaffolds, or skill
-  text requires EvidenceLint, ROI, ParetoGate, rollback, and master `[x]`.
+- canonical repository root and authoritative blueprint path
+- checklist parser and stable item-id rules
+- real dependency edges and any explicit layer semantics
+- task/runtime root and owned-path policy
+- worker result and Master acceptance schemas
+- repository-provided validation profiles and artifact policy
+- completion surfaces that must be reconciled
+- selected agent platform and route policy
+- logical, startup, running-turn, integration, and validator limits
+- scheduler cadence, lease policy, budgets, and exact cron marker
 
-## Dual-Cursor Checklist State Protocol
+Do not carry over project names, absolute paths, stage numbers, item prefixes,
+model/provider names, service tiers, concurrency values, GPU counts, validators,
+artifact paths, evidence categories, or completion documents from a previous
+repository. Examples in this skill illustrate shapes only. Generated values
+must come from current repository evidence or explicit operator input.
 
-All execution checklists and generated todos must use exactly these three states:
+If a policy cannot be discovered and guessing could alter source, spend money,
+publish data, or delete artifacts, fail closed and name the missing field. For
+low-risk housekeeping limits, use conservative environment-overridable defaults
+and record that they are defaults rather than repository requirements.
 
-- `[ ]` means not done: unclaimed, not yet implemented, or still requiring a worker.
-- `[_]` means worker self-tested: worker output exists and the worker's local
-  validation passed, but the main/master integration lane has not accepted,
-  merged, and revalidated it yet.
-- `[x]` means master accepted: the main/master lane integrated the output into
-  the authoritative checkout, reran the required gates, reconciled completion
-  surfaces, and accepted the item as complete.
+## Repository Discovery
 
-The checkbox mark is the cursor state. The worker cursor advances `[ ] -> [_]`.
-The master cursor advances `[_] -> [x]`. Workers must never write `[x]`; the
-scheduler treats `[_]` as unfinished.
+Inspect, at minimum:
 
-Protocol:
+- repository instructions, current branch/upstream, and dirty worktree state
+- candidate blueprint/checklist files and duplicate requirement sources
+- build, test, lint, typecheck, benchmark, and packaging entry points
+- ownership boundaries, generated files, large artifacts, and ignored paths
+- available CPU, memory, swap, process/PID, disk, and accelerator capacity
+- existing cron entries, locks, ledgers, task roots, and worker processes
+- configured agent CLI and explicit model/effort/service settings
 
-- Checklist parsers must recognize `[ ]`, `[_]`, and `[x]`; any other checkbox
-  state is invalid.
-- Generated blueprints, todos, ledgers, progress tables, summaries, and status
-  commands preserve this exact state vocabulary. Extra fields may add detail;
-  the checkbox remains the source of truth. They must not invent labels such as
-  `done`, `pending`, `landed`, or `validated` as replacement completion states.
-- Bootstrap generators initialize new items as `[ ]`.
-- Regenerators preserve existing `[ ]`, `[_]`, and `[x]` marks by item id and
-  may only downgrade a mark when a guard has explicit evidence that the current
-  mark is invalid.
-- Worker prompts must instruct workers to mark only their assigned items as
-  `[_]` after implementation and self-test evidence exists.
-- Worker completion evidence must include changed paths, validation commands,
-  validation output summary, and branch/worktree/commit reference when
-  applicable.
-- Daily todos must report counts for `not_done`, `worker_self_tested`, and
-  `master_accepted`.
-- Worker claim frontiers are computed from `[ ]` items only.
-- Main-session integration frontiers are computed from `[_]` items whose
-  dependencies are `[x]` and whose path conflicts are resolved.
-- Live worker capacity is consumed by live claims only, not by `[_]` finished
-  items waiting for master integration.
-- Dependency closure treats `[ ]` and `[_]` as unfinished. A dependent item can
-  be master-accepted only after all dependencies are `[x]`.
-- Cleanup is forbidden while any `[ ]` or `[_]` item remains.
-- Progress math must report three counts separately and may derive
-  `unfinished = count([ ]) + count([_])`; `[_]` must never be collapsed into
-  `[x]` for percentages, cleanup, or release gates.
-- If an item remains `[_]` across repeated master validation attempts, create a
-  repair child item as `[ ]`, keep the parent `[_]`, and record the failed gate.
-- If a worker incorrectly writes `[x]`, the guard must downgrade it to `[_]`
-  unless master validation evidence for that item already exists in the
-  authoritative checkout.
-- If master validation fails after integrating a worker output, the authoritative
-  item stays `[_]`, the failed gate is recorded, and any follow-up repair item
-  starts as `[ ]`.
+Never reset, stash, checkout, overwrite, or delete unrelated user changes. A
+dirty canonical checkout is an integration condition to preserve, not an excuse
+to clone or rewrite the complete repository per worker. Sync/push behavior is
+enabled only when the repository policy and operator request require it.
 
-## Workflow
+## Blueprint Protocol
 
-1. Inspect the repository, identify the single blueprint requirement file, and freeze its execution boundary. Exactly one file serves as the requirement source.
-2. Add an authoritative checklist to a prose-first blueprint. Seed new items as `[ ]`; preserve existing `[_]` and `[x]` marks by item id.
-3. Create the checklist/bootstrap generator, daily todo generator, execution guard, cron installer, and cleanup script. Keep `.ops/` and `.cron/` private.
-4. Create or sync the isolated automation repos and seed any intentionally local blueprint.
-5. Run `VALIDATE_ONLY=1` once before enabling cron. This dry gate validates configuration, DAG shape, sync state, and budgets, then exits before worker claims or process launch. Never use validate-only for an execution tick whose purpose is to fill worker lanes.
-6. Install cron after the automation repo, checklist bootstrap, blueprint seeding, todo generation, and validate-only gate pass.
-7. Run each tick through the guard protocol below: sync, prune claims, generate the DAG, refill workers, integrate landed output, validate, checkpoint, reconcile completion surfaces, and clean up when every hard signal passes.
+Use one authoritative checklist with stable IDs:
 
-## Agent Platform Compatibility
+- `[ ]`: unclaimed, implementation needed, or repair needed
+- `[_]`: durable worker handoff exists, Master acceptance remains
+- `[x]`: Master integrated the result and passed required gates
 
-Generated execution cron code must support Codex, Claude Code, opencode,
-OpenClaw, and Hermes through a single agent-runner abstraction.
+The controller or canonical Master may write `[_]` only after harvesting a
+checksum-valid worker handoff. Only the canonical Master writes `[x]`. Treat
+`[ ]` and `[_]` as unfinished for dependency closure and cleanup.
 
-Default platform selection:
-- `B3EHIVE_AGENT_PLATFORM=codex` uses `codex exec`.
-- `B3EHIVE_AGENT_PLATFORM=claude` uses `claude -p`.
-- `B3EHIVE_AGENT_PLATFORM=opencode` uses `opencode run`.
-- `B3EHIVE_AGENT_PLATFORM=openclaw` uses `openclaw agent`.
-- `B3EHIVE_AGENT_PLATFORM=hermes` uses `hermes chat`.
-- `B3EHIVE_AGENT_PLATFORM=auto` may choose Codex when `codex` is available,
-  otherwise Claude Code when `claude` is available, otherwise opencode when
-  `opencode` is available, otherwise OpenClaw when `openclaw` is available,
-  otherwise Hermes when `hermes` is available.
+Generate a current todo/status surface from that checklist. It should expose:
 
-Default command templates:
+- separate counts for `[ ]`, `[_]`, and `[x]`
+- unresolved DAG nodes and justified `depends_on` edges
+- claim, startup, live, handoff, integration, repair, and blocked states
+- claim owner and repository-relative owned paths
+- implementation, validation-preparation, and integration frontiers
+- logical and admitted saturation plus the reason for any underfill
 
-```bash
-# Codex
-codex exec --cd "$WORKER_REPO" --model "${CODEX_MODEL:-gpt-5.3-codex}" \
-  -c model_reasoning_effort="${CODEX_REASONING_EFFORT:-xhigh}" \
-  < "$PROMPT_FILE" > "$OUTPUT_FILE"
+Reject duplicate IDs, missing dependencies, cycles, unsupported checkbox marks,
+and synthetic dependency chains inferred only from document order. If the
+blueprint defines genuine layers, close lower dependencies before higher ones;
+do not turn presentation order into a global barrier.
 
-# Claude Code
-claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
-  --permission-mode "${CLAUDE_PERMISSION_MODE:-auto}" \
-  --add-dir "$WORKER_REPO" < "$PROMPT_FILE" > "$OUTPUT_FILE"
+## Task Isolation
 
-# opencode
-opencode run --dir "$WORKER_REPO" ${OPENCODE_MODEL:+--model "$OPENCODE_MODEL"} \
-  ${OPENCODE_VARIANT:+--variant "$OPENCODE_VARIANT"} \
-  ${OPENCODE_AGENT:+--agent "$OPENCODE_AGENT"} \
-  < "$PROMPT_FILE" > "$OUTPUT_FILE"
+Give every claim a unique root such as:
 
-# OpenClaw
-openclaw ${OPENCLAW_PROFILE:+--profile "$OPENCLAW_PROFILE"} agent --local \
-  ${OPENCLAW_AGENT:+--agent "$OPENCLAW_AGENT"} \
-  ${OPENCLAW_THINKING:+--thinking "$OPENCLAW_THINKING"} \
-  --message "$(cat "$PROMPT_FILE")" > "$OUTPUT_FILE"
-
-# Hermes
-hermes chat ${HERMES_MODEL:+--model "$HERMES_MODEL"} \
-  --toolsets "${HERMES_TOOLSETS:-skills,terminal}" \
-  ${HERMES_SKILLS:+-s "$HERMES_SKILLS"} \
-  -q "$(cat "$PROMPT_FILE")" > "$OUTPUT_FILE"
+```text
+<runtime-root>/tasks/<claim-id>/<run-id>/
+  work/
+  codex-home/          # Codex only
+  tmux.sock            # Codex only
+  claim.json
+  result.json
 ```
 
-If `B3EHIVE_AGENT_RUNNER` is set, it is the authoritative template. Validate-only
-output must print the resolved platform, model/effort/variant/profile settings,
-permission/service-tier/agent setting, and command template without leaking
-secrets.
+Materialize only declared writable paths and individually justified read-only
+bootstrap files, preserving repository-relative names and independent inodes.
+Never place secrets in the task workspace. Do not copy, clone, rsync, reflink,
+hardlink, archive, or mount the complete repository per claim. Reject legacy
+full-repository worker templates and task-by-repository snapshot layouts.
 
-Explicit runtime settings are authoritative: `B3EHIVE_AGENT_PLATFORM`,
-`B3EHIVE_AGENT_RUNNER`, `CODEX_MODEL`, `CODEX_REASONING_EFFORT`,
-`CODEX_SERVICE_TIER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`,
-`CLAUDE_PERMISSION_MODE`, `OPENCODE_MODEL`, `OPENCODE_VARIANT`,
-`OPENCODE_AGENT`, `OPENCLAW_PROFILE`, `OPENCLAW_AGENT`,
-`OPENCLAW_THINKING`, `HERMES_MODEL`, `HERMES_TOOLSETS`, and `HERMES_SKILLS`.
-Each new worker uses the selected platform's requested or latest high-capability
-model and effort. When no platform-specific runtime option is set, the cron may
-choose a repo default and must print the chosen value in guard output.
+A task may use a small local Git baseline containing only its allowed files.
+Workers produce repository-relative patches/bundles and checksums; they do not
+merge into or push from the canonical checkout. Persistent repair reuses the
+same task root and claim identity.
 
-## Required Components
+Validate before launch and harvest:
 
-### Blueprint / Todo Surface
+- the task root belongs to exactly one claim
+- every file is declared and has an independent inode
+- controller-owned claim metadata is unchanged
+- forbidden runtime paths and full-checkout sentinel combinations are absent
+- changed paths remain inside exact ownership
 
-Requirements:
-- Use exactly one file as the blueprint requirement source.
-- Put the authoritative execution checklist in that same blueprint.
-- If the blueprint starts as prose, generate an execution checklist section into the blueprint and seed it with all `[ ]` marks before the first cron tick.
-- Generate a daily `todos_YYYYMMDD.md` from that authoritative checklist section.
-- Daily todos must include the current DAG of unfinished checklist items:
-  - one node per `[ ]` or `[_]` unfinished item
-  - dependency ids for every node
-  - checkbox state (`[ ]`, `[_]`, or `[x]`)
-  - worker claim state and integration-ready/blocked state
-  - claim owner, if any
-  - owned path scope
-  - worker claim frontier, main-session integration frontier/queue, and user concurrency saturation status
-  - cycle detection result
-- Daily todos must show separate counts for `[ ]`, `[_]`, and `[x]`.
-- Daily todos display every open item's claim state as `live:<session>`,
-  `finished:<session>`, or `unclaimed`, plus the claim ledger path.
-- `[_]` items must appear in an integration-ready or integration-blocked section, never in the worker-claim section unless a repair child was generated.
-- Successful batches must update the authoritative blueprint and then refresh today's todo.
-- Worker successful batches update assigned items to `[_]`; master successful integration batches update accepted items to `[x]`.
-- If the repo requires multiple completion surfaces, successful batches must reconcile all of them in the same batch.
-- Todo item source references must be stable repository-relative paths (do not leak `.cron/automation_repo*` absolute paths).
-- Do not let other docs become accidental requirement sources.
+## Codex Transport
 
-### Automation Repo
+Generated controllers must freeze and test these equivalent values:
 
-Run implementation in isolated clone(s) under `.cron/automation_repo*` when the main repo may be dirty.
+```text
+WORKER_TRANSPORT=tmux_codex_tui
+WORKER_GOAL_COMMAND=/goal
+APP_SERVER_WORKERS=forbidden
+CODEX_PROCESS_ISOLATION=one_process_tree_per_claim
+CODEX_STATE_ISOLATION=one_writable_home_per_claim
+```
 
-Requirements:
-- Clone/sync from the repo's authoritative remote.
-- Seed the blueprint into the automation repo if it is intentionally gitignored or local-only.
-- Keep `.ops/` private via `.git/info/exclude` or equivalent.
-- Keep local-only artifacts ignored: typically `.cron/`, `*.log`, `Docs/todos_*.md`, `.venv/`, `tests/`, `spec/`, `target/`, `node_modules/` depending on the repo.
-- Keep execution-only docs/log artifacts ignored (`docs/*validation_log*`, research handoff docs, cron-generated ledgers) unless explicitly promoted by a human.
-- If local-only artifacts were historically tracked, clean them once with `git rm --cached ...` and keep local files via ignore/exclude rules.
-- For multi-worker mode, use separate worker clones such as `.cron/automation_repo`, `.cron/automation_repo_slot2`, and `.cron/automation_repo_slotN` so git index and worktree writes never collide.
-- Before each worker batch: `fetch + pull --ff-only` or `fetch + rebase` against the authoritative branch.
-- After each worker batch: `rebase/resolve within owned scope -> push`.
-- Local authoritative repo must also stay synced (`fetch + merge --ff-only`) so "remote updated but local stale" is impossible by design.
-- Newly launched `tmux` agent workers must honor the selected platform configuration; for Codex, preserve the requested service tier in `codex exec`; for Claude Code, preserve the requested `--permission-mode`; for opencode, preserve the requested `--variant` and `--agent`; for OpenClaw, preserve profile, agent, and thinking level; for Hermes, preserve model, toolsets, and preloaded skill list; if unset, use and print the repo default.
-- Worker count is saturated from the todo DAG order: never exceed the user's max concurrency, but do not reduce worker count merely because dependencies are unfinished or owned paths overlap.
-- Compute `worker_count = user_max_concurrency - live_worker_count`, capped by
-  unclaimed open DAG nodes available in topological order.
-- The main session may claim work under the active user goal. It should
-  preferentially own integration, validation, dependency-gated closure, merge,
-  and conflict-unblocking when worker branches or worktrees land.
-- Workers must not mark checklist items `[x]`. Their terminal success state is `[_]` plus evidence.
-- The main session is the only actor allowed to promote `[_]` to `[x]`.
-- Worker prompt root rule:
-  - the prompt's `Repository root` must equal the automation clone path where the command is launched
-  - a worker launched with `cd .cron/automation_repo_slotN` names that clone as `Repository root`
-  - include a line like `Work only inside this worker automation clone: <clone path>`
-  - include a line like `Do not edit the scheduler's authoritative checkout directly: <main checkout path>`
-  - the main checkout path may appear as that forbidden target; it may serve as
-    `Repository root` only when the worker intentionally runs in the main checkout
-  - generated todos, evidence paths, and blueprint references inside committed files must remain stable repo-relative paths, not clone absolute paths
+### Launch Shape
 
-### Execution Guard
+Construct argv as an array. Apply model, reasoning, provider, and service-tier
+arguments only when explicitly selected by repository/operator policy;
+otherwise let installed Codex configuration choose and record the resolved
+route after startup.
 
-Requirements:
-- Run the disk/log budget guard before installing or repairing cron and at the
-  start of every scheduler tick before worker spawn.
-- Maintain `.cron/*state`, log, block-count, pending-checkpoint, and last-message files.
-- Enforce disk/log safety on every tick before worker spawn:
-  - default `MIN_FREE_GB=30`; if the Data/root volume has less free space, run cleanup and refuse to start new workers
-  - default `DANGER_FREE_GB=15`; if below this, write state `blocked_disk_space` and exit immediately after lightweight cleanup
-  - default `MAX_LOG_MB=20` for worker logs and `MAX_KEEPALIVE_MB=5` for keepalive/scheduler logs; keep only the tail when files exceed the cap
-  - default `LOG_RETENTION_DAYS=3`; delete old `.log`, `.out`, and `.err` files under the cron root
-  - default `WORKSPACE_TTL_HOURS=48`; remove only stale, non-live `.cron/automation_repo*` or `.cron/**/workspaces/slot*` directories
-  - default `MAX_CRON_ROOT_GB=30`; if the cron root remains above this after cleanup, refuse new worker spawn
-  - never delete a workspace whose path is referenced by a live selected agent-runner process, `tmux`, shell, or lock/pid file
-  - write cleanup decisions to a bounded janitor log, not to an unbounded cron log
-- Skip overlap if another selected agent runner is already running in the same worker repo.
-- Enforce a single blueprint source.
-- Enforce one authoritative execution checklist inside that blueprint.
-- Enforce the dual-cursor checkbox protocol: `[ ]` for not done, `[_]` for worker self-tested, `[x]` for master accepted.
-- Enforce todo DAG generation for unfinished checklist items before selecting work:
-  - parse item ids and dependency metadata from the authoritative checklist or a repo-local dependency map generated from it
-  - reject cycles and duplicate ids
-  - compute worker-claim order from `[ ]` nodes in DAG topological order and first-open layer/cluster
-  - compute the main-session integration frontier from `[_]` nodes by excluding nodes whose dependencies are incomplete, whose prerequisite worker output has not landed, or whose path conflicts are unresolved
-  - write both the worker claim frontier and the integration frontier into today's todo before spawning or claiming work
-- Select only the first still-open cluster and keep each run bounded.
-- Select the first still-open cluster before removing claimed items.
-  Worker spawn may claim additional unclaimed `[ ]` nodes from that cluster in DAG/topological order until user-requested concurrency is full, even when earlier nodes are already claimed by live workers.
-  Do not choose the first unclaimed cluster; that skips lower-layer ordering and violates strict layer execution. Only the main-session integration lane may decide that a later cluster can close, and only after lower DAG dependencies are complete.
-- Keep worker claiming separate from integration readiness.
-  The scheduler must fill available worker slots from the ordered DAG claim frontier up to the user concurrency cap, even when those nodes depend on earlier unfinished work or touch overlapping path families.
-  Mark such outputs as provisional and let the main session decide merge order, conflict resolution, validation, and closure.
-- Implement worker and master ledgers as independent queues.
-  The worker claim ledger records item id, original blueprint id, dependency ids,
-  session name, slot, workspace path, status, claim time, owned path scopes,
-  reservations, and liveness; only `live` reservations reduce available worker lanes.
-  `finished` reservations are inputs to the integration queue and must not prevent the scheduler from scanning forward to later unclaimed open DAG nodes.
-  Refresh worker self-test manifests into the claim ledger at the start of every guard tick, including drain/no-new-claim mode.
-  Drain mode may disable new claims, but it must still promote completed worker self-tests from `live` or `selftest_missing` to `finished` and regenerate the todo so the worker cursor cannot freeze behind stale ledger state.
-  Self-test manifest lookup must accept both session-only and item-qualified names, for example `worker_12.json` and `item_id.worker_12.json`.
-  The integration queue records landed outputs, diff bytes, changed files, path conflicts, validation hints, and small-diff batch eligibility.
-  It scans claimed worker workspaces, reports changed files and diff byte counts,
-  detects path conflicts, and classifies combined diffs `<=256KiB` as small-diff
-  batch candidates.
-  Heavy integration queue scans are master work and must not block worker
-  refill; run them after refill, incrementally, or behind an explicit refresh
-  flag.
-- When high concurrency is requested, parallelize worker preparation safely.
-  Select claim items in stable DAG/topological order under one lock, append reservations atomically, then prepare isolated workspaces and start `tmux` sessions with bounded parallelism.
-  Use a configurable preparation fan-out so clone/rsync/startup overhead does not make a 90-lane request behave like a serial launcher.
-- For file-level fragmented work, enforce small-file merge batching:
-  - prefer same-directory grouping
-  - total source bytes per batch <=100KB
-  - if one file alone exceeds 100KB, run it as a single-file batch (do not skip)
-- Enforce strict layer order when the blueprint defines layered work.
-  - Allow execution only in the finest still-open layer.
-  - If any lower-layer item remains `[ ]` or `[_]`, upper-layer items must stay unchecked.
-  - If upper-layer `[x]` is detected while a lower-layer `[ ]` or `[_]` item remains, auto-reset those upper-layer `[x]` items to `[ ]` in the authoritative blueprint, report the correction, regenerate the todo, and continue from the lower layer.
-  - Block only when autoclear is disabled or re-validation still fails after autoclear.
-- Detect repeated unresolved items: when the same checklist item remains unresolved for repeated ticks (default >=5), split it into child checklist items, sync the blueprint and todo, and notify the human with the split details.
-- Parent-child closure rule: if all child checklist items are `[x]`, auto-close parent as `[x]`; if any child is `[ ]`, parent must remain `[ ]`; if any child is `[_]` and none are `[ ]`, parent may become `[_]` but not `[x]`.
-- Record milestone progress counts for successful commit/push batches when the repo uses notifications.
-- Treat the main session as worker id `main-session` for integration claims, progress, and conflict cleanup.
-  The main session may claim integration-ready DAG nodes under the active goal and may claim repair nodes that unblock merge/rebase conflicts from worker worktrees.
-  Conflict cleanup must be explicit: identify both sides, preserve user/worker changes where possible, run validation, and checkpoint the consolidation only after the merged tree is coherent. Clear blockers created when worker worktrees or automation branches merge back to `main`.
-- On success, checkpoint and push changes, then sync completion back to the main blueprint and today's todo.
-- Worker success means `[_]`; master success means `[x]`.
-- Treat incomplete completion-surface backfill as a hard failure (for example: stage blueprint updated but overall blueprint or today's todo not updated when required).
-- A batch that closes items reconciles every required completion surface in the
-  same batch, including `Overall Blueprint + Stage Blueprint + today's todo`
-  when those surfaces exist. Code completion with stale completion docs creates
-  a repair batch and fails the tick.
-- On no-op completion, validate and then stop instead of inventing work.
-- Enforce commit-surface filtering before commit:
-  - hard-drop `.cron/`, `.ops/`, logs/state artifacts, generated todo files, and model binaries from staged set
-  - hard-drop `spec/` and `tests/` from staged set
-  - fail commit when `docs_count > code_count` or when `code_count == 0` and `docs_count > 0`
-  - if a repo keeps runnable validation packages or executable scripts under `Docs/`, classify those paths as `code/evidence` instead of prose docs for commit hygiene
-  - at minimum, treat paths like `Docs/Stage3IOSPathValidation/**` and `Docs/scripts/*.sh` as `code/evidence`
-- Enforce sync gate around push:
-  - start-of-tick sync check: local authoritative repo must complete `fetch --prune` + `ff-only` sync and HEAD equality verification before any coding
-  - pre-commit sync check: local authoritative repo must complete `fetch --prune` plus `ff-only` sync before checkpoint commit
-  - post-push sync check: local authoritative repo must fast-forward to and match remote HEAD
-  - dirty tracked changes, detached HEAD, non-fast-forward divergence, or network failure block the tick and its success state
-  - never swallow sync errors with `|| true` on the success path
-  - when blocked by local tracked changes, prefer a bounded `repo force sync` (`stash -u` -> sync -> `stash pop`) before escalating to manual intervention
-- Enforce live claim hygiene:
-  - claims are reservations, not proof of progress
-  - remove claims for completed blueprint items
-  - remove claims for open items whose worker pid/process is gone
-  - keep claims for open items whose worker process is still live
-  - detect active workers with self-match-safe patterns such as `[c]odex exec...`
-  - append released claims to an audit ledger with timestamp, original claim time, item id, and worker id
-  - run stale-claim pruning before sync and again after sync, so a dirty main checkout cannot trap stale reservations forever
-- Enforce safe dirty-sync behavior:
-  - if tracked dirty files exist and active workers are still running, write a clear `blocked_sync` state and leave the worktree untouched
-  - if tracked dirty files exist and no worker is active, create an audit-named `git stash push -u`, then `fetch --prune` and `merge --ff-only`
-  - after syncing, verify local HEAD equals upstream HEAD before spawning workers
-  - never auto-apply a stash during the success path; stash-pop conflicts require explicit operator repair
-  - repeated sync blocks caused by local tracked changes trigger an audited operator recovery path:
-    `stash -u` -> `fetch --prune` plus `pull/rebase or ff-only merge` ->
-    `stash pop`; a pop conflict stops automation until explicit resolution and
-    one consolidation commit plus push
-  - log every force-sync attempt and result
-- For multi-worker mode, use a scheduler lock plus worker-specific locks.
-- When lock files are managed with `flock`, treat lock-fd inheritance as a first-class failure mode:
-  - close the held lock fd, for example with `9>&-`, before `tmux new-session`,
-    `tmux new-window`, and `tmux respawn-pane`
-  - keep workers on their own state files instead of sharing the scheduler state file
-  - if the guard reports repeated "previous run still active" while no real scheduler is active, inspect inherited lock holders (for example `/proc/<pid>/fd/*`) and repair before continuing
-  - repair a historical lock leaked into a long-lived `tmux` server by rotating
-    the lock-path version or restarting the affected server or session
-- Prefer split-lane DAG ownership over worker-side dependency throttling:
-  - workers own `[ ]` implementation claims from the first-open layer/cluster in stable DAG/topological order, up to the user concurrency cap
-  - the main session owns `[_]` integration closure, validation, dependency gating, and merge/conflict repair by default
-  - no worker may claim outside the current ordered DAG claim frontier, but workers may produce provisional output for nodes whose dependencies are not yet integrated
-- Add an integration batching lane:
-  - maintain a queue of landed worker outputs with item id, dependencies, owned paths, changed files, diff bytes, and validation command hints
-  - group non-conflicting landed outputs when the combined diff is <=256KiB
-  - apply the group as one coherent integration batch, validate the combined tree once or with the smallest sufficient validator set, then close items in DAG order only after each item's gates pass
-  - write `[x]` only for the longest dependency-ordered prefix whose gates pass
-  - if a later item in the applied group passes code validation but an earlier dependency is not closable, leave the later item provisional in the todo/queue rather than checking it in the blueprint
-  - report both worker saturation and integration throughput so operators can distinguish spawn underfill from master validation bottlenecks
-- Worker batches may sync only `[_]` marks and evidence; only the integration
-  owner may sync `[x]` marks after integrated validation.
+```bash
+codex_argv=(codex -C "$WORK_ROOT" -c features.goals=true --no-alt-screen)
+[[ -n "${CODEX_MODEL:-}" ]] && codex_argv+=(-m "$CODEX_MODEL")
+[[ -n "${CODEX_REASONING_EFFORT:-}" ]] && \
+  codex_argv+=(-c "model_reasoning_effort=$CODEX_REASONING_EFFORT")
+[[ -n "${CODEX_SERVICE_TIER:-}" ]] && \
+  codex_argv+=(-c "service_tier=$CODEX_SERVICE_TIER")
 
-### Cron Space Guard
+tmux -S "$TASK_ROOT/tmux.sock" -f /dev/null new-session -d \
+  -s "$SESSION" -c "$WORK_ROOT" \
+  env -u CODEX_CI -u CODEX_THREAD_ID -u CODEX_REMOTE_PAYLOAD \
+  CODEX_HOME="$TASK_ROOT/codex-home" \
+  "${codex_argv[@]}"
+```
 
-Every generated execution cron must include a repo-local janitor script, for example `.cron/scripts/cron_space_guard.sh`, and call it from the top of the scheduler before any `tmux` or agent-runner launch.
+Each claim receives its own tmux server/socket/session and ordinary interactive
+Codex OS process tree. Do not host multiple claims in windows or panes of one
+server. Do not import Codex into the controller, multiplex claims through a
+service, or reuse another claim's wrapper/native process.
 
-Minimum behavior:
-- determine the cron root from the script path, not from the caller's current directory
-- cap active logs by preserving the last `MAX_LOG_MB` with `tail -c`, using a temp file plus atomic `mv`
-- rotate or truncate scheduler redirection targets such as `keepalive.log` before appending more output
-- clean old logs and stale workspaces before checking the cron-root budget
-- verify live worker paths with self-match-safe process checks before deleting any automation repo or workspace
-- return a distinct nonzero code for "budget exceeded" so the scheduler can exit without treating the tick as completed work
-- keep all defaults overrideable via environment variables
+Bootstrap each `CODEX_HOME` with only required credentials and minimal
+route/provider configuration. Do not copy project trust history, plugins,
+marketplaces, MCP servers, prior threads, goals, logs, or SQLite registries.
 
-### Cleanup Script
+### Goal Handshake
 
-Requirements:
-- Remove only the target repo's execution cron line.
-- Be safe to run repeatedly.
-- Leave a cleanup state/log artifact.
-- Return success only when cron entry is confirmed removed (not just "script ran").
+Use a controller-owned immutable claim card. Keep `/goal` short: identify the
+claim, deliverable, task root, claim-card path/digest, result path, and hard
+boundaries. Put detailed ownership, dependencies, acceptance commands, and
+artifact rules in the claim card.
 
-## Completion Gate
+For exactly one goal per claim:
 
-A blueprint item may be checked only when all required gates pass.
+1. Start the TUI and handle only currently active first-run/trust prompts.
+2. Detect the real idle composer, not a selector or stale scrollback glyph.
+3. Paste `/goal <objective>` through a task-local tmux buffer.
+4. Append a claim-specific completion token to the short objective and poll
+   `capture-pane -p -J` until that final token is visible in the active composer.
+   PTY input is ordered, so the final token proves the preceding `/goal` text
+   arrived. Paste completion and key delivery are not assumed synchronous under
+   load. A timeout retires the launch; it never submits partial input.
+5. Submit once. Never spray duplicate Enter keys or resend `/goal` blindly.
+6. Authenticate thread, active goal, route, cwd, and task-local registry.
 
-Minimum gate set:
-- operable entry: the CLI, service, console, or UI entry works in its intended operating mode
-- foundation completion: model or algorithm artifacts are downloaded and runnable; mock weights or fake inference paths each fail the gate
-- feature implemented: input -> run -> result -> evidence path is real
-- feature completion: expose a real API path, run a successful call, and verify output quality matches expected behavior
-- algorithm complete: core data/model/scheduling/retrieval logic exists with real inputs/outputs
-- validation evidenced: `Validation Log` records commands and results
+### Startup State Machine
 
-Bootstrap and reporting rule:
-- before the first cron tick, the authoritative blueprint checklist must exist and start with `[ ]` marks
-- after each successful worker batch, the authoritative blueprint and today's todo must both reflect `[_]` state with worker evidence
-- after each successful master integration batch, the authoritative blueprint and today's todo must both reflect `[x]` state with master validation evidence
-- after repeated unresolved ticks for the same `[ ]` item (default >=5), the cron must auto-split that item into child checklist items and report the split explicitly
+Use durable states such as:
 
-Cleanup hard-gate rule:
-- Cron cleanup must not be triggered by blueprint-only signal.
-- Require at least these signals at the same tick: blueprint `[ ]` count=0 + blueprint `[_]` count=0 + latest todo `Unfinished=0` + no active automation agent-runner process + no pending checkpoint files.
-- Parsers may accept the legacy display variant `Unfinished = 0`; generators emit
-  the canonical `Unfinished=0` form.
-- Require current-tick validation to pass before cleanup.
-- Set final state to `completed` only after cleanup script succeeds and crontab no longer contains the target guard line.
+```text
+reserved -> materialized -> tmux_started -> goal_pasted -> goal_submitted
+         -> live -> handoff_ready -> finished
+```
 
-Do not mark items done for:
-- doc-only work
-- placeholder handlers
-- fake success responses
-- mocked model downloads or mocked inference/evaluation paths
-- schema without runnable path
-- tests without real implementation
+Only `live` consumes authenticated live capacity. A `goal_submitted` lane whose
+exact tmux/PID identity remains alive may stay `starting` until a configurable
+hard deadline and be promoted by a later tick when registry writes appear. Do
+not kill/relaunch a healthy TUI merely because authentication is slow. Release
+or repair dead/mismatched lanes with bounded retries.
 
-Do not commit batch outputs for:
-- test-only changes (`spec/`, `tests/`)
-- validation logs / research handoff docs generated by cron loops
-- todo snapshots and cron state logs
+### Liveness
 
-## Batch Design Rules
+Count a Codex lane only when all are true:
 
-- Prefer the repository's own layer/order semantics.
-- If the blueprint is layered, execute only the finest still-open layer first.
-- Never close upper-layer items while lower-layer items remain open.
-- Stay inside one cluster per batch.
-- For fragmented file checklist items, merge nearby same-directory files into one bounded batch (<=100KB combined) to avoid over-fragmented single-file ticks.
-- Stop after 6-8 coherent items at most.
-- If the blueprint is already fully checked, validate the current tree and exit cleanly without fabricating more work.
-- In multi-worker mode, keep workers claiming from the ordered DAG queue and let integration happen through git rebase/push plus authoritative repo re-sync, not by letting workers close blueprint/todo state directly.
-- Scale worker count to the user-requested concurrency cap from the DAG claim frontier. If dependencies or path conflicts exist, workers may still prepare provisional implementation output; the main session must merge, validate, and close those nodes only when the DAG dependency constraints are satisfied.
-- For landed worker outputs with no path conflicts and combined diff <=256KiB, prefer batch apply + combined validation over one-worker-at-a-time master validation. Blueprint closure remains dependency ordered and may be a prefix of the applied batch.
+- claim route and transport policy are valid
+- task-local tmux server and session exist
+- pane PID and process start time match the durable claim
+- cwd equals the claim work root
+- task-local `CODEX_HOME` is unique to the claim
+- resolved route satisfies every explicitly frozen route field
+- thread ID and active goal ID/status match the task-local registries
+- goal objective names the claim
 
-## Looper Embed Rules
+Broad process-name counts are telemetry, never liveness proof. When a durable
+result is harvested, stop that claim's tmux server immediately. Cleanup must
+also terminate claim-descended subprocesses identified by recorded PID/start
+time, task cwd, or task-local environment, without touching unrelated Codex
+processes on the host.
 
-When embedded in `looper-cron-builder`, execution may run only inside an active
-`ResourceLease` with a `ParentLeaseRef`. Nested execution attempts can create
-child implementation candidates, repair child items, or validation-focused
-patches, but they cannot write `[x]` or escape parent lease budget.
+## Other Agent Platforms
 
-The parent looper attempt owns final reward classification, no-reward
-accounting, and ROI. Execution outputs remain provisional until the master lane
-integrates them in DAG order and validates the authoritative checkout.
+The controller may expose adapters for Claude Code, opencode, OpenClaw, or
+Hermes. Preserve explicit platform settings and validate each adapter's own
+identity. `B3EHIVE_AGENT_RUNNER` may define non-Codex runners. For Codex it may
+customize TUI argv only; it cannot bypass tmux, interactive `/goal`, independent
+process/state, or authentication requirements.
 
-Nested execution should emit `looper_log` refs when implementation attempts
-produce instrument evidence: mismatched batch grain, missing validator,
-worker/root confusion, integration bottleneck, route mismatch, guard friction,
-or scaffold/tool weakness.
-The log should separate target feedback from instrument feedback, distinguishing
-implementation difficulty from execution-instrument defects.
+## Claims And Handoff
 
-## Validation
+The immutable claim card records:
 
-Use the smallest real validation commands the repo supports.
+- claim/run/item IDs, mode, dependencies, baseline, and deadline
+- exact writable paths and read-only bootstrap files
+- concise deliverable and repository-specific validation commands
+- allowed/forbidden artifacts and result schema
+- task root, authoritative checkout as a forbidden write target, and retry budget
 
-Examples:
-- Rust/Tauri repos: `cargo check`, `cargo test`
-- Python repos: `uv sync --extra dev`, `uv run pytest -q tests`
-- Node repos: `npm`/`pnpm` install plus actual test/build commands
+The result manifest records truthful per-item changed paths, patch checksum,
+commands and outcomes, artifact references, and `status=self_tested`. Require
+only evidence applicable to the current item. Do not invent universal evidence
+categories or mark inapplicable gates passed.
 
-## Output Discipline
+Harvest before pruning. Copy a valid result and patch into immutable
+controller-owned queue storage keyed by claim, baseline, and checksum. A claim
+record is a reservation, not completion proof. Finished/handoff claims do not
+consume live capacity and must not retain an idle TUI.
 
-- Begin with the requested blueprint, checklist state, implementation result,
-  gate decision, evidence, or action.
-- Give each sentence one fact, condition, decision, action, result, or constraint.
-- State supported claims directly. Omit unsupported connective claims and
-  decorative inference.
-- When unresolved uncertainty changes correctness, safety, legality, a gate
-  decision, or the available action, state the exact unknown, condition, and
-  consequence.
-- Include a boundary only when it changes correctness, safety, legality, or the
-  available action; name the exact constraint and permitted path.
-- Report validation as result, evidence, and consequence. Omit process
-  diaries, routine check narration, previews, restatements, recaps, and generic
-  closing offers.
-- Preserve exact paths, commands, identifiers, states, counts, thresholds,
-  evidence, user-required sections, and safety gates.
-- When the user supplies a target length, keep the delivered output within plus
-  or minus 10 percent. With no target, use the shortest complete output
-  supported by the artifacts and evidence.
-- Before delivery, silently scan prose word by word for stock meta-talk,
-  defensive comparison frames, repeated qualifications, vague fillers, empty
-  placeholders, and generic recommendation lead-ins. Replace them with facts or
-  actions while preserving technical negation and exact strings.
+Rework uses the same task, thread, and active goal as an ordinary follow-up
+turn. It never starts a second `/goal`.
 
-## Local References
+## Concurrency And Admission
 
-Read these only when needed:
-- `references/execution-pattern.md` for the pattern and local repo examples
-- `references/gate-rules.md` for completion gate and cleanup rules
+Do not impose a universal worker count. Freeze separate configurable limits:
+
+- logical claim cap
+- startup reservation cap and launch fanout/wave size
+- authenticated running-turn cap
+- integration cap
+- CPU and accelerator validator leases
+- exact-path conflict budget
+
+The operator's requested count is a hard ceiling, not permission to overload
+the host. Admission accounts for CPU/load, available memory, swap pressure,
+process/PID headroom, disk budget, startup backlog, external rate limits,
+validator leases, and write conflicts. Never launch lane `N+1`.
+
+The launch fanout limits one startup wave; it must not silently become the
+overall concurrency target. When `N` dependency-ready, conflict-safe claims
+exist and every configured cap and measured headroom admits `N`, repeated
+bounded waves must converge to `N` authenticated live lanes. Every unfilled
+slot must have a persisted binding reason rather than a generic "capacity"
+label. Count lanes that finish during ramp-up as completed throughput, not as a
+launch failure.
+
+Within one scheduler invocation, run a bounded admission pump outside the
+global lease: launch one wave, reconcile startup authentication, recompute
+availability, and immediately launch the next wave. Do not wait for the next
+cron cadence while admissible slots remain. Stop only at the effective target,
+the invocation time budget, or a concrete binding condition; persist which one.
+
+Report logical claims, starting lanes, authenticated live lanes, running turns,
+finished handoffs, conflict-blocked work, resource-blocked work, and integration
+backlog separately. Do not report reservations or OS process counts as live
+`/goal` concurrency.
+
+## Scheduler Tick
+
+Keep scheduler ownership short and resumable:
+
+1. Acquire one repository-local scheduler lease.
+2. Validate the frozen execution specification and transport surfaces.
+3. Harvest durable handoffs before any stale-claim pruning.
+4. Reconcile dead, mismatched, interrupted, finished, and accepted claims.
+5. Validate blueprint/DAG truth and regenerate status.
+6. Integrate a bounded conflict-safe dependency-ready batch.
+7. Reserve a bounded claim set atomically.
+8. Release the global lease before slow preparation, TUI startup, network work,
+   model turns, tests, or integration validation.
+9. Pump bounded launch waves outside the lease until admitted capacity is full,
+   the tick budget expires, or a concrete block is persisted; record every
+   transition and never wait on cron cadence merely to launch the next wave.
+10. Reacquire briefly to merge outcomes, refresh status, and schedule cleanup.
+
+If using `flock`, close its file descriptor before every tmux launch so workers
+cannot inherit and pin the scheduler lock. A cron tick must be safe to retry and
+must not require one long process to wait for workers to finish.
+
+## Master Integration
+
+The canonical Master owns patch application, conflict resolution, validation,
+checkbox mutation, checkpointing, and optional push. Integrate only when real
+dependencies and ownership conflicts permit it. Batching thresholds are
+repository-configurable heuristics, not skill-wide constants.
+
+Use the repository's actual acceptance policy. Tests, fixtures, docs, generated
+code, binaries, and evidence may be edited or committed when that policy
+requires them. Do not impose foreign rules such as "never commit tests",
+docs-to-code ratios, fixed batch item counts, fixed diff sizes, or model-specific
+evidence gates.
+
+On validation failure, preserve the worker handoff, classify the failure, and
+move it to bounded repair without blocking unrelated ready entries. Advance
+`[_] -> [x]` only after integrated validation and required completion-surface
+reconciliation.
+
+## Budgets And Cleanup
+
+Derive disk/log/process thresholds from repository/operator policy and host
+capacity. Defaults must be environment-overridable and visible in validate-only
+output. Measure allocated disk blocks, exclude symlinks, bound logs, and remove
+only stale roots not referenced by a live claim or durable handoff.
+
+Cleanup is idempotent and repository-scoped. On explicit stop or completion:
+
+- remove only the exact cron marker for this controller
+- stop scheduler processes and every task-local tmux server it owns
+- terminate surviving task-descended subprocesses without broad host-wide kills
+- preserve canonical source and accepted artifacts
+- remove controller runtime only after no live references remain
+- verify cron entries, scheduler processes, task processes, sockets, locks, and
+  runtime roots are absent
+
+Completion cleanup additionally requires zero `[ ]`, zero `[_]`, no pending
+handoff/integration/repair entry, all repository gates passing, and every
+required status surface reconciled.
+
+## Generated Validation
+
+Every generated or repaired controller must include tests proving:
+
+- validate-only creates no claim, tmux server, or worker process
+- Codex argv is interactive and cannot resolve to app-server or `codex exec`
+- each simultaneous claim has a distinct task root, tmux socket/session,
+  process identity, writable `CODEX_HOME`, thread, and goal
+- exactly one complete `/goal` is submitted per claim
+- only fully authenticated claims count as live
+- delayed `goal_submitted` authentication promotes without duplicate launch
+- dead/mismatched startup is released after its bounded deadline
+- harvest occurs before prune and finished TUI servers are stopped
+- scheduler locks are not inherited by workers
+- caps and host admission prevent `N+1`
+- with `N` eligible fixture claims, all limits admitting `N`, and mock TUIs that
+  remain live, one admission pump reaches exactly `N` authenticated lanes
+- every intentional underfill has a specific persisted dependency, conflict,
+  startup, host-resource, external-limit, route, or validator reason
+- cleanup removes only controller-owned runtime and processes
+- two fixture repositories with different names, blueprint paths, languages,
+  validators, and route policies produce no cross-project constants
+
+Static validation scans executable launch/config surfaces for forbidden Codex
+subcommands and scans generated artifacts for unexplained absolute paths or
+known foreign project tokens. Negative prose documenting forbidden transports
+is allowed; executable command-shaped occurrences are not.
+
+## References
+
+- Read [references/execution-pattern.md](references/execution-pattern.md) when
+  implementing scheduler phases, ledgers, handoff, and concurrency.
+- Read [references/gate-rules.md](references/gate-rules.md) when implementing
+  generated validation and cleanup gates.
+- When composed with b3ehive looper behavior, follow
+  `../looper-cron-builder/references/b3ehive-bridge-contract.md` for leases,
+  evidence, ROI, and nested-run accounting. A nested execution run requires an
+  active parent lease, records its `ParentLeaseRef` in the `NestedRunLedger`,
+  and cannot write `[x]`; its output remains provisional for parent/Master
+  acceptance. Emit `looper_log`/`LooperLog`
+  evidence when execution reveals feedback about an `InstrumentObject` such as
+  a route, launcher, validator, scaffold, ledger, or this skill itself; name the
+  affected `TargetObject`. Logging feedback does not authorize instrument
+  mutation, which still requires the shared EvidenceLint, ROI, ParetoGate,
+  rollback, and Master acceptance lifecycle.

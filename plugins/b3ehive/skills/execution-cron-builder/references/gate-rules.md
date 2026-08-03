@@ -1,165 +1,98 @@
-# Completion Gate Rules
+# Generated Gate Rules
 
-## Never mark done without all of these
+These are controller invariants. Repository acceptance commands and artifact
+policies come from the frozen target specification.
 
-- operable entry exists and is runnable
-- model/algorithm foundations are real: artifacts are truly downloaded and can run end-to-end (no mock weights, no fake inference path)
-- end-to-end feature path is real
-- API closure is real when relevant: endpoint exists, request succeeds, and effect/quality check matches expectation
-- underlying algorithm or state model is complete enough to support the feature
-- validation commands passed and were logged
+## Portability Gate
 
-## Strict layer gate rule
+- No project name, absolute path, item prefix, model route, service tier,
+  concurrency number, validator, or evidence directory from another repository.
+- No fixed language, framework, build system, remote, or branch assumption.
+- No global ban on tests, docs, binaries, or generated files; follow the target
+  repository's explicit policy.
+- Exercise at least two unlike fixture repositories and scan for cross-fixture
+  residue.
 
-When the blueprint has explicit layers, enforce strict bottom-up closure:
-- only the finest still-open layer is executable for new checkmarks
-- if any lower-layer item is still `[ ]`, upper-layer items must remain `[ ]`
-- if a tick detects upper-layer `[x]` while lower layers remain open, auto-reset those upper-layer `[x]` items back to `[ ]` in the authoritative blueprint, then continue from the lower layer
-- emit an explicit autoclear report with violating layer counts and cleared item counts
-- block only when auto-reset is disabled or re-validation still fails after autoclear
+## Codex Transport Gate
 
-## Local-only artifact rule
+- One claim equals one task-local tmux server/socket/session, one interactive
+  Codex process tree, one writable CODEX_HOME, one thread, and one active goal.
+- `codex app-server`, controller-managed app-server JSON-RPC, shared daemons,
+  `codex exec`, shared tmux, shared writable Codex state, and no-tmux Codex are
+  hard failures with no fallback.
+- Minimal CODEX_HOME bootstrap excludes project trust history, plugins,
+  marketplaces, MCP configuration, and prior state registries.
+- Paste one short `/goal` with a claim-specific final token; require that token
+  in joined composer text before the one allowed submit key.
+- Only exact tmux/PID/start-time/cwd/route/thread/goal identity is live.
+- Delayed registry writes may preserve `goal_submitted` only while exact process
+  identity remains healthy and before a configured hard deadline.
+- Validate-only prints the resolved transport and route policy but launches
+  nothing.
 
-For execution cron repos, decide explicitly which artifacts remain local-only.
-Typical examples:
-- `.cron/`
-- `*.log`
-- `Docs/todos_*.md`
-- `.venv/`
-- `tests/`
-- `spec/`
-- `target/`
-- `node_modules/`
+## Task Boundary Gate
 
-Do not silently commit these unless the repo's policy explicitly requires it.
+- Task files are explicitly declared, repository-relative, and inode-independent.
+- Complete repository copies, hardlink trees, unrelated paths, runtime roots,
+  credentials, sockets, logs, caches, and controller state are rejected.
+- Claim card hash and baseline hash match before launch and harvest.
+- Changed paths stay within exact ownership.
+- Worker never writes the authoritative blueprint or canonical checkout.
 
-## Commit hygiene gate rule
+## Checklist Gate
 
-- Execution batches are code-first: reject docs-only commits.
-- In one batch commit, changed docs files must not exceed changed code files.
-- If a repository stores runnable validation packages or executable scripts under docs-like folders, classify those paths as `code/evidence` instead of prose docs for commit hygiene counting.
-- At minimum, treat patterns like `Docs/Stage3IOSPathValidation/**` and `Docs/scripts/*.sh` as `code/evidence` when they contain runnable validation logic.
-- Never stage or commit tests in execution batches (`tests/**`, `test/**`, `spec/**`, `*_test.*`, `test_*.py`).
-- Never stage or commit runtime artifacts (`.cron/**`, logs, state files, generated todo snapshots).
-- If forbidden artifacts were already tracked by git, clean them with `git rm --cached ...` and add ignore/exclude entries before continuing cron.
+- Parser accepts only `[ ]`, `[_]`, and `[x]`.
+- IDs are unique; dependencies exist and are acyclic.
+- `[ ] -> [_]` requires durable harvested self-test handoff.
+- `[_] -> [x]` requires Master integration, repository validation, and required
+  completion-surface reconciliation.
+- `[ ]` and `[_]` both block completion cleanup.
+- Worker output never directly closes authoritative state.
 
-## Sync-first push gate rule
+## Handoff Gate
 
-- At execution tick start, development machine must pass `fetch --prune + merge --ff-only` sync and local HEAD must match remote tracking HEAD before any coding.
-- Before each checkpoint commit, local authoritative repo must pass `fetch + merge --ff-only` sync.
-- After each successful push, run local authoritative sync again and verify local HEAD equals remote tracking HEAD.
-- If local repo has dirty tracked files, detached HEAD, non-fast-forward divergence, or sync/network failure: block the tick and surface a clear error.
-- Do not treat "push succeeded but local sync failed" as success.
-- If dirty tracked files exist while worker processes are live, block protectively and do not stash active work.
-- If dirty tracked files exist and no worker process is live, stash with an audit name before attempting sync.
-- Never auto-pop a recovery stash in the success path; conflicts from applying preserved work require explicit operator repair.
+- Harvest checksum-valid result and patch before stale liveness pruning.
+- Preserve immutable handoff independently of task process lifetime.
+- Finished claims release live capacity and their TUI immediately.
+- Repair reuses the same task/thread/goal unless the claim is explicitly retired.
+- Retry budgets are keyed by stable claim/baseline/failure identity.
 
-## Worker clone boundary rule
+## Admission Gate
 
-- If a worker runs inside `.cron/automation_repo*`, its prompt must name that clone as `Repository root`.
-- The prompt must explicitly say the worker should work only inside that automation clone.
-- The prompt must explicitly forbid direct edits to the scheduler's authoritative checkout.
-- Stable paths inside committed artifacts must stay repository-relative; clone absolute paths are allowed only in the private prompt/log surface.
-- A prompt that names the main checkout while the process runs in an automation clone is invalid because it can dirty the scheduler checkout and break sync-first guarantees.
+- Logical claims, starting lanes, authenticated goals, running turns,
+  integrations, and validators have separate limits.
+- Admission checks host and external headroom plus path conflicts.
+- The requested cap is never exceeded; reservations are never reported as live.
+- Launch fanout is a per-wave limit, not a hidden overall concurrency cap.
+- Given `N` eligible claims, all limits admitting `N`, and fixture workers that
+  remain active, one admission pump reaches exactly `N` authenticated lanes
+  without waiting for another cron tick.
+- Binding underfill reasons are visible and persisted.
 
-## Claim ledger rule
+## Lock Gate
 
-- Claims are live reservations, not completion evidence.
-- Each claim record must include item id, original blueprint id, dependency ids, session name, slot, workspace path, status, claim time, and owned path scopes.
-- Todo generation must expose claim state as `live:<session>`, `finished:<session>`, or `unclaimed`, and must include the claim ledger path.
-- Release claims for items already marked `[x]` in the authoritative blueprint.
-- Release claims for still-open items when the assigned worker process is no longer alive.
-- Keep claims for still-open items only when the assigned worker process is live.
-- Write released claims to an audit ledger with release time, original claim time, item id, worker id, and title.
-- Use self-match-safe process patterns for the selected runner, such as
-  `[c]odex exec...` or `[c]laude -p...`; do not let the guard's own `pgrep`
-  command count as a worker.
-- Prune stale claims before sync and after sync so a dirty checkout cannot pin stale reservations indefinitely.
+- Global scheduler lock protects only short state transitions.
+- Lock file descriptors are closed before tmux/process launch.
+- Slow model, network, build, test, benchmark, and integration work runs outside
+  the global lock.
+- Interrupted phases are recoverable from durable attempt state.
 
-## First-open selection rule
+## Master Gate
 
-- Determine the first still-open layer or cluster from the authoritative blueprint before filtering claims.
-- Spawn workers only from unclaimed items in that first-open layer or cluster, ordered by the DAG/topological claim frontier.
-- Fill worker slots up to the user-requested concurrency cap when enough unclaimed nodes exist in the ordered claim frontier, even if earlier nodes are still live, dependency-blocked for integration, or path-overlapping.
-- Never select the first unclaimed layer, because stale or live claims in a lower layer would let upper-layer work run too early.
-- The main-session integration lane, not worker spawning, decides when a later layer or dependent node can close.
+- Canonical dirty work is preserved; no implicit reset/stash/checkout/revert.
+- Master validates the integrated canonical tree with repository-defined gates.
+- Conflicts preserve user and worker intent or move the entry to explicit repair.
+- Commit and push happen only when required by repository/operator policy.
+- No foreign docs/code ratio, batch size, diff size, or domain evidence rule is
+  imposed.
 
-## Lock hygiene rule
+## Cleanup Gate
 
-- If the guard uses `flock` and also spawns `tmux`, explicitly close the held lock fd before every `tmux new-session`, `tmux new-window`, and `tmux respawn-pane`.
-- Do not let workers reuse the scheduler's state file; use slot-specific state files so no-focus or failed workers cannot overwrite scheduler truth.
-- If future ticks report "previous run still active" but there is no live scheduler workload, inspect `/proc/<pid>/fd/*` for inherited lock holders before deleting lock files.
-- If the inherited holder is a long-lived `tmux` server, restart that server/session or rotate to a new versioned lock path before resuming cron.
-
-## Bootstrap and backfill rule
-
-- before the first cron tick, initialize the authoritative execution checklist in the blueprint with all `[ ]` marks
-- daily todos must derive from that authoritative blueprint checklist
-- daily todos must include the current DAG for unfinished checklist items, including dependencies, worker claim state, integration-ready/blocked state, claim owner, owned paths, ordered worker claim frontier, and main-session integration frontier
-- todo DAG generation must fail on cycles, duplicate node ids, or dependencies that point to missing checklist items
-- after each successful batch, backfill the authoritative blueprint checkmarks and refresh today's todo in the main repo
-- if the same `[ ]` item remains unresolved for repeated ticks (default >=5), auto-split it into child checklist items and report the split clearly to the human
-- if all child checklist items become `[x]`, parent checklist item must auto-close to `[x]`; if any child is `[ ]`, parent must remain `[ ]`
-
-## Documentation reconciliation gate
-
-- Completion is not accepted until all required documentation surfaces are reconciled in the same batch.
-- If a repo requires multiple surfaces (for example `Overall Blueprint + Stage Blueprint + today's todo`), a partial update is invalid.
-- Daily todo entries must reference stable repository-relative blueprint paths, not automation clone absolute paths.
-- If code implementation advances but completion surfaces remain stale, mark the tick failed and force a backfill repair batch.
-
-## Cleanup rule
-
-When the blueprint is fully checked and validation passes:
-- require hard cleanup signals before cleanup:
-  - authoritative blueprint unchecked count is zero
-  - latest todo snapshot shows `Unfinished = 0`
-  - no active selected agent-runner execution in automation repos
-  - no pending checkpoint artifacts remain
-- run the cleanup script
-- verify cron line was actually removed from crontab
-- leave final state as `completed` or `paused` only after cleanup verification
-- do not continue waking the repo for empty no-op batches
-
-## Main session rule
-
-- Treat the main session as worker id `main-session` when a user goal is active.
-- The main session may claim integration-ready DAG items and do implementation work directly when useful.
-- The main session is the default owner for validating, integrating, enforcing dependency-gated closure, and clearing merge/rebase conflicts caused when worker worktrees or branches are merged back to `main`.
-- Conflict cleanup must preserve both worker and upstream intent where possible, run the relevant validation gates, and checkpoint only a coherent merged tree.
-
-## Split-lane DAG concurrency rule
-
-When execution uses tmux workers:
-- newly launched `tmux` agent workers must honor explicit `B3EHIVE_AGENT_PLATFORM`,
-  `B3EHIVE_AGENT_RUNNER`, `CODEX_MODEL`, `CODEX_REASONING_EFFORT`,
-  `CODEX_SERVICE_TIER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, and
-  `CLAUDE_PERMISSION_MODE`, `OPENCODE_MODEL`, `OPENCODE_VARIANT`, and
-  `OPENCODE_AGENT`, `OPENCLAW_PROFILE`, `OPENCLAW_AGENT`, `OPENCLAW_THINKING`,
-  `HERMES_MODEL`, `HERMES_TOOLSETS`, and `HERMES_SKILLS`; if service tier,
-  permission mode, variant, profile, agent, toolsets, or preloaded skill list is
-  unset, the guard may use a repo default but must print it
-- worker count must be computed from `user_max_concurrency - live_worker_count`, capped by unclaimed open nodes in the ordered DAG claim frontier
-- do not reduce worker count because dependencies are unfinished, path scopes overlap, or the main session has integration claims
-- only one integration owner may close blueprint/todo checkmarks after combined validation and dependency checks
-- other workers should land code plus validation evidence only; their output is provisional until integrated
-- every lane must sync from origin before work and rebase before push
-- overlapping path families are allowed as worker claims only when needed to fill requested concurrency, but they must be marked as integration conflicts and resolved by the main session before closure
-- never spawn worker work outside the current ordered DAG claim frontier
-- never close work outside the main-session dependency-ready integration frontier
-
-## Validate-only rule
-
-- `VALIDATE_ONLY=1` is a dry gate only.
-- A validate-only run may verify configuration, sync state, DAG consistency, claim ledger shape, disk/log budgets, and todo generation.
-- A validate-only run must exit before creating claims, launching `tmux`, or
-  starting the selected agent runner.
-- If the operator's goal is to fill worker lanes, the guard must run without `VALIDATE_ONLY=1`.
-
-## Small-diff integration batch rule
-
-- The main session must maintain an integration queue that scans worker workspaces for changed files, diff byte counts, claim ids, and path conflicts.
-- Worker outputs whose combined diff is <=256KiB are small-diff batch candidates.
-- The main session may batch apply multiple small worker diffs when path conflicts are absent or explicitly resolved.
-- Batch application is only an integration speedup; checklist closure still follows DAG dependency order and every accepted closure must pass its validation gate.
-- After a coherent validated batch, update the authoritative blueprint and today's todo so progress counts and percentages reflect the batch immediately.
+- Explicit stop removes the exact cron marker and all controller-owned workers,
+  including task-descended subprocesses, while preserving canonical work.
+- Completion cleanup additionally requires no `[ ]`, `[_]`, handoff,
+  integration, repair, or pending-checkpoint work.
+- Cleanup is idempotent and verifies cron entries, scheduler processes, task
+  processes, tmux sockets, locks, and runtime roots are absent.
+- Process matching is task-identity scoped and never kills unrelated host Codex
+  sessions or services.

@@ -178,7 +178,10 @@ Generated optimization cron code must support Codex, Claude Code, opencode,
 OpenClaw, and Hermes via a single agent-runner abstraction.
 
 Default platform selection:
-- `B3EHIVE_AGENT_PLATFORM=codex` uses `codex exec`.
+- `B3EHIVE_AGENT_PLATFORM=codex` uses one independent interactive Codex TUI
+  process in a task-local tmux server with a private writable `CODEX_HOME` and
+  exactly one authenticated active `/goal`. `codex app-server`, shared Codex
+  daemons, `codex exec`, and Codex without tmux are forbidden.
 - `B3EHIVE_AGENT_PLATFORM=claude` uses `claude -p`.
 - `B3EHIVE_AGENT_PLATFORM=opencode` uses `opencode run`.
 - `B3EHIVE_AGENT_PLATFORM=openclaw` uses `openclaw agent`.
@@ -189,10 +192,24 @@ Default platform selection:
 Default command templates:
 
 ```bash
-# Codex
-codex exec --cd "$WORKER_REPO" --model "${CODEX_MODEL:-gpt-5.3-codex}" \
-  -c model_reasoning_effort="${CODEX_REASONING_EFFORT:-xhigh}" \
-  < "$PROMPT_FILE" > "$OUTPUT_FILE"
+# Codex interactive TUI
+codex_argv=(codex -C "$WORKER_REPO" -c features.goals=true --no-alt-screen)
+[[ -n "${CODEX_MODEL:-}" ]] && codex_argv+=(-m "$CODEX_MODEL")
+[[ -n "${CODEX_REASONING_EFFORT:-}" ]] && \
+  codex_argv+=(-c "model_reasoning_effort=$CODEX_REASONING_EFFORT")
+[[ -n "${CODEX_SERVICE_TIER:-}" ]] && \
+  codex_argv+=(-c "service_tier=$CODEX_SERVICE_TIER")
+tmux -S "$TASK_ROOT/tmux.sock" -f /dev/null new-session -d \
+  -s "$SESSION" -c "$WORKER_REPO" \
+  env CODEX_HOME="$TASK_ROOT/codex-home" "${codex_argv[@]}"
+# Wait for the composer, paste one short /goal with a claim-specific final
+# token, poll joined composer text until that token is visible, submit once,
+# then authenticate route/cwd/thread/goal before counting this lane as live.
+tmux -S "$TASK_ROOT/tmux.sock" set-buffer -b goal \
+  "/goal $GOAL Integrity token: $GOAL_COMPLETION_TOKEN"
+tmux -S "$TASK_ROOT/tmux.sock" paste-buffer -b goal -t "$SESSION" -d
+# Generated controller polls `capture-pane -p -J`; timeout fails without Enter.
+tmux -S "$TASK_ROOT/tmux.sock" send-keys -t "$SESSION" C-m
 
 # Claude Code
 claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
