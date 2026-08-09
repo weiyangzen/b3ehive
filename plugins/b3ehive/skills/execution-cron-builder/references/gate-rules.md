@@ -49,6 +49,22 @@ policies come from the frozen target specification.
 - `[ ]` and `[_]` both block completion cleanup.
 - Worker output never directly closes authoritative state.
 
+## Gantt Projection Gate
+
+- Blueprint `<dir>/<name>_Blueprint.<ext>` maps exactly to
+  `<dir>/<name>_Gantt.<ext>`; only the terminal token changes and the complete
+  prefix is preserved. Other stems append `_Gantt` and freeze the result.
+- The companion is a generated read-only Kanban projection with no mutable
+  checkboxes and is never parsed as authoritative state.
+- A renderable Gantt view and monitoring index cover every checklist ID exactly
+  once and expose dependency, owner, and durable runtime state.
+- Source/specification digests and generation time prove freshness; each tick
+  atomically replaces the projection after its final state merge.
+- Recorded timestamps or explicitly configured estimates are used; items with
+  unknown timing remain visibly unscheduled and receive no fabricated dates.
+- Missing, misnamed, stale, duplicate-ID, incomplete, or pre-tick projections
+  fail validation and completion cleanup.
+
 ## Handoff Gate
 
 - Harvest checksum-valid result and patch before stale liveness pruning.

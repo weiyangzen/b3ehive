@@ -79,6 +79,27 @@ for required in \
     error "missing concurrency fill contract: ${required}"
 done
 
+for required in \
+  'same-name Gantt Kanban monitoring' \
+  'mandatory same-name Gantt companion' \
+  '<dir>/<name>_Gantt.<ext>' \
+  'Stage_3_AR_Gantt.md' \
+  'every stable checklist ID exactly once' \
+  'place items without trustworthy timing in a visible unscheduled section' \
+  'Write the companion atomically' \
+  'stale-digest'; do
+  grep -Fq "$required" "$skill_text" || \
+    error "missing same-name Gantt monitoring contract: ${required}"
+done
+
+for required in \
+  '## Gantt Projection Gate' \
+  'generated read-only Kanban projection' \
+  'atomically replaces the projection'; do
+  grep -Fq "$required" "${SKILL_DIR}/references/gate-rules.md" || \
+    error "missing Gantt projection gate: ${required}"
+done
+
 # Forbidden transports may be named only in negative/hard-failure prose. Reject
 # command-shaped occurrences and shared app-server config in all launch surfaces.
 if grep -InE 'codex([[:space:]]+[^#]*)?[[:space:]]+(app-server|exec)([[:space:]]|$)' \

@@ -6,10 +6,11 @@ names and paths below are placeholders.
 ## 1. Frozen Specification
 
 Persist one versioned specification before installation. It should name the
-authoritative blueprint, parser, dependency source, runtime root, platform,
-route policy, task policy, result schema, validators, completion surfaces,
-caps, budgets, and cron marker. Hash the specification into claims and state so
-a policy migration cannot silently reinterpret old work.
+authoritative blueprint, its exact same-prefix Gantt companion, parser,
+dependency source, runtime root, platform, route policy, task policy, result
+schema, validators, completion surfaces, caps, budgets, and cron marker. Hash
+the specification into claims and state so a policy migration cannot silently
+reinterpret old work.
 
 Validate portability by generating against at least two fixture repositories
 whose names, languages, blueprint locations, item IDs, validators, and route
@@ -41,7 +42,7 @@ Use short transactions:
 5. reserve bounded integration and launch work
 6. persist state and release the global lock
 7. perform slow integration/preparation/launch work
-8. lock briefly to merge outcomes and write status
+8. lock briefly to merge outcomes and atomically write status and Gantt
 
 No long TUI wait, model turn, network call, build, test, or benchmark runs under
 the global scheduler lease.
@@ -113,8 +114,8 @@ hints, retry class, and current state.
 
 Master selects dependency-ready, conflict-safe entries, applies them to the
 preserved canonical checkout, runs repository-provided gates, and updates
-checklist/status surfaces. Batch only according to configured limits. Failed
-entries move aside for bounded repair so they do not pin the queue head.
+checklist/status/Gantt surfaces. Batch only according to configured limits.
+Failed entries move aside for bounded repair so they do not pin the queue head.
 
 ## 7. Process Cleanup
 
@@ -124,6 +125,23 @@ processes attributable to controller-owned task roots. Recheck after one
 scheduler interval to prove no cron source recreated them.
 
 ## 8. Observability
+
+For blueprint `<dir>/<name>_Blueprint.<ext>`, atomically generate
+`<dir>/<name>_Gantt.<ext>` as a read-only Kanban projection. Preserve the
+complete prefix and replace only the terminal `Blueprint` token. If the stem
+does not end in `Blueprint`, append `_Gantt` to the complete stem and freeze the
+result. Include a renderable Gantt view and a monitoring index with the
+repository-relative blueprint path, specification and source digests,
+generation timestamp, and every stable checklist ID exactly once. Derive
+checkbox, dependency, owner, and runtime state from authoritative files and
+ledgers; never read state back from the Gantt.
+
+Use only recorded timestamps or explicitly configured estimates. Keep work
+without trustworthy timing visible as unscheduled instead of fabricating a
+calendar. A tick is not successful if the companion is absent, misnamed,
+non-renderable, digest-stale, missing an item, or still reflects pre-tick state.
+The final completed Gantt remains a completion surface when controller runtime
+is removed.
 
 Report independently:
 

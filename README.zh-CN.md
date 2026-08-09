@@ -20,7 +20,7 @@ b3ehive 提供五个面向 agent 工作的 swarm skills。每个 skill 定义职
 | Skill | 作用 |
 |---|---|
 | `compete-cron-builder` | 运行有边界的方案竞争：`n` 个 workers、`m` 个 proposals、`choose k`、coverage union、repair queue 和 blueprint synthesis。 |
-| `execution-cron-builder` | 把一个已确认的 blueprint 转成 execution cron：daily todo、DAG、worker/master 双通道、validation gate、checkpoint 和 cleanup。 |
+| `execution-cron-builder` | 把一个已确认的 blueprint 转成 execution cron：DAG、同名 Gantt Kanban 监控、worker/master 双通道、validation gate、checkpoint 和 cleanup。 |
 | `learn-cron-builder` | 把 source scope 转成可验证 artifacts：code-to-human notes、subset learning、code-to-code transform 和 human-language translation。 |
 | `optimization-cron-builder` | 根据 design philosophy 生成 `Stage_*_AR_Blueprint.md` 和逐项 architecture-refinement research docs。 |
 | `looper-cron-builder` | 为反复尝试建立 resource-aware bridge controller：lease、side-effect gate、evidence、reward、ROI 和 pause/resume。 |

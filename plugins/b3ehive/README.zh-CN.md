@@ -19,7 +19,7 @@ blueprint 执行、source 学习、架构优化和资源感知反馈 loop。`ski
 | 需求 | 使用 | 产物 |
 |---|---|---|
 | 在真正执行前比较多条路线 | `compete-cron-builder` | candidate proposals、selected plan、coverage union、repair queue 或 execution handoff |
-| 在仓库里执行一个已确认的 blueprint | `execution-cron-builder` | DAG checklist、daily todo、worker batches、validation gates、checkpoints、cleanup |
+| 在仓库里执行一个已确认的 blueprint | `execution-cron-builder` | DAG checklist、同名 Gantt Kanban 监控、worker batches、validation gates、checkpoints、cleanup |
 | 理解、转换或翻译一个 source scope | `learn-cron-builder` | source manifest、coverage contract、learning notes、transformed code 或 translated docs |
 | 把设计理念转成架构优化工作 | `optimization-cron-builder` | `Stage_*_AR_Blueprint.md` 和逐项 optimization research docs |
 | 给长期尝试加入反馈、资源、reward 和 ROI 控制 | `looper-cron-builder` | loop specs、resource leases、evidence ledgers、reward/ROI records、pause/resume control |

@@ -1,6 +1,6 @@
 ---
 name: execution-cron-builder
-description: Build or repair repository-agnostic, blueprint-driven execution crons with isolated task roots, durable handoff, validation gates, and cleanup-on-complete. When Codex is selected, every claim must use one independent interactive Codex TUI process in its own task-local tmux server with a private CODEX_HOME and exactly one authenticated `/goal`; Codex app-server, `codex exec`, shared daemons, and no-tmux workers are forbidden. Use for continuous blueprint execution or for repairing execution-controller boundaries, transport, concurrency, integration, or cleanup.
+description: Build or repair repository-agnostic, blueprint-driven execution crons with same-name Gantt Kanban monitoring, isolated task roots, durable handoff, validation gates, and cleanup-on-complete. When Codex is selected, every claim must use one independent interactive Codex TUI process in its own task-local tmux server with a private CODEX_HOME and exactly one authenticated `/goal`; Codex app-server, `codex exec`, shared daemons, and no-tmux workers are forbidden. Use for continuous blueprint execution or for repairing execution-controller boundaries, transport, concurrency, integration, monitoring, or cleanup.
 ---
 
 # Execution Cron Builder
@@ -30,6 +30,7 @@ writing code, inspect the target repository and freeze a repository-local
 execution specification containing:
 
 - canonical repository root and authoritative blueprint path
+- deterministic same-prefix Gantt companion path and rendering policy
 - checklist parser and stable item-id rules
 - real dependency edges and any explicit layer semantics
 - task/runtime root and owned-path policy
@@ -88,6 +89,30 @@ Generate a current todo/status surface from that checklist. It should expose:
 - claim owner and repository-relative owned paths
 - implementation, validation-preparation, and integration frontiers
 - logical and admitted saturation plus the reason for any underfill
+
+Generate a mandatory same-name Gantt companion to monitor that Kanban. The
+same-name rule preserves the directory, extension, and complete prefix before a
+terminal `Blueprint` filename token, replacing only that token with `Gantt`:
+`<dir>/<name>_Blueprint.<ext>` maps to `<dir>/<name>_Gantt.<ext>`. For example,
+`Stage_3_AR_Blueprint.md` maps to `Stage_3_AR_Gantt.md`; never collapse it to
+`Stage_3_Gantt.md` or rename it to `Stage_3_AR_Blueprint.gantt.md`. If the
+authoritative filename does not end in `Blueprint`, append `_Gantt` to its
+complete stem and freeze that path in the specification. The companion is a
+generated read-only projection, never a second checklist or authority, and
+must contain no mutable checkboxes.
+
+The Gantt must include a renderable Gantt view plus source-relative identity,
+specification/source digests, and generation time. Its monitoring index must
+represent every stable checklist ID exactly once and derive checkbox state,
+dependencies, claim/owner, and startup/live/handoff/integration/repair/blocked
+state from the authoritative checklist and durable ledgers. Use only recorded
+timestamps or estimates explicitly present in repository/operator policy;
+place items without trustworthy timing in a visible unscheduled section rather
+than inventing dates or omitting them. Write the companion atomically after
+state reconciliation and before the scheduler tick returns. A missing,
+misnamed, stale-digest, duplicate-ID, or incomplete companion is a validation
+failure. The Gantt may be the current todo/status surface only when it exposes
+all fields required above; do not create competing generated authorities.
 
 Reject duplicate IDs, missing dependencies, cycles, unsupported checkbox marks,
 and synthetic dependency chains inferred only from document order. If the
@@ -297,7 +322,7 @@ Keep scheduler ownership short and resumable:
 2. Validate the frozen execution specification and transport surfaces.
 3. Harvest durable handoffs before any stale-claim pruning.
 4. Reconcile dead, mismatched, interrupted, finished, and accepted claims.
-5. Validate blueprint/DAG truth and regenerate status.
+5. Validate blueprint/DAG truth and regenerate status and the same-name Gantt.
 6. Integrate a bounded conflict-safe dependency-ready batch.
 7. Reserve a bounded claim set atomically.
 8. Release the global lease before slow preparation, TUI startup, network work,
@@ -305,7 +330,8 @@ Keep scheduler ownership short and resumable:
 9. Pump bounded launch waves outside the lease until admitted capacity is full,
    the tick budget expires, or a concrete block is persisted; record every
    transition and never wait on cron cadence merely to launch the next wave.
-10. Reacquire briefly to merge outcomes, refresh status, and schedule cleanup.
+10. Reacquire briefly to merge outcomes, atomically refresh status and the
+    same-name Gantt from the merged state, and schedule cleanup.
 
 If using `flock`, close its file descriptor before every tmux launch so workers
 cannot inherit and pin the scheduler lock. A cron tick must be safe to retry and
@@ -327,7 +353,7 @@ evidence gates.
 On validation failure, preserve the worker handoff, classify the failure, and
 move it to bounded repair without blocking unrelated ready entries. Advance
 `[_] -> [x]` only after integrated validation and required completion-surface
-reconciliation.
+reconciliation, including the same-name Gantt projection.
 
 ## Budgets And Cleanup
 
@@ -369,6 +395,11 @@ Every generated or repaired controller must include tests proving:
   remain live, one admission pump reaches exactly `N` authenticated lanes
 - every intentional underfill has a specific persisted dependency, conflict,
   startup, host-resource, external-limit, route, or validator reason
+- exact terminal `Blueprint` -> `Gantt` naming preserves the complete prefix
+- the Gantt monitoring index covers every checklist ID exactly once, reflects
+  state transitions, rejects stale source/specification digests, and never
+  invents timing for unscheduled items
+- Gantt replacement is atomic and a completed tick cannot leave it stale
 - cleanup removes only controller-owned runtime and processes
 - two fixture repositories with different names, blueprint paths, languages,
   validators, and route policies produce no cross-project constants

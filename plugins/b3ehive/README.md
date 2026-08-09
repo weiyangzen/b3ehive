@@ -20,7 +20,7 @@ and resource-aware feedback loops. The bundled `SKILL.md` directories under
 | Need | Use | What it produces |
 |---|---|---|
 | Compare possible routes before committing to one | `compete-cron-builder` | Candidate proposals, selected plan, coverage union, repair queue, or execution handoff |
-| Execute a confirmed blueprint in a repository | `execution-cron-builder` | DAG checklist, daily todo, worker batches, validation gates, checkpoints, cleanup |
+| Execute a confirmed blueprint in a repository | `execution-cron-builder` | DAG checklist, same-name Gantt Kanban monitor, worker batches, validation gates, checkpoints, cleanup |
 | Understand, transform, or translate a source scope | `learn-cron-builder` | Source manifest, coverage contract, learning notes, transformed code, or translated docs |
 | Turn a design philosophy into architecture refinement work | `optimization-cron-builder` | `Stage_*_AR_Blueprint.md` and per-item optimization research docs |
 | Add bounded feedback, resource control, reward, and ROI tracking | `looper-cron-builder` | Loop specs, resource leases, evidence ledgers, reward/ROI records, pause/resume control |
