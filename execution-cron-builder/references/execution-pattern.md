@@ -25,11 +25,15 @@ Keep atomic, lock-protected ledgers for:
 - integration/repair queue
 - released claims and retired process identities
 - route/admission decisions
+- outbound request leases, provider request/response identities, and breaker
+  transitions
 - scheduler cursor and cleanup record
 
 Every identity includes a schema version, claim ID, run ID, task root, status,
 timestamps, and specification digest. Codex identities also include tmux socket,
-session, pane PID/start time, private CODEX_HOME, thread ID, and goal ID.
+session, pane PID/start time, private CODEX_HOME, thread ID, and goal ID. Request
+identity additionally binds execution ID, lease token/epoch, submission receipt,
+provider request/response ID when observable, and terminal disposition.
 
 ## 3. Tick Phases
 
@@ -60,9 +64,13 @@ For one claim:
 6. Paste one short `/goal` ending in a claim-specific completion token; poll
    joined composer text until that final token is visible, or fail without
    submitting partial input.
-7. Submit once and persist `goal_submitted`.
+7. Acquire atomic turn and request leases, submit once, and persist
+   `goal_submitted` plus the submission receipt.
 8. Read the private thread/goal registries and verify route, cwd, objective, and
-   active status before persisting `live`.
+   active status before persisting authenticated transport state.
+9. Harvest a bounded terminal result, terminalize the goal, and stop the exact
+   tmux server. A subsequent provider-created turn without another controller
+   request lease is an unauthorized continuation and trips the breaker.
 
 If registration is delayed but tmux/PID identity remains exact, preserve the
 starting lane until its hard deadline. A later tick promotes it. If identity is
@@ -76,7 +84,11 @@ Compute separate availability values:
 ```text
 logical_available = claim_cap - active_claims
 startup_available = starting_cap - starting_claims
-running_available = running_turn_cap - authenticated_running_turns
+transport_available = live_transport_cap - live_transports
+running_available = running_turn_cap - proved_running_turns
+rate_available = request_start_cap - request_starts_in_window
+inflight_available = inflight_request_cap - inflight_requests
+execution_available = execution_cap - admitted_executions
 ```
 
 Then reduce admission by host headroom, conflict leases, dependency readiness,
@@ -84,19 +96,24 @@ external limits, and validator capacity. Values and formulas are repository
 configuration, not skill constants. Record every binding reason.
 
 Treat launch fanout as a per-wave pressure limit, not a hidden global cap. With
-`N` eligible claims, all caps and measured headroom admitting `N`, and workers
-that remain active, one scheduler invocation must pump repeated waves and
-converge to exactly `N` authenticated lanes without waiting for another cron
-tick. A lower steady state is valid only when each missing slot has a concrete
-persisted admission or startup reason. Separately count lanes that finish while
-the scheduler is still ramping up.
+`N` eligible bounded execution claims, all caps and measured headroom admitting
+`N`, and workers that remain active, one scheduler invocation may pump repeated
+waves and converge to exactly `N` authenticated execution lanes without waiting
+for another cron tick. Persistent logical or service records never enter this
+target merely because they exist. A lower steady state is valid only when each
+missing execution slot has a concrete persisted admission or startup reason.
+Separately count lanes that finish while the scheduler is still ramping up.
+Nested agents do not disappear behind the parent lane: reject them unless the
+frozen specification enables them, and when enabled count every child as an
+independent execution, transport, turn, request start, in-flight request, and
+outstanding-request owner under the same global limits.
 
 Use this shape outside the global scheduler lease:
 
 ```text
 until effective_target is full:
   reconcile authenticated, finished, and failed startups
-  recompute target - live - starting and every admission limiter
+  recompute execution target - live - starting and every transport/request limiter
   if no slots remain, persist the exact binding limiter and stop
   launch min(available slots, launch fanout) new task-local lanes
   wait only for bounded startup events or the invocation deadline
@@ -104,6 +121,12 @@ until effective_target is full:
 
 The loop must have a time budget and a no-progress guard. Reaching either is an
 explicit underfill reason, not permission to report reservations as live.
+
+Run a fail-closed breaker over request starts per rolling interval, in-flight
+requests/connections, provider errors, host pressure, and unauthorized
+continuations. An open breaker admits no new Enter key, follow-up, resume, or
+fresh launch. Reset requires the repository's explicit audited operator policy;
+ordinary cron/watchdog ticks cannot close it.
 
 ## 6. Handoff And Integration
 
@@ -146,9 +169,11 @@ is removed.
 Report independently:
 
 - checklist counts
-- logical claims
-- starting and goal-submitted lanes
-- authenticated live goals and currently running turns
+- logical claims and persistent service records
+- bounded agent execution claims, starting lanes, and live transports
+- authenticated goals and currently running turns
+- request starts per rolling interval, in-flight/outstanding requests,
+  unauthorized continuations, and breaker state
 - harvested/finished handoffs
 - dependency, conflict, resource, and route blocks
 - integration and repair backlog

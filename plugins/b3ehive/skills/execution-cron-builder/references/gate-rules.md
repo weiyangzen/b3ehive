@@ -15,8 +15,10 @@ policies come from the frozen target specification.
 
 ## Codex Transport Gate
 
-- One claim equals one task-local tmux server/socket/session, one interactive
-  Codex process tree, one writable CODEX_HOME, one thread, and one active goal.
+- One admitted bounded agent execution claim equals one task-local tmux
+  server/socket/session, one interactive Codex process tree, one writable
+  CODEX_HOME, one thread, and one submitted goal. Persistent logical/service
+  records own none of those transports.
 - `codex app-server`, controller-managed app-server JSON-RPC, shared daemons,
   `codex exec`, shared tmux, shared writable Codex state, and no-tmux Codex are
   hard failures with no fallback.
@@ -24,11 +26,18 @@ policies come from the frozen target specification.
   marketplaces, MCP configuration, and prior state registries.
 - Paste one short `/goal` with a claim-specific final token; require that token
   in joined composer text before the one allowed submit key.
+- Acquire atomic turn and outbound-request leases before the submit key; one
+  execution may have at most one outstanding request.
 - Only exact tmux/PID/start-time/cwd/route/thread/goal identity is live.
 - Delayed registry writes may preserve `goal_submitted` only while exact process
   identity remains healthy and before a configured hard deadline.
 - Validate-only prints the resolved transport and route policy but launches
   nothing.
+- Terminal result, goal completion, timeout, or unauthorized continuation stops
+  the exact transport. No idle active goal survives to await future work.
+- Nested agents are forbidden unless repository policy explicitly enables them.
+  An enabled child has its own identity and independently consumes execution,
+  transport, turn, request-rate, in-flight, and outstanding-request capacity.
 
 ## Task Boundary Gate
 
@@ -70,19 +79,27 @@ policies come from the frozen target specification.
 - Harvest checksum-valid result and patch before stale liveness pruning.
 - Preserve immutable handoff independently of task process lifetime.
 - Finished claims release live capacity and their TUI immediately.
-- Repair reuses the same task/thread/goal unless the claim is explicitly retired.
+- Repair is a separately admitted bounded execution linked to the same logical
+  item and immutable handoff. A repository-authorized thread resume still
+  requires a new request lease and terminalizes after its bounded result.
 - Retry budgets are keyed by stable claim/baseline/failure identity.
 
 ## Admission Gate
 
-- Logical claims, starting lanes, authenticated goals, running turns,
+- Logical/service records, agent executions, starting lanes, live transports,
+  authenticated goals, running turns, request starts, in-flight requests,
   integrations, and validators have separate limits.
 - Admission checks host and external headroom plus path conflicts.
 - The requested cap is never exceeded; reservations are never reported as live.
 - Launch fanout is a per-wave limit, not a hidden overall concurrency cap.
-- Given `N` eligible claims, all limits admitting `N`, and fixture workers that
-  remain active, one admission pump reaches exactly `N` authenticated lanes
-  without waiting for another cron tick.
+- Given `N` eligible bounded execution claims, all limits admitting `N`, and
+  fixture workers that remain active, one admission pump reaches exactly `N`
+  authenticated execution lanes without treating persistent logical/service
+  records as request demand.
+- Request rate and in-flight gates independently prevent request `R+1`; cron,
+  watchdog, resume, and provider continuation cannot bypass them.
+- Request storms and unauthorized continuations open an audited fail-closed
+  breaker that ordinary scheduling cannot reset.
 - Binding underfill reasons are visible and persisted.
 
 ## Lock Gate

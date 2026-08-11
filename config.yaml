@@ -7,6 +7,16 @@ b3ehive:
       app_server_workers: forbidden
       process_isolation: one_interactive_process_tree_per_claim
       state_isolation: one_writable_codex_home_per_claim
+      execution_scope: bounded_agent_execution
+      persistent_service_tui: forbidden
+      automatic_goal_continuation: forbidden
+      terminalize_goal_after_result: required
+      turn_lease_before_submit: required_atomic
+      request_lease_before_submit: required_atomic
+      max_outstanding_requests_per_execution: 1
+      nested_agents: forbidden_unless_repository_specification_admits_and_budgets
+      nested_agent_accounting: independent_under_all_global_caps
+      request_circuit_breaker: fail_closed_with_explicit_audited_reset
       runner_template: 'tmux -S "{task_root}/tmux.sock" -f /dev/null new-session -d -s "{session}" -c "{workspace}" env -u CODEX_CI -u CODEX_THREAD_ID -u CODEX_REMOTE_PAYLOAD CODEX_HOME="{task_root}/codex-home" codex -C "{workspace}" -c features.goals=true --no-alt-screen'
       goal_completion_token: required_unique_per_claim
       goal_template: 'tmux -S "{task_root}/tmux.sock" set-buffer -b goal "/goal {goal} Integrity token: {goal_completion_token}" && tmux -S "{task_root}/tmux.sock" paste-buffer -b goal -t "{session}" -d'

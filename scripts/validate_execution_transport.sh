@@ -35,7 +35,10 @@ for required in \
   'APP_SERVER_WORKERS=forbidden' \
   'ordinary interactive' \
   'private writable `CODEX_HOME`' \
-  'authenticated active `/goal`' \
+  'submitted and authenticated' \
+  'PERSISTENT_SERVICE_TUI=forbidden' \
+  'AUTOMATIC_GOAL_CONTINUATION=forbidden' \
+  'MAX_OUTSTANDING_REQUESTS_PER_EXECUTION=1' \
   'claim-specific completion token' \
   'capture-pane -p -J'; do
   grep -Fq "$required" "$skill_text" || error "missing execution transport contract: ${required}"
@@ -53,6 +56,16 @@ for required in \
   'app_server_workers: forbidden' \
   'process_isolation: one_interactive_process_tree_per_claim' \
   'state_isolation: one_writable_codex_home_per_claim' \
+  'execution_scope: bounded_agent_execution' \
+  'persistent_service_tui: forbidden' \
+  'automatic_goal_continuation: forbidden' \
+  'terminalize_goal_after_result: required' \
+  'turn_lease_before_submit: required_atomic' \
+  'request_lease_before_submit: required_atomic' \
+  'max_outstanding_requests_per_execution: 1' \
+  'nested_agents: forbidden_unless_repository_specification_admits_and_budgets' \
+  'nested_agent_accounting: independent_under_all_global_caps' \
+  'request_circuit_breaker: fail_closed_with_explicit_audited_reset' \
   'goal_completion_token: required_unique_per_claim' \
   'goal_delivery_verification: complete_composer_text_required_before_submit' \
   'goal_delivery_probe_template:' \
@@ -72,7 +85,12 @@ grep -Eq 'goal_delivery_probe_template:.*capture-pane -p -J' "${ROOT_DIR}/config
   error "Codex goal delivery probe does not inspect joined composer text"
 
 for required in \
-  'one admission pump reaches exactly `N` authenticated lanes' \
+  'one admission pump reaches exactly `N`' \
+  'never derive request demand from' \
+  'logical/service records create no TUI, goal, turn, or API request' \
+  'nested agents are rejected unless explicitly specified' \
+  'each execution has at most one outstanding request' \
+  'request-rate and in-flight caps independently prevent request `R+1`' \
   'Do not wait for the next' \
   'every intentional underfill has a specific persisted'; do
   grep -Fq "$required" "$skill_text" || \
@@ -119,7 +137,11 @@ for forbidden in \
   'cvbackbone' \
   '/Work/Github/' \
   'Stage3IOSPathValidation' \
-  'gpt-5.6-luna'; do
+  'gpt-5.6-luna' \
+  'xdata' \
+  'CN069' \
+  '1400' \
+  '402 workers'; do
   if grep -RInF "$forbidden" "$SKILL_DIR"; then
     error "execution skill contains project-specific residue: ${forbidden}"
   fi
@@ -129,4 +151,4 @@ if [[ "$errors" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Execution transport validation passed: repository-agnostic, tmux TUI only, one independent Codex process per claim."
+echo "Execution transport validation passed: repository-agnostic, bounded request-gated tmux TUI runs with explicit nested-agent accounting."
