@@ -1,4 +1,4 @@
 interface:
   display_name: "Execution Cron"
   short_description: "Build portable tmux Codex execution crons"
-  default_prompt: "Use $execution-cron-builder to build a repository-agnostic blueprint execution cron with bounded request-gated task-local tmux Codex runs, terminal goals, deterministic long-running work, and no app-server or exec fallback."
+  default_prompt: "Use $execution-cron-builder to build a repository-agnostic blueprint execution cron with repository-selected bounded or persistent task-local tmux Codex /goal workers, exact concurrency and replacement accounting, and no app-server or exec fallback."

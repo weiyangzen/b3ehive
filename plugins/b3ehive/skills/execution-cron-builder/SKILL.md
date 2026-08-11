@@ -1,6 +1,6 @@
 ---
 name: execution-cron-builder
-description: Build or repair repository-agnostic, blueprint-driven execution crons with same-name Gantt Kanban monitoring, isolated bounded agent runs, durable handoff, validation gates, request admission, and cleanup-on-complete. When Codex is selected, each admitted agent execution claim uses one independent interactive Codex TUI process in its own task-local tmux server with a private CODEX_HOME and exactly one submitted `/goal`; persistent logical or service claims do not keep an active goal or idle TUI. Codex app-server, `codex exec`, shared daemons, and no-tmux workers are forbidden. Use for continuous blueprint execution or for repairing execution-controller boundaries, transport, concurrency, request storms, integration, monitoring, or cleanup.
+description: Build or repair repository-agnostic, blueprint-driven execution crons with same-name Gantt Kanban monitoring, isolated agent workers, durable handoff, validation gates, explicit worker lifecycle, request accounting, and cleanup. When Codex is selected, each admitted worker generation uses one independent interactive Codex TUI process in its own task-local tmux server with a private CODEX_HOME and exactly one submitted `/goal`; the repository blueprint chooses bounded terminal executions or a persistent goal pool whose dead workers are replenished to an exact target. Codex app-server, `codex exec`, shared daemons, and no-tmux workers are forbidden. Use for continuous blueprint execution or for repairing execution-controller boundaries, transport, concurrency, replenishment, request storms, integration, monitoring, or cleanup.
 ---
 
 # Execution Cron Builder
@@ -14,11 +14,12 @@ generated controller or policy snapshot from another project.
 2. Checklist state is `[ ]` not done, `[_]` worker self-tested, or `[x]` Master
    accepted. Workers never edit authoritative checkboxes and never write `[x]`.
 3. Every claim owns an isolated task root and immutable claim identity.
-4. Codex transport for an admitted, bounded agent execution claim is exactly
+4. Codex transport for every admitted worker generation is exactly
    task-local tmux + interactive Codex TUI + one submitted and authenticated
-   `/goal` + private writable `CODEX_HOME`. A persistent logical/service claim
-   is data-plane identity, not standing authorization for a TUI, active goal,
-   model turn, or API request.
+   `/goal` + private writable `CODEX_HOME`. The frozen repository specification
+   explicitly selects `bounded` or `persistent_pool`; logical/service identity
+   implies a live goal only when that specification defines a one-to-one
+   persistent worker mapping.
 5. Codex app-server, app-server JSON-RPC, `codex exec`, shared Codex daemons,
    shared tmux servers, shared writable Codex state, and no-tmux Codex workers
    are hard failures. There is no fallback.
@@ -26,10 +27,12 @@ generated controller or policy snapshot from another project.
    an in-flight API request are distinct states with distinct counters. Every
    submission requires an atomic request lease before Enter; no scheduler,
    watchdog, cron, or goal continuation may bypass it.
-7. A bounded result or handoff terminalizes the agent run and stops its tmux
-   transport immediately. Healthy long-running work uses deterministic
-   non-agent processes. An idle TUI, an active goal awaiting future work, or
-   automatic post-completion model continuation is a hard failure.
+7. Lifecycle is not inferred. In `bounded` mode a result/handoff terminalizes
+   the goal and transport. In `persistent_pool` mode the authenticated goal is
+   the long-running worker: it remains live until explicit stop or liveness
+   failure, and the controller replaces a dead generation without exceeding the
+   desired or hard worker cap. Authorized goal continuation is counted work,
+   never an untracked request or an excuse to create an extra worker.
 8. A parent execution does not hide child-agent or subagent concurrency. Unless
    the repository-local specification explicitly admits nested agents, they are
    forbidden. If admitted, every child has an independent execution identity,
@@ -55,6 +58,8 @@ execution specification containing:
 - repository-provided validation profiles and artifact policy
 - completion surfaces that must be reconciled
 - selected agent platform and route policy
+- worker lifecycle mode (`bounded` or `persistent_pool`), desired live-worker
+  target, hard cap, replacement policy, and terminal/stop conditions
 - nested-agent policy and, if enabled, parent/child identity and accounting
 - logical/service-record, agent-execution, startup, live-transport,
   running-turn, outbound-request-rate, in-flight-request, integration, and
@@ -162,9 +167,11 @@ full-repository worker templates and task-by-repository snapshot layouts.
 
 A task may use a small local Git baseline containing only its allowed files.
 Workers produce repository-relative patches/bundles and checksums; they do not
-merge into or push from the canonical checkout. Repair keeps the stable logical
-claim and prior handoff binding but uses a fresh bounded execution/run root,
-private state, request lease, and terminal goal.
+merge into or push from the canonical checkout. A bounded repair uses a fresh
+execution/run root and terminal goal. A persistent worker replacement keeps the
+stable logical claim but creates a fresh generation, task identity, process,
+private state, and exactly one new `/goal`; it never overlaps the retired
+generation after liveness is resolved.
 
 Validate before launch and harvest:
 
@@ -184,8 +191,9 @@ WORKER_GOAL_COMMAND=/goal
 APP_SERVER_WORKERS=forbidden
 CODEX_PROCESS_ISOLATION=one_process_tree_per_claim
 CODEX_STATE_ISOLATION=one_writable_home_per_claim
-PERSISTENT_SERVICE_TUI=forbidden
-AUTOMATIC_GOAL_CONTINUATION=forbidden
+WORKER_LIFECYCLE=repository_specified
+PERSISTENT_SERVICE_TUI=repository_specified
+AUTOMATIC_GOAL_CONTINUATION=repository_specified_and_counted
 MAX_OUTSTANDING_REQUESTS_PER_EXECUTION=1
 ```
 
@@ -227,7 +235,7 @@ claim, deliverable, task root, claim-card path/digest, result path, and hard
 boundaries. Put detailed ownership, dependencies, acceptance commands, and
 artifact rules in the claim card.
 
-For exactly one goal per bounded agent execution claim:
+For exactly one goal per worker generation:
 
 1. Start the TUI and handle only currently active first-run/trust prompts.
 2. Detect the real idle composer, not a selector or stale scrollback glyph.
@@ -242,19 +250,26 @@ For exactly one goal per bounded agent execution claim:
    blindly. If either lease is unavailable, leave the complete text unsubmitted
    or retire the prepared lane according to repository policy.
 6. Authenticate thread, active goal, route, cwd, and task-local registry.
-7. Require the objective to produce a bounded result/handoff and terminalize
-   the goal. On result, goal completion, timeout, provider continuation, or
-   identity ambiguity, stop the exact tmux transport and reconcile request
-   leases before admitting more work.
+7. Apply the frozen lifecycle. A bounded result terminalizes the exact goal and
+   transport. A persistent worker remains active across maintenance cycles;
+   normal continuation is authorized only for that generation and counts under
+   the same request/in-flight caps. On process/goal death, explicit stop, or
+   identity ambiguity, retire that generation before admitting its replacement.
 
 ### Startup State Machine
 
-Use durable states such as:
+Use lifecycle-specific durable states such as:
 
 ```text
 reserved -> materialized -> tmux_started -> goal_pasted -> request_leased
          -> goal_submitted -> turn_running -> handoff_ready
          -> goal_terminal -> transport_stopped -> finished
+
+persistent_reserved -> materialized -> tmux_started -> goal_pasted
+                    -> request_leased -> goal_submitted -> authenticated_live
+authenticated_live -> maintenance_cycle -> authenticated_live
+authenticated_live -> dead_or_stopped -> generation_retired
+generation_retired -> replacement_reserved
 ```
 
 `tmux_started` consumes live-transport capacity; `request_leased` consumes
@@ -264,10 +279,11 @@ slot; and only a proved `turn_running` consumes running-turn capacity. A
 `starting` until a configurable hard deadline and be promoted by a later tick
 when registry writes appear. Do not relaunch merely because authentication is
 slow. Release or repair dead/mismatched lanes with bounded retries. A provider
-event sequence that starts another turn after the bounded result without a new
-controller request lease is an unauthorized continuation: fence the lane,
-stop its transport, open the circuit breaker, and do not count it as useful
-throughput.
+event sequence that starts another turn after a bounded result without a new
+controller request lease is unauthorized. In persistent mode, continuation is
+authorized only while the exact generation and goal are live and the request is
+accounted under the frozen caps. A replacement never overlaps a generation that
+has not been proved dead, fenced, or explicitly stopped.
 
 ### Liveness
 
@@ -282,8 +298,9 @@ Count a Codex lane only when all are true:
 - thread ID and active goal ID/status match the task-local registries
 - goal objective names the claim
 
-Broad process-name counts are telemetry, never liveness proof. When a durable
-result is harvested, stop that claim's tmux server immediately. Cleanup must
+Broad process-name counts are telemetry, never liveness proof. Stop a bounded
+claim immediately after its durable result; keep a persistent generation only
+while all liveness facts remain true. Cleanup must
 also terminate claim-descended subprocesses identified by recorded PID/start
 time, task cwd, or task-local environment, without touching unrelated Codex
 processes on the host.
@@ -313,14 +330,13 @@ categories or mark inapplicable gates passed.
 
 Harvest before pruning. Copy a valid result and patch into immutable
 controller-owned queue storage keyed by claim, baseline, and checksum. A claim
-record is a reservation, not completion proof. Finished/handoff claims do not
-consume live capacity and must not retain an idle TUI or active goal. Rework is
-a new bounded repair execution claim linked to the same logical item and
-immutable prior handoff. It receives its own request lease and exactly one
-`/goal`; it does not reactivate a standing service goal. Repository policy may
-explicitly allow a recorded-thread resume, but that does not relax the new
-execution identity, single-outstanding-request, terminalization, or global
-admission requirements.
+record is a reservation, not liveness proof. Finished bounded handoffs release
+their TUI. Persistent workers may emit periodic results without becoming
+terminal; the generation remains live only under the exact liveness contract.
+Rework is a new bounded execution unless the persistent worker's frozen
+objective explicitly includes that maintenance cycle. Replacement always uses
+a new generation and exactly one new `/goal` after the old generation is
+retired.
 
 ## Concurrency And Admission
 
@@ -339,8 +355,9 @@ Do not impose a universal worker count. Freeze separate configurable limits:
 - CPU and accelerator validator leases
 - exact-path conflict budget
 
-The operator's requested logical or worker count is a hard ceiling, not a model
-request target and not permission to overload the host. Admission accounts for
+The operator's requested worker count is both the desired live target and hard
+ceiling when the specification says so. It is not permission to exceed host or
+provider caps. Admission accounts for
 CPU/load, available memory, swap pressure, process/PID headroom, disk budget,
 startup backlog, provider rate limits, current request starts, in-flight
 requests, validator leases, and write conflicts. Never launch lane `N+1` or
@@ -349,8 +366,9 @@ submit request `R+1`.
 The launch fanout limits one startup wave; it must not silently become the
 overall concurrency target. When `N` dependency-ready, conflict-safe claims
 exist and every configured cap and measured headroom admits `N`, repeated
-bounded waves may converge only to the configured agent-execution target,
-never to the logical/service-record count by implication. Every unfilled slot
+bounded waves converge to the configured agent-execution target. A logical or
+service count becomes that target only through an explicit one-to-one persistent
+worker mapping in the frozen specification. Every unfilled slot
 must have a persisted binding reason rather than a generic "capacity" label.
 Count lanes that finish during ramp-up as completed throughput, not as a launch
 failure.
@@ -381,10 +399,11 @@ Keep scheduler ownership short and resumable:
 7. Reserve a bounded claim set atomically.
 8. Release the global lease before slow preparation, TUI startup, network work,
    model turns, tests, or integration validation.
-9. Pump bounded launch waves outside the lease until admitted agent-execution
-   and request capacity is full, the tick budget expires, or a concrete block
-   is persisted; record every transition and never derive request demand from
-   the logical claim count.
+9. Pump bounded launch waves outside the lease until the frozen live-worker
+   target is full, the tick budget expires, or a concrete block is persisted.
+   In persistent mode, replace dead generations promptly without exceeding the
+   hard cap; derive demand from logical claims only when the specification
+   explicitly maps them one-to-one to persistent workers.
 10. Reacquire briefly to merge outcomes, atomically refresh status and the
     same-name Gantt from the merged state, and schedule cleanup.
 
@@ -440,26 +459,28 @@ Every generated or repaired controller must include tests proving:
 - each simultaneous claim has a distinct task root, tmux socket/session,
   process identity, writable `CODEX_HOME`, thread, and goal
 - exactly one complete `/goal` is submitted per claim
-- persistent logical/service records create no TUI, goal, turn, or API request
+- bounded logical/service records create no standing TUI; persistent records
+  create exactly the one-to-one worker generations required by the specification
 - nested agents are rejected unless explicitly specified; when enabled, every
   child independently consumes all applicable execution/turn/request caps
 - submission is impossible without atomic turn and request leases
 - each execution has at most one outstanding request
-- a terminal result stops the exact transport and leaves no idle active goal
-- provider or goal auto-continuation after terminal result opens the breaker and
-  cannot create an unleased request
-- cron/watchdog reconciliation never bulk-resumes stopped, completed, paused,
-  blocked, or otherwise non-admitted goals
+- bounded terminal result stops the exact transport; a persistent result keeps
+  the same exact generation live until stop or failure
+- bounded post-terminal continuation is rejected, while authorized persistent
+  continuation remains attributed and inside request/in-flight caps
+- cron/watchdog never resumes non-admitted goals; persistent reconciliation
+  replaces only proved dead generations and never creates worker `N+1`
 - only fully authenticated claims count as live
 - delayed `goal_submitted` authentication promotes without duplicate launch
 - dead/mismatched startup is released after its bounded deadline
 - harvest occurs before prune and finished TUI servers are stopped
 - scheduler locks are not inherited by workers
 - caps and host admission prevent `N+1`
-- with `N` eligible bounded execution claims, all limits admitting `N`, and
+- with `N` eligible worker claims, all limits admitting `N`, and
   mock TUIs that remain live, one admission pump reaches exactly `N`
-  authenticated lanes without using unrelated logical/service records as
-  request demand
+  authenticated lanes; a persistent pool later restores exactly `N` after a
+  proved worker death without ever exposing `N+1`
 - request-rate and in-flight caps independently prevent request `R+1` even when
   transport and logical caps have room
 - request-start storms, connection/in-flight excess, host pressure, and repeated

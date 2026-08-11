@@ -15,10 +15,11 @@ policies come from the frozen target specification.
 
 ## Codex Transport Gate
 
-- One admitted bounded agent execution claim equals one task-local tmux
+- One admitted worker generation equals one task-local tmux
   server/socket/session, one interactive Codex process tree, one writable
   CODEX_HOME, one thread, and one submitted goal. Persistent logical/service
-  records own none of those transports.
+  records own such transports only through an explicit one-to-one worker mapping
+  in the frozen repository specification.
 - `codex app-server`, controller-managed app-server JSON-RPC, shared daemons,
   `codex exec`, shared tmux, shared writable Codex state, and no-tmux Codex are
   hard failures with no fallback.
@@ -33,8 +34,10 @@ policies come from the frozen target specification.
   identity remains healthy and before a configured hard deadline.
 - Validate-only prints the resolved transport and route policy but launches
   nothing.
-- Terminal result, goal completion, timeout, or unauthorized continuation stops
-  the exact transport. No idle active goal survives to await future work.
+- Bounded terminal result stops the exact transport. A persistent worker keeps
+  the same active goal across maintenance cycles until explicit stop or proved
+  failure; every continuation remains attributed and capped. A replacement uses
+  a fresh generation only after the old generation is retired.
 - Nested agents are forbidden unless repository policy explicitly enables them.
   An enabled child has its own identity and independently consumes execution,
   transport, turn, request-rate, in-flight, and outstanding-request capacity.
@@ -78,7 +81,8 @@ policies come from the frozen target specification.
 
 - Harvest checksum-valid result and patch before stale liveness pruning.
 - Preserve immutable handoff independently of task process lifetime.
-- Finished claims release live capacity and their TUI immediately.
+- Finished bounded claims release live capacity immediately. Persistent claims
+  release it only on explicit stop, retirement, or proved liveness failure.
 - Repair is a separately admitted bounded execution linked to the same logical
   item and immutable handoff. A repository-authorized thread resume still
   requires a new request lease and terminalizes after its bounded result.
@@ -92,10 +96,10 @@ policies come from the frozen target specification.
 - Admission checks host and external headroom plus path conflicts.
 - The requested cap is never exceeded; reservations are never reported as live.
 - Launch fanout is a per-wave limit, not a hidden overall concurrency cap.
-- Given `N` eligible bounded execution claims, all limits admitting `N`, and
+- Given `N` eligible worker claims, all limits admitting `N`, and
   fixture workers that remain active, one admission pump reaches exactly `N`
-  authenticated execution lanes without treating persistent logical/service
-  records as request demand.
+  authenticated lanes. A persistent pool returns to exactly `N` after proved
+  worker death and never exposes `N+1`.
 - Request rate and in-flight gates independently prevent request `R+1`; cron,
   watchdog, resume, and provider continuation cannot bypass them.
 - Request storms and unauthorized continuations open an audited fail-closed

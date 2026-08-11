@@ -7,10 +7,11 @@ b3ehive:
       app_server_workers: forbidden
       process_isolation: one_interactive_process_tree_per_claim
       state_isolation: one_writable_codex_home_per_claim
-      execution_scope: bounded_agent_execution
-      persistent_service_tui: forbidden
-      automatic_goal_continuation: forbidden
-      terminalize_goal_after_result: required
+      worker_lifecycle: repository_specified_bounded_or_persistent_pool
+      persistent_service_tui: repository_specified
+      automatic_goal_continuation: repository_specified_and_counted
+      terminalize_goal_after_result: bounded_mode_only
+      persistent_worker_replacement: retire_dead_generation_then_refill_exact_target
       turn_lease_before_submit: required_atomic
       request_lease_before_submit: required_atomic
       max_outstanding_requests_per_execution: 1

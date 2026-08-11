@@ -36,8 +36,9 @@ for required in \
   'ordinary interactive' \
   'private writable `CODEX_HOME`' \
   'submitted and authenticated' \
-  'PERSISTENT_SERVICE_TUI=forbidden' \
-  'AUTOMATIC_GOAL_CONTINUATION=forbidden' \
+  'WORKER_LIFECYCLE=repository_specified' \
+  'PERSISTENT_SERVICE_TUI=repository_specified' \
+  'AUTOMATIC_GOAL_CONTINUATION=repository_specified_and_counted' \
   'MAX_OUTSTANDING_REQUESTS_PER_EXECUTION=1' \
   'claim-specific completion token' \
   'capture-pane -p -J'; do
@@ -56,10 +57,11 @@ for required in \
   'app_server_workers: forbidden' \
   'process_isolation: one_interactive_process_tree_per_claim' \
   'state_isolation: one_writable_codex_home_per_claim' \
-  'execution_scope: bounded_agent_execution' \
-  'persistent_service_tui: forbidden' \
-  'automatic_goal_continuation: forbidden' \
-  'terminalize_goal_after_result: required' \
+  'worker_lifecycle: repository_specified_bounded_or_persistent_pool' \
+  'persistent_service_tui: repository_specified' \
+  'automatic_goal_continuation: repository_specified_and_counted' \
+  'terminalize_goal_after_result: bounded_mode_only' \
+  'persistent_worker_replacement: retire_dead_generation_then_refill_exact_target' \
   'turn_lease_before_submit: required_atomic' \
   'request_lease_before_submit: required_atomic' \
   'max_outstanding_requests_per_execution: 1' \
@@ -86,8 +88,8 @@ grep -Eq 'goal_delivery_probe_template:.*capture-pane -p -J' "${ROOT_DIR}/config
 
 for required in \
   'one admission pump reaches exactly `N`' \
-  'never derive request demand from' \
-  'logical/service records create no TUI, goal, turn, or API request' \
+  'explicitly maps them one-to-one to persistent workers' \
+  'persistent pool later restores exactly `N`' \
   'nested agents are rejected unless explicitly specified' \
   'each execution has at most one outstanding request' \
   'request-rate and in-flight caps independently prevent request `R+1`' \
@@ -151,4 +153,4 @@ if [[ "$errors" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Execution transport validation passed: repository-agnostic, bounded request-gated tmux TUI runs with explicit nested-agent accounting."
+echo "Execution transport validation passed: repository-agnostic bounded or persistent tmux TUI workers with exact replacement and nested-agent accounting."

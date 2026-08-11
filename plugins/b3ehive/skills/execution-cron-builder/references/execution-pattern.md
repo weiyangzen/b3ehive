@@ -40,7 +40,8 @@ provider request/response ID when observable, and terminal disposition.
 Use short transactions:
 
 1. lock and validate specification
-2. harvest results and stop finished transports
+2. harvest results, stop finished bounded transports, and reconcile persistent
+   worker liveness/replacement
 3. reconcile claims and recover promotable startups
 4. validate checklist and DAG
 5. reserve bounded integration and launch work
@@ -68,9 +69,10 @@ For one claim:
    `goal_submitted` plus the submission receipt.
 8. Read the private thread/goal registries and verify route, cwd, objective, and
    active status before persisting authenticated transport state.
-9. Harvest a bounded terminal result, terminalize the goal, and stop the exact
-   tmux server. A subsequent provider-created turn without another controller
-   request lease is an unauthorized continuation and trips the breaker.
+9. Apply the frozen lifecycle: terminalize and stop a bounded result, or keep an
+   authenticated persistent generation alive across maintenance cycles. Every
+   continued persistent request stays attributed to that generation and the
+   same caps. Retire a dead generation before admitting its replacement.
 
 If registration is delayed but tmux/PID identity remains exact, preserve the
 starting lane until its hard deadline. A later tick promotes it. If identity is
@@ -96,12 +98,14 @@ external limits, and validator capacity. Values and formulas are repository
 configuration, not skill constants. Record every binding reason.
 
 Treat launch fanout as a per-wave pressure limit, not a hidden global cap. With
-`N` eligible bounded execution claims, all caps and measured headroom admitting
-`N`, and workers that remain active, one scheduler invocation may pump repeated
-waves and converge to exactly `N` authenticated execution lanes without waiting
-for another cron tick. Persistent logical or service records never enter this
-target merely because they exist. A lower steady state is valid only when each
-missing execution slot has a concrete persisted admission or startup reason.
+`N` eligible worker claims, all caps and measured headroom admitting `N`, and
+workers that remain active, one scheduler invocation may pump repeated waves and
+converge to exactly `N` authenticated lanes without waiting for another cron
+tick. Persistent logical/service records enter this target only when the frozen
+specification maps them one-to-one to persistent workers. After proved death,
+retire the old generation and refill its slot without exposing `N+1`. A lower
+steady state is valid only when each missing slot has a concrete persisted
+admission or startup reason.
 Separately count lanes that finish while the scheduler is still ramping up.
 Nested agents do not disappear behind the parent lane: reject them unless the
 frozen specification enables them, and when enabled count every child as an

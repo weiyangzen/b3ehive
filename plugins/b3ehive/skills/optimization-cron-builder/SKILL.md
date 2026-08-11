@@ -180,11 +180,11 @@ OpenClaw, and Hermes via a single agent-runner abstraction.
 Default platform selection:
 - `B3EHIVE_AGENT_PLATFORM=codex` uses one independent interactive Codex TUI
   process in a task-local tmux server with a private writable `CODEX_HOME` and
-  exactly one submitted and authenticated `/goal` for each admitted bounded
-  optimization execution. It requires controller-owned turn/request admission,
-  at most one outstanding request per execution, terminalizes the goal after
-  its result/handoff, and stops the tmux server immediately; an idle active goal
-  or automatic post-result continuation is forbidden. `codex app-server`,
+  exactly one submitted and authenticated `/goal` for each admitted worker
+  generation. The target repository selects bounded executions or a persistent
+  worker pool. Bounded results stop their TUI; persistent goals remain live and
+  dead generations are replaced back to the exact target without exceeding its
+  hard cap. Every request remains attributed and capped. `codex app-server`,
   shared Codex daemons, `codex exec`, and Codex without tmux are forbidden.
   Nested agents are forbidden unless the target repository explicitly enables
   and budgets them; every enabled child is an independent execution and consumes
