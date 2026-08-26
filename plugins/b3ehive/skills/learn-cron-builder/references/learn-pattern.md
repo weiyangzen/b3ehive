@@ -95,7 +95,8 @@ outputs.
 
 Common transform surfaces:
 
-- AI tool assets across Codex, Claude Code, opencode, OpenClaw, and Hermes.
+- AI tool assets across Codex, Claude Code, Cursor, Grok Build, opencode,
+  OpenClaw, and Hermes.
 - Programming language or SDK transformations.
 - API, schema, runtime, configuration, or adapter transformations.
 - Generated support artifacts such as indexes, manifests, compatibility shims,
@@ -130,7 +131,7 @@ Workers cannot write `[x]`. Cleanup cannot run with `[ ]` or `[_]`.
 Generated learn crons must preserve the old runner and resource controls:
 
 - Use a configurable agent runner instead of hard-coding one CLI.
-- Support `B3EHIVE_AGENT_PLATFORM=codex|claude|opencode|openclaw|hermes|auto`.
+- Support `B3EHIVE_AGENT_PLATFORM=codex|claude|cursor|grok|opencode|openclaw|hermes|auto`.
 - Treat `B3EHIVE_AGENT_RUNNER` as authoritative when it is set.
 - Run `.cron/scripts/cron_space_guard.sh` or an equivalent helper before worker
   spawn.

@@ -24,8 +24,9 @@ or external analytics service in its default Codex plugin package.
 
 ## Third-Party Platforms
 
-Use of b3ehive with Codex, Claude Code, opencode, OpenClaw, Hermes, GitHub, or
-other tools is governed by the policies, settings, and data handling practices
+Use of b3ehive with Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw,
+Hermes, GitHub, or other tools is governed by the policies, settings, and data
+handling practices
 of those platforms. Users should review their agent platform's privacy and
 workspace policies before using b3ehive on private repositories or sensitive
 data.

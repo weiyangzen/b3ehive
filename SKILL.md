@@ -1,6 +1,6 @@
 ---
 name: b3ehive
-description: Root guide for b3ehive's five portable swarm skills: compete, execution, learn, optimization, and looper cron builders for Codex, Claude Code, opencode, OpenClaw, and Hermes.
+description: Root guide for b3ehive's five portable swarm skills: compete, execution, learn, optimization, and looper cron builders for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes.
 ---
 
 # b3ehive Skill Index

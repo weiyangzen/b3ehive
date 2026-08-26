@@ -2,7 +2,7 @@
 
 [English](agent-platforms.md)
 
-b3ehive skills 使用可移植的 `SKILL.md` 目录约定。同一组 skill 目录可以安装到 Codex、Claude Code、opencode、OpenClaw 和 Hermes，不需要为不同平台维护多份 skill 正文。
+b3ehive skills 使用可移植的 `SKILL.md` 目录约定。同一组 skill 目录可以安装到 Codex、Claude Code、Cursor、Grok Build、opencode、OpenClaw 和 Hermes，不需要为不同平台维护多份 skill 正文。
 
 ## 支持目标
 
@@ -10,6 +10,8 @@ b3ehive skills 使用可移植的 `SKILL.md` 目录约定。同一组 skill 目�
 |---|---|---|---|
 | Codex | `~/.codex/skills/<skill>/SKILL.md` | `.codex/skills/<skill>/SKILL.md` | 在 prompt 中提到 skill 名称，例如 `Use execution-cron-builder ...` |
 | Claude Code | `~/.claude/skills/<skill>/SKILL.md` | `.claude/skills/<skill>/SKILL.md` | 使用 `/skill-name` 或在 prompt 中提到 skill 名称 |
+| Cursor | `~/.cursor/skills/<skill>/SKILL.md` | `.cursor/skills/<skill>/SKILL.md` | 在 Cursor agent thread 中提到 skill 名称 |
+| Grok Build | `~/.grok/skills/<skill>/SKILL.md` | `.grok/skills/<skill>/SKILL.md` | 提到 skill 名称，或使用 `/skill-name` |
 | opencode | `~/.config/opencode/skills/<skill>/SKILL.md` | `.opencode/skills/<skill>/SKILL.md` | 在 prompt 中提到 skill 名称，或引用 skill path |
 | OpenClaw | `~/.openclaw/skills/<skill>/SKILL.md` | `skills/<skill>/SKILL.md` | `openclaw skills info <skill>` 或在 prompt 中提到 skill 名称 |
 | Hermes | `~/.hermes/skills/<skill>/SKILL.md` | `skills/<skill>/SKILL.md` | 在 Hermes chat 中提到 skill 名称 |
@@ -26,7 +28,14 @@ OpenClaw 和 Hermes 也属于 AgentSkills / `SKILL.md` 家族。OpenClaw 当前 
 - `optimization-cron-builder`
 - `looper-cron-builder`
 
-仓库根目录的 `SKILL.md` 是 b3ehive skill index。实际安装到 Codex、Claude Code、opencode、OpenClaw 和 Hermes 的是这五个 skill 目录。
+Cursor 和 Grok Build 复用同一套 `name` / `description` frontmatter。Grok Build
+在 `GROK_CURSOR_SKILLS_ENABLED` 开启时也会读取 Cursor skill 目录，但 b3ehive
+仍安装到 `~/.grok/skills`，让 Grok 目标可检查。无头 Grok worker 必须带
+`--always-approve`；`grok -p`、`grok agent stdio` 和 `grok agent serve` 默认
+是 ask，除非设置该 flag 或 `_meta.yoloMode`。
+
+仓库根目录的 `SKILL.md` 是 b3ehive skill index。实际安装到 Codex、Claude Code、
+Cursor、Grok Build、opencode、OpenClaw 和 Hermes 的是这五个 skill 目录。
 
 ## Runner Contract
 
@@ -68,6 +77,22 @@ claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
   --add-dir "{workspace}" < "{prompt_file}" > "{output_file}"
 ```
 
+默认 Cursor runner：
+
+```bash
+python3 "{b3ehive_root}/scripts/run_cursor_agent.py" \
+  --workspace "{workspace}" --prompt-file "{prompt_file}" > "{output_file}"
+```
+
+默认 Grok Build runner：
+
+```bash
+GROK_TELEMETRY_ENABLED=0 GROK_TELEMETRY_TRACE_UPLOAD=0 \
+  grok --always-approve --cwd "{workspace}" --prompt-file "{prompt_file}" \
+  ${GROK_MODEL:+-m "$GROK_MODEL"} ${GROK_EFFORT:+--effort "$GROK_EFFORT"} \
+  > "{output_file}"
+```
+
 默认 opencode runner：
 
 ```bash
@@ -94,19 +119,19 @@ hermes chat --toolsets "${HERMES_TOOLSETS:-skills,terminal}" \
 
 生成的 cron guards 可以暴露这些设置：
 
-| Shared setting | Codex setting | Claude Code setting | opencode setting | OpenClaw setting | Hermes setting |
-|---|---|---|---|---|---|
-| `B3EHIVE_AGENT_PLATFORM=codex|claude|opencode|openclaw|hermes` | `CODEX_MODEL` | `CLAUDE_MODEL` | `OPENCODE_MODEL` | `OPENCLAW_AGENT` | `HERMES_MODEL` |
-| `B3EHIVE_AGENT_RUNNER` | `CODEX_REASONING_EFFORT` | `CLAUDE_EFFORT` | `OPENCODE_VARIANT` | `OPENCLAW_THINKING` | `HERMES_TOOLSETS` |
-| `B3EHIVE_AGENT_WORKSPACE` | `CODEX_SERVICE_TIER` | `CLAUDE_PERMISSION_MODE` | `OPENCODE_AGENT` | `OPENCLAW_PROFILE` | `HERMES_SKILLS` |
+| Shared setting | Codex setting | Claude Code setting | Cursor setting | Grok Build setting | opencode setting | OpenClaw setting | Hermes setting |
+|---|---|---|---|---|---|---|---|
+| `B3EHIVE_AGENT_PLATFORM=codex|claude|cursor|grok|opencode|openclaw|hermes` | `CODEX_MODEL` | `CLAUDE_MODEL` | `CURSOR_API_KEY` | `GROK_MODEL` | `OPENCODE_MODEL` | `OPENCLAW_AGENT` | `HERMES_MODEL` |
+| `B3EHIVE_AGENT_RUNNER` | `CODEX_REASONING_EFFORT` | `CLAUDE_EFFORT` | `CURSOR_MODEL` | `GROK_EFFORT` | `OPENCODE_VARIANT` | `OPENCLAW_THINKING` | `HERMES_TOOLSETS` |
+| `B3EHIVE_AGENT_WORKSPACE` | `CODEX_SERVICE_TIER` | `CLAUDE_PERMISSION_MODE` | | | `OPENCODE_AGENT` | `OPENCLAW_PROFILE` | `HERMES_SKILLS` |
 
 当用户显式设置 `B3EHIVE_AGENT_RUNNER` 时，非 Codex 平台应把它作为 authoritative command template，并在 validate-only 输出中打印。Codex 只能用它定制 TUI 参数，不能绕过 task-local tmux + interactive TUI + `/goal` transport。
 
 ## Skill Authoring Rules
 
 - 每个 skill 保持为一个目录，包含 `SKILL.md`，以及可选的 `references/`、`scripts/`、`templates/`、`agents/`。
-- YAML frontmatter 至少包含 `name` 和 `description`；Codex、Claude Code、opencode、OpenClaw 和 Hermes 都可以复用这个形态。
+- YAML frontmatter 至少包含 `name` 和 `description`；Codex、Claude Code、Cursor、Grok Build、opencode、OpenClaw 和 Hermes 都可以复用这个形态。
 - frontmatter 保持可移植。避免 OpenClaw conservative parser 可能跳过的嵌套 YAML。
 - 平台差异放在短兼容性段落、references 或 generated config 中。除非 workflow 真正不同，不要 fork 主说明。
-- 通用 orchestration 文案使用 "agent runner"。Codex 模板必须使用 task-local tmux 中的 interactive `codex` TUI；其他平台模板可以使用 `claude -p`、`opencode run`、`openclaw agent` 或 `hermes chat`。
+- 通用 orchestration 文案使用 "agent runner"。Codex 模板必须使用 task-local tmux 中的 interactive `codex` TUI；其他平台模板可以使用 `claude -p`、`scripts/run_cursor_agent.py`、`grok --always-approve`、`opencode run`、`openclaw agent` 或 `hermes chat`。
 - cleanup gates 应检查当前 selected runner 的 live process，而不是只查 `codex` process。

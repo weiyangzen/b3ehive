@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execution Cron"
+  short_description: "Build portable execution crons for Grok Build workers"
+  default_prompt: "Use $execution-cron-builder to build a repository-agnostic blueprint execution cron with isolated Grok Build --always-approve workers, exact concurrency accounting, and no hidden child capacity."

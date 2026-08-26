@@ -307,11 +307,13 @@ processes on the host.
 
 ## Other Agent Platforms
 
-The controller may expose adapters for Claude Code, opencode, OpenClaw, or
-Hermes. Preserve explicit platform settings and validate each adapter's own
-identity. `B3EHIVE_AGENT_RUNNER` may define non-Codex runners. For Codex it may
-customize TUI argv only; it cannot bypass tmux, interactive `/goal`, independent
-process/state, or authentication requirements.
+The controller may expose adapters for Claude Code, Cursor, Grok Build,
+opencode, OpenClaw, or Hermes. Preserve explicit platform settings and validate
+each adapter's own identity. `B3EHIVE_AGENT_RUNNER` may define non-Codex
+runners. For Codex it may customize TUI argv only; it cannot bypass tmux,
+interactive `/goal`, independent process/state, or authentication requirements.
+Cursor workers use `scripts/run_cursor_agent.py`. Grok Build workers use
+`grok --always-approve --prompt-file`.
 
 ## Claims And Handoff
 

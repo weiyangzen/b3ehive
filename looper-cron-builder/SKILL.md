@@ -583,8 +583,8 @@ unless the user explicitly wants committed operational scaffolding.
 
 ## Agent Platform Compatibility
 
-Generated looper cron code must support Codex, Claude Code, opencode, OpenClaw,
-and Hermes through a single agent-runner abstraction. If
+Generated looper cron code must support Codex, Claude Code, Cursor, Grok Build,
+opencode, OpenClaw, and Hermes through a single agent-runner abstraction. If
 `B3EHIVE_AGENT_RUNNER` is set, use it as the authoritative command template and
 print the resolved runner in validate-only output. Do not silently replace a
 requested model, service tier, permission mode, variant, profile, agent,

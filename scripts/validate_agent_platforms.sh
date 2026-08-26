@@ -51,4 +51,4 @@ if [[ "$errors" -gt 0 ]]; then
   exit 1
 fi
 
-echo "Agent platform validation passed for Codex, Claude Code, opencode, OpenClaw, and Hermes."
+echo "Agent platform validation passed for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes."

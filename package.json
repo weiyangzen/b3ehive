@@ -2,8 +2,8 @@
   "name": "b3ehive",
   "slug": "b3ehive",
   "displayName": "b3ehive - Five Swarm Algorithms",
-  "version": "1.5.0",
-  "description": "A hive of five Codex, Claude Code, opencode, OpenClaw, and Hermes compatible agent swarm skills: compete, execution, learn, optimization, and looper cron builders.",
+  "version": "1.6.0",
+  "description": "A hive of five Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes compatible agent swarm skills: compete, execution, learn, optimization, and looper cron builders.",
   "author": "weiyangzen",
   "license": "MIT",
   "homepage": "https://github.com/weiyangzen/b3ehive",
@@ -18,6 +18,9 @@
     "openclaw",
     "codex",
     "claude-code",
+    "cursor",
+    "grok",
+    "grok-build",
     "opencode",
     "hermes",
     "skill",
@@ -92,6 +95,26 @@
       "looper-cron-builder"
     ],
     "installRoot": "~/.claude/skills"
+  },
+  "cursor": {
+    "skills": [
+      "compete-cron-builder",
+      "execution-cron-builder",
+      "learn-cron-builder",
+      "optimization-cron-builder",
+      "looper-cron-builder"
+    ],
+    "installRoot": "~/.cursor/skills"
+  },
+  "grokBuild": {
+    "skills": [
+      "compete-cron-builder",
+      "execution-cron-builder",
+      "learn-cron-builder",
+      "optimization-cron-builder",
+      "looper-cron-builder"
+    ],
+    "installRoot": "~/.grok/skills"
   },
   "opencode": {
     "skills": [

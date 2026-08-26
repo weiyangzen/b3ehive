@@ -4,6 +4,8 @@
 
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-blue)](https://github.com/openai/codex)
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-orange)](https://docs.anthropic.com/en/docs/claude-code)
+[![Cursor Skill](https://img.shields.io/badge/Cursor-Skill-black)](https://cursor.com)
+[![Grok Build Skill](https://img.shields.io/badge/Grok%20Build-Skill-red)](https://x.ai/cli)
 [![opencode Skill](https://img.shields.io/badge/opencode-Skill-green)](https://opencode.ai)
 [![OpenClaw Skill](https://img.shields.io/badge/OpenClaw-Skill-blue)](https://openclaw.ai)
 [![Hermes Skill](https://img.shields.io/badge/Hermes-Skill-purple)](https://hermes-agent.nousresearch.com)
@@ -11,8 +13,8 @@
 
 b3ehive provides five portable swarm skills for bounded agent work. Each skill
 defines its inputs, worker organization, validation boundary, evidence, and
-cleanup rule. The same skill directories support Codex, Claude Code, opencode,
-OpenClaw, and Hermes.
+cleanup rule. The same skill directories support Codex, Claude Code, Cursor,
+Grok Build, opencode, OpenClaw, and Hermes.
 
 Its design draws on the Feynman Technique: clear explanations, inspectable
 steps, and repeatable evidence expose the current level of understanding.
@@ -90,7 +92,8 @@ scripts/sync_codex_plugin.sh
 
 ### Portable Skills
 
-Install all five skills for Codex, Claude Code, opencode, OpenClaw, and Hermes:
+Install all five skills for Codex, Claude Code, Cursor, Grok Build, opencode,
+OpenClaw, and Hermes:
 
 ```bash
 cd b3ehive
@@ -102,6 +105,8 @@ Install one target:
 ```bash
 scripts/install_skills.sh --target codex --scope user
 scripts/install_skills.sh --target claude --scope user
+scripts/install_skills.sh --target cursor --scope user
+scripts/install_skills.sh --target grok --scope user
 scripts/install_skills.sh --target opencode --scope user
 scripts/install_skills.sh --target openclaw --scope user
 scripts/install_skills.sh --target hermes --scope user
@@ -119,9 +124,30 @@ scripts/install_skills.sh --target all --scope project --project-dir /path/to/re
 |---|---|
 | Codex | `~/.codex/skills/<skill>/SKILL.md` |
 | Claude Code | `~/.claude/skills/<skill>/SKILL.md` |
+| Cursor | `~/.cursor/skills/<skill>/SKILL.md` |
+| Grok Build | `~/.grok/skills/<skill>/SKILL.md` |
 | opencode | `~/.config/opencode/skills/<skill>/SKILL.md` |
 | OpenClaw | `~/.openclaw/skills/<skill>/SKILL.md` |
 | Hermes | `~/.hermes/skills/<skill>/SKILL.md` |
+
+### Cursor and Grok Build Adaptation
+
+The five skills keep one `SKILL.md` body. Cursor and Grok Build were added as
+first-class install targets, discovery paths, agent descriptors, and generated
+cron runners. They do not fork the workflow contract.
+
+- Cursor loads `~/.cursor/skills/<skill>/SKILL.md` or project
+  `.cursor/skills/<skill>/SKILL.md`. Mention the skill by name.
+- Generated Cursor workers call `scripts/run_cursor_agent.py`, which uses the
+  Cursor SDK `Agent.prompt` local runtime and requires `CURSOR_API_KEY`.
+- Grok Build loads `~/.grok/skills/<skill>/SKILL.md` or project
+  `.grok/skills/<skill>/SKILL.md`. Mention the skill or use `/skill-name`.
+- Generated Grok workers use
+  `grok --always-approve --cwd "{workspace}" --prompt-file "{prompt_file}"`.
+  Headless and ACP entry points start in ask unless that flag or
+  `_meta.yoloMode` is set. The default runner also sets
+  `GROK_TELEMETRY_ENABLED=0` and `GROK_TELEMETRY_TRACE_UPLOAD=0`.
+- Platform contract: [docs/agent-platforms.md](docs/agent-platforms.md).
 
 ## Use
 
@@ -148,10 +174,13 @@ Use looper-cron-builder to add resource-aware bridge controllers around these br
 ```
 
 Claude Code also accepts slash syntax such as
-`/execution-cron-builder`. opencode discovers `SKILL.md` directories from
-`.opencode/skills/`, `~/.config/opencode/skills/`, `.claude/skills/`, and
-`~/.claude/skills/`. OpenClaw and Hermes accept
-`skills/<skill>/SKILL.md` for repository or tap installs.
+`/execution-cron-builder`. Cursor discovers `~/.cursor/skills/` and
+`.cursor/skills/`. Grok Build discovers `~/.grok/skills/` and `.grok/skills/`,
+and also reads Cursor skill directories when that scanner is enabled.
+opencode discovers `SKILL.md` directories from `.opencode/skills/`,
+`~/.config/opencode/skills/`, `.claude/skills/`, and `~/.claude/skills/`.
+OpenClaw and Hermes accept `skills/<skill>/SKILL.md` for repository or tap
+installs.
 
 ## Repository Map
 

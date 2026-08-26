@@ -15,7 +15,7 @@ Example philosophies:
 1. Read one authoritative stage blueprint.
 2. Derive one bounded AR blueprint with `<=100` items.
 3. Partition the AR blueprint into section-owned worker lanes.
-4. Run parallel `tmux` workers with the selected Codex, Claude Code, opencode, OpenClaw, or Hermes agent runner.
+4. Run parallel `tmux` workers with the selected Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, or Hermes agent runner.
 5. Require one focused research doc per checklist item.
 6. Merge section snapshots back into the main blueprint.
 7. Run a cron space guard before worker spawn.

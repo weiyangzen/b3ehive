@@ -3,8 +3,9 @@
 [中文](agent-platforms.zh-CN.md)
 
 b3ehive skills use the portable `SKILL.md` directory contract. The same skill
-directories can be installed for Codex, Claude Code, opencode, OpenClaw, and Hermes without
-maintaining separate copies of the skill body.
+directories can be installed for Codex, Claude Code, Cursor, Grok Build,
+opencode, OpenClaw, and Hermes without maintaining separate copies of the skill
+body.
 
 ## Supported Targets
 
@@ -12,6 +13,8 @@ maintaining separate copies of the skill body.
 |---|---|---|---|
 | Codex | `~/.codex/skills/<skill>/SKILL.md` | `.codex/skills/<skill>/SKILL.md` | Mention the skill by name, for example `Use execution-cron-builder ...` |
 | Claude Code | `~/.claude/skills/<skill>/SKILL.md` | `.claude/skills/<skill>/SKILL.md` | Invoke `/skill-name` or mention the skill by name |
+| Cursor | `~/.cursor/skills/<skill>/SKILL.md` | `.cursor/skills/<skill>/SKILL.md` | Mention the skill by name in a Cursor agent thread |
+| Grok Build | `~/.grok/skills/<skill>/SKILL.md` | `.grok/skills/<skill>/SKILL.md` | Mention the skill by name or invoke `/skill-name` |
 | opencode | `~/.config/opencode/skills/<skill>/SKILL.md` | `.opencode/skills/<skill>/SKILL.md` | Mention the skill by name or reference its skill path in a prompt |
 | OpenClaw | `~/.openclaw/skills/<skill>/SKILL.md` | `skills/<skill>/SKILL.md` | `openclaw skills info <skill>` or mention the skill by name |
 | Hermes | `~/.hermes/skills/<skill>/SKILL.md` | `skills/<skill>/SKILL.md` | Mention the skill by name in Hermes chat |
@@ -37,8 +40,16 @@ The five portable skill directories are:
 - `optimization-cron-builder`
 - `looper-cron-builder`
 
+Cursor and Grok Build consume the same `name` / `description` frontmatter.
+Grok Build also reads Cursor skill directories when
+`GROK_CURSOR_SKILLS_ENABLED` is on, but b3ehive still installs to
+`~/.grok/skills` so the Grok target is explicit. Headless Grok workers must
+pass `--always-approve`; `grok -p`, `grok agent stdio`, and `grok agent serve`
+start in ask unless that flag or `_meta.yoloMode` is set.
+
 The repository root `SKILL.md` is the b3ehive skill index. Install the five skill
-directories for Codex, Claude Code, opencode, OpenClaw, and Hermes.
+directories for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and
+Hermes.
 
 ## Runner Contract
 
@@ -83,6 +94,22 @@ claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
   --add-dir "{workspace}" < "{prompt_file}" > "{output_file}"
 ```
 
+Default Cursor runner:
+
+```bash
+python3 "{b3ehive_root}/scripts/run_cursor_agent.py" \
+  --workspace "{workspace}" --prompt-file "{prompt_file}" > "{output_file}"
+```
+
+Default Grok Build runner:
+
+```bash
+GROK_TELEMETRY_ENABLED=0 GROK_TELEMETRY_TRACE_UPLOAD=0 \
+  grok --always-approve --cwd "{workspace}" --prompt-file "{prompt_file}" \
+  ${GROK_MODEL:+-m "$GROK_MODEL"} ${GROK_EFFORT:+--effort "$GROK_EFFORT"} \
+  > "{output_file}"
+```
+
 Default opencode runner:
 
 ```bash
@@ -109,11 +136,11 @@ hermes chat --toolsets "${HERMES_TOOLSETS:-skills,terminal}" \
 
 Generated cron guards may expose these settings:
 
-| Shared setting | Codex setting | Claude Code setting | opencode setting | OpenClaw setting | Hermes setting |
-|---|---|---|---|---|---|
-| `B3EHIVE_AGENT_PLATFORM=codex|claude|opencode|openclaw|hermes` | `CODEX_MODEL` | `CLAUDE_MODEL` | `OPENCODE_MODEL` | `OPENCLAW_AGENT` | `HERMES_MODEL` |
-| `B3EHIVE_AGENT_RUNNER` | `CODEX_REASONING_EFFORT` | `CLAUDE_EFFORT` | `OPENCODE_VARIANT` | `OPENCLAW_THINKING` | `HERMES_TOOLSETS` |
-| `B3EHIVE_AGENT_WORKSPACE` | `CODEX_SERVICE_TIER` | `CLAUDE_PERMISSION_MODE` | `OPENCODE_AGENT` | `OPENCLAW_PROFILE` | `HERMES_SKILLS` |
+| Shared setting | Codex setting | Claude Code setting | Cursor setting | Grok Build setting | opencode setting | OpenClaw setting | Hermes setting |
+|---|---|---|---|---|---|---|---|
+| `B3EHIVE_AGENT_PLATFORM=codex|claude|cursor|grok|opencode|openclaw|hermes` | `CODEX_MODEL` | `CLAUDE_MODEL` | `CURSOR_API_KEY` | `GROK_MODEL` | `OPENCODE_MODEL` | `OPENCLAW_AGENT` | `HERMES_MODEL` |
+| `B3EHIVE_AGENT_RUNNER` | `CODEX_REASONING_EFFORT` | `CLAUDE_EFFORT` | `CURSOR_MODEL` | `GROK_EFFORT` | `OPENCODE_VARIANT` | `OPENCLAW_THINKING` | `HERMES_TOOLSETS` |
+| `B3EHIVE_AGENT_WORKSPACE` | `CODEX_SERVICE_TIER` | `CLAUDE_PERMISSION_MODE` | | | `OPENCODE_AGENT` | `OPENCLAW_PROFILE` | `HERMES_SKILLS` |
 
 When a user explicitly sets `B3EHIVE_AGENT_RUNNER`, generated cron code should
 use it as the authoritative command template for non-Codex platforms and print
@@ -125,7 +152,8 @@ bypass the required task-local tmux + interactive TUI + `/goal` transport.
 - Keep each skill as a directory containing `SKILL.md` plus optional
   `references/`, `scripts/`, `templates/`, and `agents/` files.
 - Keep YAML frontmatter with at least `name` and `description`; Codex,
-  Claude Code, opencode, OpenClaw, and Hermes can discover or reuse that shape.
+  Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes can discover
+  or reuse that shape.
 - Keep frontmatter portable. Avoid nested YAML that OpenClaw's conservative
   parser may skip; use package metadata or documented single-line metadata
   fields for platform-specific data.
@@ -134,6 +162,7 @@ bypass the required task-local tmux + interactive TUI + `/goal` transport.
   truly differs.
 - Use "agent runner" for generic orchestration text. Codex templates use the
   interactive `codex` TUI in task-local tmux; other platform templates may use
-  `claude -p`, `opencode run`, `openclaw agent`, or `hermes chat`.
+  `claude -p`, `scripts/run_cursor_agent.py`, `grok --always-approve`,
+  `opencode run`, `openclaw agent`, or `hermes chat`.
 - For cleanup gates, check for a live process matching the selected runner,
   not only for a `codex` process.

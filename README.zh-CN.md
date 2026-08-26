@@ -4,6 +4,8 @@
 
 [![Codex Skill](https://img.shields.io/badge/Codex-Skill-blue)](https://github.com/openai/codex)
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-orange)](https://docs.anthropic.com/en/docs/claude-code)
+[![Cursor Skill](https://img.shields.io/badge/Cursor-Skill-black)](https://cursor.com)
+[![Grok Build Skill](https://img.shields.io/badge/Grok%20Build-Skill-red)](https://x.ai/cli)
 [![opencode Skill](https://img.shields.io/badge/opencode-Skill-green)](https://opencode.ai)
 [![OpenClaw Skill](https://img.shields.io/badge/OpenClaw-Skill-blue)](https://openclaw.ai)
 [![Hermes Skill](https://img.shields.io/badge/Hermes-Skill-purple)](https://hermes-agent.nousresearch.com)
@@ -68,7 +70,8 @@ codex plugin add b3ehive@b3ehive
 
 ### Portable Skills
 
-为 Codex、Claude Code、opencode、OpenClaw 和 Hermes 安装全部五个 skills：
+为 Codex、Claude Code、Cursor、Grok Build、opencode、OpenClaw 和 Hermes
+安装全部五个 skills：
 
 ```bash
 cd b3ehive
@@ -80,10 +83,30 @@ scripts/install_skills.sh --target all --scope user
 ```bash
 scripts/install_skills.sh --target codex --scope user
 scripts/install_skills.sh --target claude --scope user
+scripts/install_skills.sh --target cursor --scope user
+scripts/install_skills.sh --target grok --scope user
 scripts/install_skills.sh --target opencode --scope user
 scripts/install_skills.sh --target openclaw --scope user
 scripts/install_skills.sh --target hermes --scope user
 ```
+
+### Cursor / Grok Build 适配
+
+五个 skill 仍共用一份 `SKILL.md` 正文。本次把 Cursor 和 Grok Build 补成
+一等安装目标：discovery 路径、`agents/*.yaml` 和 generated cron runner。
+不另写一套 workflow。
+
+- Cursor：`~/.cursor/skills/<skill>/SKILL.md` 或项目内
+  `.cursor/skills/<skill>/SKILL.md`。在 agent thread 里点名 skill。
+- Cursor worker：`scripts/run_cursor_agent.py`，走 Cursor SDK
+  `Agent.prompt` local runtime，需要 `CURSOR_API_KEY`。
+- Grok Build：`~/.grok/skills/<skill>/SKILL.md` 或项目内
+  `.grok/skills/<skill>/SKILL.md`。点名 skill 或用 `/skill-name`。
+- Grok worker：
+  `grok --always-approve --cwd "{workspace}" --prompt-file "{prompt_file}"`。
+  无头 / ACP 默认 ask，必须带该 flag 或 `_meta.yoloMode`。默认 runner 还会
+  设置 `GROK_TELEMETRY_ENABLED=0` 和 `GROK_TELEMETRY_TRACE_UPLOAD=0`。
+- 平台契约：[docs/agent-platforms.zh-CN.md](docs/agent-platforms.zh-CN.md)。
 
 ## 快速使用
 

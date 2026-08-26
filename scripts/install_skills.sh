@@ -20,9 +20,9 @@ DEPRECATED_SKILLS=(
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/install_skills.sh [--target codex|claude|opencode|openclaw|hermes|both|all] [--scope user|project] [--project-dir PATH] [--dry-run]
+Usage: scripts/install_skills.sh [--target codex|claude|cursor|grok|opencode|openclaw|hermes|both|all] [--scope user|project] [--project-dir PATH] [--dry-run]
 
-Installs b3ehive's five portable SKILL.md directories for Codex, Claude Code, opencode, OpenClaw, Hermes, or all supported targets.
+Installs b3ehive's five portable SKILL.md directories for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, Hermes, or all supported targets.
 
 Defaults:
   --target all
@@ -32,11 +32,15 @@ Defaults:
 Install roots:
   Codex user:        ~/.codex/skills
   Claude Code user:  ~/.claude/skills
+  Cursor user:       ~/.cursor/skills
+  Grok Build user:   ~/.grok/skills
   opencode user:     ~/.config/opencode/skills
   OpenClaw user:      ~/.openclaw/skills
   Hermes user:        ~/.hermes/skills
   Codex project:     <project-dir>/.codex/skills
   Claude project:    <project-dir>/.claude/skills
+  Cursor project:    <project-dir>/.cursor/skills
+  Grok project:      <project-dir>/.grok/skills
   opencode project:  <project-dir>/.opencode/skills
   OpenClaw project:   <project-dir>/skills
   Hermes project:     <project-dir>/skills
@@ -79,9 +83,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$target" in
-  codex|claude|opencode|openclaw|hermes|both|all) ;;
+  codex|claude|cursor|grok|opencode|openclaw|hermes|both|all) ;;
   *)
-    echo "--target must be codex, claude, opencode, openclaw, hermes, both, or all" >&2
+    echo "--target must be codex, claude, cursor, grok, opencode, openclaw, hermes, both, or all" >&2
     exit 2
     ;;
 esac
@@ -100,6 +104,8 @@ install_root() {
     case "$platform" in
       codex) printf '%s\n' "${HOME}/.codex/skills" ;;
       claude) printf '%s\n' "${HOME}/.claude/skills" ;;
+      cursor) printf '%s\n' "${HOME}/.cursor/skills" ;;
+      grok) printf '%s\n' "${GROK_SKILLS_HOME:-${HOME}/.grok/skills}" ;;
       opencode) printf '%s\n' "${XDG_CONFIG_HOME:-${HOME}/.config}/opencode/skills" ;;
       openclaw) printf '%s\n' "${OPENCLAW_SKILLS_HOME:-${HOME}/.openclaw/skills}" ;;
       hermes) printf '%s\n' "${HERMES_SKILLS_HOME:-${HOME}/.hermes/skills}" ;;
@@ -108,6 +114,8 @@ install_root() {
     case "$platform" in
       codex) printf '%s\n' "${project_dir}/.codex/skills" ;;
       claude) printf '%s\n' "${project_dir}/.claude/skills" ;;
+      cursor) printf '%s\n' "${project_dir}/.cursor/skills" ;;
+      grok) printf '%s\n' "${project_dir}/.grok/skills" ;;
       opencode) printf '%s\n' "${project_dir}/.opencode/skills" ;;
       openclaw) printf '%s\n' "${project_dir}/skills" ;;
       hermes) printf '%s\n' "${project_dir}/skills" ;;
@@ -157,11 +165,13 @@ platforms=()
 case "$target" in
   codex) platforms=(codex) ;;
   claude) platforms=(claude) ;;
+  cursor) platforms=(cursor) ;;
+  grok) platforms=(grok) ;;
   opencode) platforms=(opencode) ;;
   openclaw) platforms=(openclaw) ;;
   hermes) platforms=(hermes) ;;
   both) platforms=(codex claude) ;;
-  all) platforms=(codex claude opencode openclaw hermes) ;;
+  all) platforms=(codex claude cursor grok opencode openclaw hermes) ;;
 esac
 
 installed_roots=":"

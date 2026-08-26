@@ -1,6 +1,6 @@
 ---
 name: optimization-cron-builder
-description: Build or repair a design-idea-guided optimization cron for a repository. Use when the user provides a design philosophy and wants a Stage_*_AR_Blueprint.md with at most 100 checklist items, per-item SOTA optimization research docs under Docs/researches/Stage_*_AR/, parallel tmux workers, Codex, Claude Code, opencode, OpenClaw, or Hermes agent-runner batches, and cleanup-on-complete.
+description: Build or repair a design-idea-guided optimization cron for a repository. Use when the user provides a design philosophy and wants a Stage_*_AR_Blueprint.md with at most 100 checklist items, per-item SOTA optimization research docs under Docs/researches/Stage_*_AR/, parallel tmux workers, Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, or Hermes agent-runner batches, and cleanup-on-complete.
 ---
 
 # Optimization Cron Builder
@@ -174,8 +174,9 @@ Minimum behavior:
 
 ## Agent Platform Compatibility
 
-Generated optimization cron code must support Codex, Claude Code, opencode,
-OpenClaw, and Hermes via a single agent-runner abstraction.
+Generated optimization cron code must support Codex, Claude Code, Cursor,
+Grok Build, opencode, OpenClaw, and Hermes via a single agent-runner
+abstraction.
 
 Default platform selection:
 - `B3EHIVE_AGENT_PLATFORM=codex` uses one independent interactive Codex TUI
@@ -191,11 +192,14 @@ Default platform selection:
   the same global transport, turn, request-rate, in-flight, and outstanding-
   request limits rather than hiding behind its parent worker.
 - `B3EHIVE_AGENT_PLATFORM=claude` uses `claude -p`.
+- `B3EHIVE_AGENT_PLATFORM=cursor` uses `scripts/run_cursor_agent.py`.
+- `B3EHIVE_AGENT_PLATFORM=grok` uses `grok --always-approve --prompt-file`.
 - `B3EHIVE_AGENT_PLATFORM=opencode` uses `opencode run`.
 - `B3EHIVE_AGENT_PLATFORM=openclaw` uses `openclaw agent`.
 - `B3EHIVE_AGENT_PLATFORM=hermes` uses `hermes chat`.
 - `B3EHIVE_AGENT_PLATFORM=auto` may choose the first installed CLI from Codex,
-  then Claude Code, then opencode, then OpenClaw, then Hermes.
+  then Claude Code, then Cursor, then Grok Build, then opencode, then
+  OpenClaw, then Hermes.
 
 Default command templates:
 
@@ -223,6 +227,16 @@ tmux -S "$TASK_ROOT/tmux.sock" send-keys -t "$SESSION" C-m
 claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
   --permission-mode "${CLAUDE_PERMISSION_MODE:-auto}" \
   --add-dir "$WORKER_REPO" < "$PROMPT_FILE" > "$OUTPUT_FILE"
+
+# Cursor
+python3 "$B3EHIVE_ROOT/scripts/run_cursor_agent.py" \
+  --workspace "$WORKER_REPO" --prompt-file "$PROMPT_FILE" > "$OUTPUT_FILE"
+
+# Grok Build
+GROK_TELEMETRY_ENABLED=0 GROK_TELEMETRY_TRACE_UPLOAD=0 \
+  grok --always-approve --cwd "$WORKER_REPO" --prompt-file "$PROMPT_FILE" \
+  ${GROK_MODEL:+-m "$GROK_MODEL"} ${GROK_EFFORT:+--effort "$GROK_EFFORT"} \
+  > "$OUTPUT_FILE"
 
 # opencode
 opencode run --dir "$WORKER_REPO" ${OPENCODE_MODEL:+--model "$OPENCODE_MODEL"} \

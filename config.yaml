@@ -29,6 +29,12 @@ b3ehive:
     claude:
       install_root: ~/.claude/skills
       runner_template: 'claude -p --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" --permission-mode "${CLAUDE_PERMISSION_MODE:-auto}" --add-dir "{workspace}" < "{prompt_file}" > "{output_file}"'
+    cursor:
+      install_root: ~/.cursor/skills
+      runner_template: 'python3 "{b3ehive_root}/scripts/run_cursor_agent.py" --workspace "{workspace}" --prompt-file "{prompt_file}" > "{output_file}"'
+    grok:
+      install_root: ~/.grok/skills
+      runner_template: 'GROK_TELEMETRY_ENABLED=0 GROK_TELEMETRY_TRACE_UPLOAD=0 grok --always-approve --cwd "{workspace}" --prompt-file "{prompt_file}" ${GROK_MODEL:+-m "$GROK_MODEL"} ${GROK_EFFORT:+--effort "$GROK_EFFORT"} > "{output_file}"'
     opencode:
       install_root: ~/.config/opencode/skills
       runner_template: 'opencode run --dir "{workspace}" ${OPENCODE_MODEL:+--model "$OPENCODE_MODEL"} ${OPENCODE_VARIANT:+--variant "$OPENCODE_VARIANT"} ${OPENCODE_AGENT:+--agent "$OPENCODE_AGENT"} < "{prompt_file}" > "{output_file}"'
@@ -44,12 +50,16 @@ b3ehive:
     model:
       codex: null
       claude: sonnet
+      cursor: null
+      grok: null
       opencode: null
       openclaw: null
       hermes: null
     thinking:
       codex: null
       claude: max
+      cursor: null
+      grok: null
       opencode: null
       openclaw: high
       hermes: null

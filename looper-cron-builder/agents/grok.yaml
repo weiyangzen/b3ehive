@@ -1,0 +1,4 @@
+interface:
+  display_name: "Looper Cron Builder"
+  short_description: "Build resource-aware bridge controllers"
+  default_prompt: "Use $looper-cron-builder to build a resource-aware bridge controller with leases, side-effect gates, compact evidence, ROI, and master acceptance for this repository."
