@@ -38,6 +38,9 @@ policies come from the frozen target specification.
   the same active goal across maintenance cycles until explicit stop or proved
   failure; every continuation remains attributed and capped. A replacement uses
   a fresh generation only after the old generation is retired.
+- A wait between persistent maintenance cycles is not liveness failure. Verify
+  the resident goal and transport independently of running turns; do not issue
+  model requests merely to make an idle worker appear busy.
 - Nested agents are forbidden unless repository policy explicitly enables them.
   An enabled child has its own identity and independently consumes execution,
   transport, turn, request-rate, in-flight, and outstanding-request capacity.
@@ -125,6 +128,10 @@ policies come from the frozen target specification.
 
 ## Cleanup Gate
 
+- A persistent pool is not complete merely because a cycle returned a result,
+  its repair queue is empty, or implementation checkboxes are accepted. Only
+  the frozen service stop condition or an explicit operator stop authorizes
+  whole-pool cleanup; proved failed generations may still be replaced.
 - Explicit stop removes the exact cron marker and all controller-owned workers,
   including task-descended subprocesses, while preserving canonical work.
 - Completion cleanup additionally requires no `[ ]`, `[_]`, handoff,

@@ -149,6 +149,16 @@ for forbidden in \
   fi
 done
 
+# Lifecycle compatibility checks prevent an older installed contract from
+# silently restoring bounded-only behavior in either distribution surface.
+for surface in "$SKILL_DIR" "$PLUGIN_SKILL_DIR"; do
+  if grep -RInE \
+    'PERSISTENT_SERVICE_TUI=forbidden|AUTOMATIC_GOAL_CONTINUATION=forbidden|An idle TUI, an active goal awaiting future work|persistent logical/service records create no TUI' \
+    "$surface"; then
+    error "execution skill restores a blanket persistent-goal prohibition: ${surface}"
+  fi
+done
+
 if [[ "$errors" -ne 0 ]]; then
   exit 1
 fi

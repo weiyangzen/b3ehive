@@ -8,6 +8,14 @@ description: Build or repair repository-agnostic, blueprint-driven execution cro
 Build the controller from the current repository's evidence. Do not reuse a
 generated controller or policy snapshot from another project.
 
+Persistent active `/goal` workers are supported, not prohibited. When the
+operator requests resident maintenance goals, freeze `persistent_pool` in the
+repository specification rather than silently substituting bounded jobs or
+deterministic-only supervision. Waiting between maintenance cycles is a valid
+resident state: authenticate the transport and goal independently of whether a
+model turn is currently running. Waiting does not authorize polling model
+requests or bypass request admission.
+
 ## Non-Negotiable Invariants
 
 1. Exactly one repository file is the authoritative blueprint and checklist.
@@ -452,9 +460,20 @@ Completion cleanup additionally requires zero `[ ]`, zero `[_]`, no pending
 handoff/integration/repair entry, all repository gates passing, and every
 required status surface reconciled.
 
+In `persistent_pool` mode, a cycle handoff, an empty repair queue, or accepted
+implementation checkboxes do not complete the maintenance service. Keep its
+authenticated goal and transport resident until the frozen service stop
+condition is met or the operator explicitly stops it. Do not use bounded-job
+cleanup to terminate a healthy pool between cycles.
+
 ## Generated Validation
 
 Every generated or repaired controller must include tests proving:
+
+- persistent cycle results, empty queues, and waits retain the same active goal
+  and transport without manufacturing running turns or new model requests
+- persistent service cleanup requires its explicit stop condition; accepted
+  implementation checkboxes alone never stop the maintenance pool
 
 - validate-only creates no claim, tmux server, or worker process
 - Codex argv is interactive and cannot resolve to app-server or `codex exec`
