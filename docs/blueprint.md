@@ -1,157 +1,170 @@
-# Blueprint（蓝图）
+# Blueprint
 
-> Blueprint 是 b3ehive 工作流的唯一权威需求源，是整个蜂群的"心脏"和"燃料"。
+[中文](blueprint.zh-CN.md)
+
+> A blueprint is the single authoritative requirement source for a b3ehive workflow.
+> It is the hive's executable specification, progress ledger, and dependency map.
 
 ---
 
-## 1. 什么是 Blueprint
+## 1. What Is A Blueprint?
 
-Blueprint 不是传统意义上的需求文档。它是**可执行的、自带状态的、驱动机器工作**的活的规格说明。
+A blueprint is not a traditional static requirements document. It is a living
+specification that carries execution state and directly drives agent work.
 
-### 1.1 核心特征
+### 1.1 Core Traits
 
-| 特征 | 说明 |
+| Trait | Meaning |
 |---|---|
-| **唯一性** | 每个 Skill 有且只有一个 blueprint 文件，禁止多个需求来源互相冲突 |
-| **自带 Checklist** | Blueprint 内包含 `- [ ]` / `- [x]` 标记的执行清单，本身就是进度表 |
-| **自带依赖 DAG** | Checklist 项之间可以定义依赖关系，生成每日 todo 时变成拓扑排序的 DAG |
-| **动态更新** | 每完成一批工作，guard 会把 `[ ]` 改为 `[x]` 写回 blueprint，它是活的 |
-| **分层结构** | 可定义"层"（layer），强制执行"底层未完成前上层不能关闭" |
+| **Single authority** | Each skill run should have exactly one blueprint source. Conflicting requirement sources are not allowed. |
+| **Embedded checklist** | The blueprint contains `[ ]`, `[_]`, and `[x]` checklist states. The document itself is the progress board. |
+| **Embedded dependency DAG** | Checklist items can declare dependencies. Daily todos are derived from this DAG in topological order. |
+| **Live updates** | After validated work lands, guards write state back to the blueprint. |
+| **Layer gates** | A blueprint can define layers so upper layers cannot close while lower layers remain open. |
 
-### 1.2 与传统 Spec 的本质区别
+### 1.2 Difference From A Traditional Spec
 
-| 维度 | 传统 Spec | b3ehive Blueprint |
+| Dimension | Traditional spec | b3ehive blueprint |
 |---|---|---|
-| **文档性质** | 静态文档，写给人看 | 动态文档，给机器执行 |
-| **内容构成** | 需求描述 + 验收标准 | 需求描述 + **执行清单** + **实时进度** + **依赖关系** |
-| **生命周期** | 项目启动时写好，完成后归档 | 贯穿整个开发周期，持续被修改（打勾、拆分、更新） |
-| **权威源** | 可能有多个子文档、多个版本 | **有且只有一个权威源**，所有工作由此派生 |
-| **完成状态** | 在 Jira/Trello/项目管理工具里 | 完成状态就在 **blueprint 文件本身**里（`[ ]` → `[x]`） |
-| **执行驱动** | 人读了 Spec 再去写代码 | Blueprint **直接驱动** Worker 执行，无需人工翻译 |
-| **验证方式** | 靠人工 review 是否符合 Spec | 靠自动**验证门**（编译/测试/lint）决定能否打勾 |
-| **变更管理** | 变更需要走流程、重审文档 | Guard 自动管理变更（超时拆分、层门重置、子项展开） |
-| **完整性检查** | 靠人判断是否遗漏 | Guard 自动检查 DAG 完整性，拒绝环和缺失依赖 |
-| **粒度** | 通常较粗，描述功能模块 | 可细化到**文件级别**（`owned_paths`），甚至子项拆分 |
-| **与代码的关系** | Spec 和代码是分离的两件事 | Blueprint 和代码在同一个仓库里**共同演化** |
+| Document shape | Static document for humans | Live document for machines and humans |
+| Contents | Requirements and acceptance criteria | Requirements, execution checklist, live progress, dependencies |
+| Lifecycle | Written at project start, archived at completion | Updated throughout execution |
+| Authority | May be scattered across documents and tickets | Exactly one authoritative source |
+| Completion state | Stored in a project tracker | Stored inside the blueprint as `[ ] -> [_] -> [x]` |
+| Execution driver | Humans translate the spec into tasks | Workers derive tasks directly from the blueprint |
+| Validation | Human review | Automated validation gates such as build, test, and lint |
+| Change management | Manual process and document review | Guards can split, reset, and refresh derived work |
+| Completeness | Human judgment | Guards check duplicate ids, missing dependencies, and cycles |
+| Granularity | Often feature-level | Can be path-level through `owned_paths` |
 
-> **Blueprint = Spec（需求规格）+ Task Board（任务板）+ State Store（状态存储）+ DAG Engine（依赖引擎），四合一。**
+> **Blueprint = Spec + Task Board + State Store + DAG Engine.**
 >
-> 传统 Spec 回答的是**"做什么"**，Blueprint 回答的是**"做什么 + 做到哪了 + 下一步做什么 + 能不能做"**。
+> A traditional spec answers "what should be built." A b3ehive blueprint answers
+> "what should be built, what state it is in, what is next, and whether it is
+> currently allowed to proceed."
 
 ---
 
-## 2. Blueprint 的两种形态
+## 2. Blueprint Shapes
 
-| 形态 | 说明 | 适用场景 |
+| Shape | Meaning | Use case |
 |---|---|---|
-| **Prose-first** | 先写散文式的需求描述，再从中抽取 checklist | 需求尚不清晰，需要逐步细化 |
-| **Checklist-first** | 直接以 checklist 作为 blueprint 主体 | 需求已明确，可直接执行 |
+| **Prose-first** | Start with narrative requirements, then extract an execution checklist. | Requirements are still being clarified. |
+| **Checklist-first** | Put the checklist at the center from the start. | Requirements are already clear enough to execute. |
 
-对于 prose-first 的 blueprint，在第一次 cron tick 前，guard 会自动在同一个文件中插入一个权威的 execution checklist 段落，并将所有项初始化为 `[ ]`。
+For a prose-first blueprint, the first cron tick should create or update the
+authoritative execution checklist inside that same file and initialize new items
+as `[ ]`.
 
 ---
 
-## 3. Checklist 的结构约定
+## 3. Checklist Structure
 
-一个标准的 checklist 项包含以下要素：
+A standard checklist item can include a stable id, dependencies, layer, and
+owned paths:
 
 ```markdown
-- [ ] [ITEM-001] 实现用户认证模块
+- [ ] [ITEM-001] Implement user authentication
   - depends_on: []
   - layer: foundation
   - owned_paths: src/auth/
 
-- [ ] [ITEM-002] 实现 JWT Token 签发
+- [ ] [ITEM-002] Implement JWT token signing
   - depends_on: [ITEM-001]
   - layer: foundation
   - owned_paths: src/auth/jwt.ts
 
-- [ ] [ITEM-003] 实现登录 API
+- [ ] [ITEM-003] Implement login API
   - depends_on: [ITEM-001, ITEM-002]
   - layer: api
   - owned_paths: src/api/login.ts
 ```
 
-### 字段说明
-
-| 字段 | 必填 | 说明 |
+| Field | Required | Meaning |
 |---|---|---|
-| `item_id` | ✅ | 稳定唯一标识，如 `ITEM-001` |
-| `depends_on` | ❌ | 依赖的其他 item_id，逗号分隔 |
-| `layer` | ❌ | 层标识，用于严格层门控制 |
-| `owned_paths` | ❌ | 该项涉及的文件/目录路径 |
+| `item_id` | Yes | Stable unique id, such as `ITEM-001`. |
+| `depends_on` | No | Other item ids this item depends on. |
+| `layer` | No | Layer marker for strict layer gates. |
+| `owned_paths` | No | Repository-relative files or directories this item may touch. |
 
-> Guard 在生成每日 todo 时，会解析这些字段构建 DAG，并拒绝环和重复 ID。
-
----
-
-## 4. 约束规则
-
-### 4.1 严格层门（Strict Layer Gate）
-
-当 blueprint 显式定义了 layer 时：
-
-- **只允许在最细的未闭合层中执行新任务**
-- 如果低层还有 `[ ]` 项，高层项必须保持 `[ ]`
-- 如果 guard 检测到高层 `[x]` 而低层仍有 `[ ]`，**自动将高层 `[x]` 重置回 `[ ]]**，然后继续从低层执行
-
-> 这保证了"地基没打好就不能盖楼"的物理约束。
-
-### 4.2 父子项自动关闭
-
-- 如果所有子 checklist 项都变为 `[x]`，父项**自动关闭**为 `[x]`
-- 如果有任何一个子项仍是 `[ ]`，父项必须保持 `[ ]`
-- 当某项在多次 tick（默认 ≥5 次）后仍未解决，guard 会自动将其拆分为子 checklist 项
+Guards use these fields to build the dependency DAG and reject duplicate ids or
+cycles.
 
 ---
 
-## 5. Blueprint 与每日 Todo 的关系
+## 4. Rules
 
-Blueprint 是**权威源**，每日 todo 是它的**只读派生视图**：
+### 4.1 Strict Layer Gate
 
-- Todo 只包含 blueprint 中未完成的项（`[ ]`）
-- Todo 包含当前 DAG 状态：node_id、依赖、claim_owner、integration_state
-- Todo 中的路径必须是**仓库相对路径**，禁止泄露 `.cron/automation_repo*` 等绝对路径
-- 每次成功 batch 后，guard 会**先更新 blueprint**，再**刷新 todo**
+When a blueprint defines layers:
+
+- New work should happen only in the finest still-open layer.
+- If lower-layer `[ ]` items remain open, upper-layer items must stay open.
+- If a guard finds an upper-layer `[x]` while lower layers are still open, it
+  should reset the violating upper-layer item back to `[ ]` and continue from
+  the lower layer.
+
+### 4.2 Parent And Child Items
+
+- A parent item can close only when all child checklist items are `[x]`.
+- If any child item is still `[ ]` or `[_]`, the parent must stay unfinished.
+- If an item is stuck across repeated ticks, a guard may split it into child
+  checklist items.
 
 ---
 
-## 6. 不同 Skill 中的 Blueprint 形态
+## 5. Blueprint And Daily Todo
 
-| Skill | Blueprint 的具体形态 |
+The blueprint is the authoritative source. The daily todo is a read-only derived
+view:
+
+- It includes unfinished blueprint items: `[ ]` and `[_]`.
+- It includes current DAG state: `node_id`, dependencies, claim owner, and
+  integration state.
+- Paths must be repository-relative and must not expose private automation paths
+  such as `.cron/automation_repo*`.
+- After a successful batch, guards update the blueprint first and then refresh
+  the todo.
+
+---
+
+## 6. Blueprint Shapes By Skill
+
+| Skill | Blueprint shape |
 |---|---|
-| `execution-cron-builder` | 一个 Markdown 文件，里面有散文式需求描述 + checklist 段落。cron 按 checklist 逐项实现代码。 |
-| `research-cron-builder` | 生成的 `blueprint_checklist.md`，从仓库树扫描而来，每个源码文件对应一个研究任务。 |
-| `optimization-cron-builder` | `Stage_*_AR_Blueprint.md`，从设计理念推导出的架构优化清单，每项对应一篇研究文档。 |
-| `debating-cron-builder` | **没有 blueprint**。输入是 `task_description` + `constraints`，3 个 agent 直接竞争实现。 |
-| `migration-cron-builder` | 核心文档是 `MIGRATION_SPEC.md`，属于 blueprint 的"迁移泛化"：用 source→target contract 替代 blueprint。 |
+| `execution-cron-builder` | One Markdown file with narrative requirements plus an execution checklist. The cron implements items one by one. |
+| `learn-cron-builder` | A `learn_checklist.md` derived from a locked source manifest; supports code-to-human understand, code-to-code transform, and human-language translate. |
+| `optimization-cron-builder` | `Stage_*_AR_Blueprint.md`, derived from a design philosophy; each item maps to one research document. |
+| `compete-cron-builder` | A local `question_type` and competition surface; can support execution choice, coverage union, repair queue, SEO strategy, or blueprint synthesis. |
 
 ---
 
-## 7. Blueprint 的生命周期
+## 7. Lifecycle
 
-```
-Bootstrap:   初始化 checklist，所有项标记为 [ ]
+```text
+Bootstrap:   Initialize checklist items as [ ]
     ↓
-Daily Todo:  从 blueprint 的未完成项生成当日 todo（含 DAG 依赖）
+Daily Todo:  Derive today's todo from unfinished blueprint items and DAG state
     ↓
-Worker 执行: 按 DAG 顺序 claim 任务，产出代码/文档
+Worker:      Claim work in DAG order, produce code/docs, mark self-tested as [_]
     ↓
-Validation:  运行验证门（编译、测试、lint 等）
+Validation:  Master integrates [_] output and runs build/test/lint gates
     ↓
-Checkpoint:  通过后，将 [ ] 改为 [x]，写回 blueprint
+Checkpoint:  If validation passes, move [_] to [x] and update the blueprint
     ↓
-Cleanup:     当 blueprint 中所有项都变为 [x]，cron 自动停止并清理自身
+Cleanup:     When all items are [x], stop the cron and clean up its helpers
 ```
 
 ---
 
-## 8. 总结
+## 8. Summary
 
-Blueprint 是 b3ehive 区别于传统 AI 助手的核心设计之一。它把一个"给人读的文档"变成了"给机器执行的程序"：
+Blueprints are a core b3ehive abstraction. They turn a document that humans read
+into a program that agents can execute:
 
-- **状态即代码**：完成进度直接写在文件里，git 历史就是项目状态历史
-- **需求即执行**：不需要 PM 把 Spec 翻译成任务，blueprint 本身就是任务队列
-- **约束即规则**：层门、DAG、父子关系等约束由 guard 自动强制执行，而不是靠人的记忆
+- **State is code**: progress is stored in a versioned file.
+- **Requirements drive execution**: the blueprint is the task queue.
+- **Constraints become rules**: DAG, layer gates, and parent/child closure are
+  enforced by guards instead of memory.
 
-理解 Blueprint，就理解了 b3ehive 的工作方式。
+Understanding blueprints is the fastest way to understand how b3ehive works.

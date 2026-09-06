@@ -1,72 +1,96 @@
-# b3ehive 核心概念
+# b3ehive Core Concepts
 
-> 本文档整理自社区讨论，用于帮助新用户快速理解 b3ehive 的设计哲学和关键抽象。
+[中文](concepts.zh-CN.md)
+
+> This document gives new users a compact map of b3ehive's design philosophy and
+> key abstractions.
 
 ---
 
-## 一、项目理念：为什么是蜂群？
+## 1. Why A Hive?
 
-### 1.1 费曼技巧的启发
+### 1.1 The Feynman Technique
 
-b3ehive 的灵感来自物理学家理查德·费曼的**费曼技巧**（Feynman Technique）：
+b3ehive is inspired by Richard Feynman's learning principle:
 
 > **"What I cannot create, I do not understand."**
->
-> 如果你不能用简单的语言把它教给别人，说明你还没有真正理解它。
 
-b3ehive 把这个思想搬到了 AI Agent 的工作中：让 Agent 把问题拆分、执行、验证，留下一条**可检查、可重复、可改进**的路径。最终产出的不只是代码，更是一份"教给人类"的完整证据链。
+The practical lesson is simple: if you cannot explain or recreate something in
+clear terms, you do not fully understand it yet.
 
-### 1.2 一个 Agent 是声音，一群 Agent 是编排
+b3ehive brings that idea to AI agent work. Agents should shape a problem, split
+the work, execute it, validate the result, and leave an inspectable trail that a
+person can repeat or improve.
 
-| 传统 AI 助手 | b3ehive |
+### 1.2 One Agent Is A Voice. A Hive Is An Arrangement.
+
+| Traditional AI assistant | b3ehive |
 |---|---|
-| 一个助手，一种形态 | **六种蜂群组织形态** |
-| Prompt In → Answer Out | **Checklist → Worker → Validator → Cleanup** |
-| 隐藏状态 | **可检查的 Spec、Todo、Log、Artifact** |
-| "看起来完成了" | **通过验证门，才能 Checkpoint** |
+| One assistant, one shape | **Five swarm organizations** |
+| Prompt in, answer out | **Checklist -> Worker -> Validator -> Cleanup** |
+| Hidden state | **Inspectable specs, todos, logs, and artifacts** |
+| "Looks done" | **Pass the gate, then checkpoint** |
 
-不同的工作，需要不同的组织方式：
+Different work needs different arrangements:
 
-- **难以决策** → 需要**辩论**（debating）
-- **长期实现** → 需要**执行**（execution）
-- **未知代码库** → 需要**研究**（research）
-- **成熟系统** → 需要**优化**（optimization）
-- **跨语言/跨工具迁移** → 需要**迁移**（migration）
-- **重复反馈 / 指标桥接** → 需要**资源感知循环**（looper）
+- **Hard decisions or coverage** need **compete**: proposal competition,
+  selection, synthesis, or coverage union.
+- **Long implementation** needs **execution**: blueprint-driven work with
+  checkpoints.
+- **Unknown code, source-to-target conversion, or translation** needs **learn**:
+  understand it until make it.
+- **Mature systems** need **optimization**: design-guided architecture
+  refinement.
+- **Repeated validation, bridge surfaces, or metric movement** need **looper**:
+  resource-aware bridge control.
 
-b3ehive 不是代码生成器，而是**按科学方法组织的集体工作**：观察地面 → 选择组织形态 → 运行有边界的循环 → 诚实验证 → 留下证据。
+`LooperLog` is the looper's multi-grain evidence surface. It records
+`TargetObject` movement and `InstrumentObject` quality. Normal execution moves
+the target work; looper also observes whether skills, scaffolds, tools, routes,
+validators, scripts, and ledgers helped, blocked, wasted resources, or failed
+to validate enough. It is not a sixth public skill and it is not a runtime path
+for automatically mutating skills.
+
+b3ehive is not just code generation. It is collective work shaped like the
+scientific method: observe the ground, choose the right organization, run
+bounded cycles, validate honestly, and leave evidence.
 
 ---
 
-## 二、Blueprint（蓝图）
+## 2. Blueprint
 
-Blueprint 是 b3ehive 工作流的**唯一权威需求源**，是整个蜂群的"心脏"和"燃料"。
+A blueprint is the single authoritative requirement source for a b3ehive
+workflow.
 
-它不是一个静态的 Spec 文档，而是**可执行的、自带状态的、驱动机器工作**的活的规格说明。Blueprint 内嵌 checklist（`- [ ]` / `- [x]`）、依赖 DAG、分层结构，guard 直接读取它来决定"今天做什么、做到哪了、下一步做什么"。
+It is not a static spec. It is a living, executable document with embedded
+checklist state (`[ ]`, `[_]`, `[x]`), dependency DAG, and layer structure.
+Guards read it to decide what can be worked on today, what is blocked, and what
+can be accepted.
 
-> **一句话：传统 Spec 回答"做什么"，Blueprint 回答"做什么 + 做到哪了 + 下一步做什么 + 能不能做"。**
+> A traditional spec answers "what should be built." A b3ehive blueprint answers
+> "what should be built, what state it is in, what is next, and whether it is
+> currently allowed to proceed."
 
-详细说明见：[Blueprint 详解](./blueprint.md)
+See [Blueprint](./blueprint.md) for the detailed contract.
 
 ---
 
-## 三、六大 Skill 速查
+## 3. The Five Skills
 
-| Skill | 核心能力 | 输入 | 输出 |
+| Skill | Core capability | Input | Output |
 |---|---|---|---|
-| `debating-cron-builder` | 多 Agent 辩论选优 | 一个任务描述 | 最优实现 + 对比报告 + 决策理由 |
-| `execution-cron-builder` | 按蓝图持续执行代码 | 一个 Blueprint | 逐项实现的代码 + checkpoint 提交 |
-| `research-cron-builder` | 代码库研究 | 一个代码仓库 | 每份源码对应的研究文档 |
-| `optimization-cron-builder` | 架构优化研究 | 设计理念 + 阶段蓝图 | 每项优化的研究文档 |
-| `migration-cron-builder` | 产物契约迁移 | Source Contract + Target Contract | 迁移后的目标产物 |
-| `looper-cron-builder` | 资源感知反馈循环 | Bridge Metric + Resource Envelope + Validator | loop daemon、reward/ROI ledger、暂停/恢复策略 |
+| `compete-cron-builder` | Multi-proposal competition, selection, union, or repair queue | A local question plus n/m/k budget | Selected candidates, coverage union, repair queue, or blueprint synthesis |
+| `execution-cron-builder` | Continuous blueprint execution | One blueprint | Implemented items and checkpoint commits |
+| `learn-cron-builder` | Source-to-target learning: understand, transform, translate | Source scope, subset, and target contract | Learning notes, transformed artifacts, translations, traceability |
+| `optimization-cron-builder` | Architecture refinement research | Design philosophy and stage blueprint | Research document for each optimization item |
+| `looper-cron-builder` | Resource-aware bridge controller | BridgeSurface or BridgeMetric plus ResourceEnvelope, SideEffectGate, and Validator | Bridge deltas, compact evidence, reward/ROI ledger, pause/resume policy |
 
 ---
 
-## 四、命名由来
+## 4. Name
 
 - **b3** = **B**lueprint, **B**atch, **B**ehavior
-- **hive** = Swarm intelligence（蜂群智能）
+- **hive** = Swarm intelligence
 
 > Choose the right swarm, run bounded work, and leave proof.
 > So called b3ehive.

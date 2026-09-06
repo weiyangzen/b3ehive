@@ -1,0 +1,46 @@
+{
+  "name": "b3ehive",
+  "version": "1.5.0+codex.20260811060051",
+  "description": "Five portable Codex swarm skills for proposal competition, blueprint execution, source learning, optimization, and resource-aware bridge control.",
+  "author": {
+    "name": "Weiyang",
+    "url": "https://github.com/weiyangzen"
+  },
+  "homepage": "https://github.com/weiyangzen/b3ehive",
+  "repository": "https://github.com/weiyangzen/b3ehive",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "skills",
+    "agent-workflow",
+    "blueprint",
+    "swarm",
+    "multi-agent",
+    "execution",
+    "learning",
+    "optimization",
+    "looper"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "b3ehive",
+    "shortDescription": "Five rigorous swarm skills for Codex.",
+    "longDescription": "b3ehive packages five reusable Codex skills: compete-cron-builder for bounded proposal competitions, execution-cron-builder for blueprint DAG execution, learn-cron-builder for source-to-target learning, optimization-cron-builder for design-guided refinement, and looper-cron-builder for resource-aware bridge control with leases, evidence, rewards, and ROI.",
+    "developerName": "Weiyang",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/weiyangzen/b3ehive",
+    "privacyPolicyURL": "https://github.com/weiyangzen/b3ehive/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/weiyangzen/b3ehive/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "Use b3ehive to create an execution blueprint.",
+      "Use b3ehive to compare routes and evidence.",
+      "Use b3ehive looper for bounded ROI control."
+    ],
+    "brandColor": "#10A37F"
+  }
+}

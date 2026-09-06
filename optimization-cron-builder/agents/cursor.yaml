@@ -1,0 +1,7 @@
+interface:
+  display_name: "Optimization Cron Builder"
+  short_description: "Build AR blueprint cron from a design idea"
+  default_prompt: "Use $optimization-cron-builder to generate a Stage_*_AR_Blueprint and run a design-idea-guided optimization cron."
+
+policy:
+  allow_implicit_invocation: true

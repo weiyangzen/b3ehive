@@ -1,0 +1,20 @@
+{
+  "name": "b3ehive",
+  "interface": {
+    "displayName": "B3ehive"
+  },
+  "plugins": [
+    {
+      "name": "b3ehive",
+      "source": {
+        "source": "local",
+        "path": "./plugins/b3ehive"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compete Cron Builder"
+  short_description: "Bounded proposal competition and selection"
+  default_prompt: "Use $compete-cron-builder to run a bounded proposal competition with the right n/m/k shape, selection mode, and artifact layout."
