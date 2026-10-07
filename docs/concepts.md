@@ -2,22 +2,29 @@
 
 [中文](concepts.zh-CN.md)
 
+Start with [Skill Selection and Use](skill-selection.md) if you need to choose a
+skill. This page explains the shared model.
+
 ## One Arrangement Per Kind Of Work
 
 | Work | Skill | Arrangement |
 |---|---|---|
-| hard choice, root cause, audit, coverage | compete | parallel candidates, oracle-first selection, or a deduplicated union |
+| one-round proposal comparison, root cause, audit, coverage | compete | parallel candidates, oracle-first selection, or a deduplicated union |
 | long implementation | execution | one blueprint as a DAG, isolated workers, master acceptance |
 | unknown code, migration, translation, outside knowledge | learn | a locked manifest mapped one to one, or a pinned canon |
-| faster, smaller, cheaper, or cleaner | optimization | measured loops under a frozen oracle, or design research |
-| repeated attempts under a budget | looper | the shared loop and its governance |
+| faster, smaller, cheaper, or cleaner | optimization | serial measured comparison under a frozen oracle, or design research |
+| external loop granularity or shared governance | looper | an optional layer attached to an item, metric, or surface |
+
+The five skills are options, not required stages. A task can use one skill or a
+small combination.
 
 ## Three Shared Units
 
 - **core** (`core/core.md`): seven laws and a verb lexicon, stated once, copied
   into every skill.
 - **loop** (`looper-cron-builder/loop.md`): the attempt loop: shapes, stop rules,
-  ratchet, ablation switch. Looper owns it; the other skills bind it by name.
+  ratchet, ablation switch. The other skills bind it by name. The looper skill
+  adds an optional external attachment and granularity layer.
 - **generated artifacts**: gates, harnesses, receipts, hooks, cron or flow
   configs, ledgers. Prompts carry judgment; artifacts carry mechanics.
 
@@ -34,9 +41,9 @@
 ## Verbs Carry Authority
 
 Workers claim and submit. Oracles measure. Non-author reviewers judge. The
-master accepts, rejects, and reverts. Looper leases, pauses, and retires. A lint
-rejects any other pairing, so the rule "only the master accepts" lives in one
-table instead of many sentences.
+master accepts, rejects, and reverts. Looper leases, pauses, and retires when an
+external loop needs those controls. A lint rejects any other pairing, so the
+rule "only the master accepts" lives in one table instead of many sentences.
 
 ## Outside Knowledge
 

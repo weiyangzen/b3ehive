@@ -1,16 +1,21 @@
 ---
 name: looper-cron-builder
-description: Defines the shared attempt loop and governs long-running or concurrent loops with leases, side-effect gates, reward and ROI ledgers, and pause on no reward. Use when attempts repeat, spend must stay bounded, or several loops compete for budget. 循环、预算、ROI。
+description: Defines an optional external loop layer that sets granularity and governs repeated attempts with leases, side-effect gates, reward and ROI ledgers. Use when a loop must attach to an item, metric, or surface, or when several loops share a budget. 循环、粒度、预算、ROI。
 ---
 
 # Looper
 
+For a user-facing choice guide, read `docs/skill-selection.md`. Use this skill
+when an explicit external loop must set granularity or govern shared resources.
+The smallest work unit is normally internal to the selected skill.
+
 core v2 · owner of loop v1. Read `references/core.md`, then `loop.md`.
 
-Looper has two jobs. It owns `loop.md`, the one definition of an attempt loop
-that the other four skills bind by name. It governs runs where loops live long
-or share budget. A single item's loop needs `loop.md` alone; it needs this
-skill only for governance.
+Looper has two layers. It owns `loop.md`, the shared attempt-loop definition
+that the other four skills bind by name. The `looper-cron-builder` skill is an
+optional external definition: it attaches a loop to an item, metric, or surface
+and sets its granularity, budget, and governance. A small internal loop can use
+`loop.md` without a separately named looper definition.
 
 ## Objects
 

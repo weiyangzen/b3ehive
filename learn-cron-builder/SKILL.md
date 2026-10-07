@@ -5,6 +5,9 @@ description: Turns a frozen source scope into validated artifacts such as one-to
 
 # Learn
 
+For a user-facing choice guide, read `docs/skill-selection.md`. Lock the source
+scope before producing learning, transformation, translation, or canon output.
+
 core v2 · loop v1; an item's oracle is traceability to its source row. Read
 `references/core.md` and `references/loop.md` first; this body adds only
 learning rules. Working frame: understand it until you can make it.

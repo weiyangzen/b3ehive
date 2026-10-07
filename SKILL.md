@@ -5,6 +5,10 @@ description: Index of b3ehive's five portable swarm skills (compete, execution, 
 
 # b3ehive
 
+For user-facing orientation, read `docs/getting-started.md` and
+`docs/skill-selection.md`. The public writing rules live in
+`docs/writing-style.md`.
+
 | Skill | Use |
 |---|---|
 | `compete-cron-builder` | hard choices, repair search, audits, coverage |

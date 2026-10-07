@@ -5,6 +5,10 @@ description: Executes one authoritative blueprint as a DAG with isolated workers
 
 # Execution
 
+For a first user-facing run, read `docs/getting-started.md` and
+`docs/skill-selection.md`. This skill is a long-run execution protocol, not a
+`b3ehive execution` CLI command.
+
 core v2 · loop v1, default shape `single`. Read `references/core.md` and
 `references/loop.md` first; this body adds only execution rules.
 

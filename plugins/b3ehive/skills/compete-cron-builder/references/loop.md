@@ -3,6 +3,10 @@
 A loop repeats attempts on one item until its oracle passes and the master
 accepts, or until its lease ends.
 
+This file defines loop mechanics. `looper-cron-builder` is an optional external
+layer that chooses the attachment and granularity of a loop. The selected skill
+usually handles its smallest work unit internally.
+
 ## Shapes
 
 - `single`: one worker per attempt.

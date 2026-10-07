@@ -21,11 +21,11 @@ loop, and accept nothing they have not re-run.
 
 | Skill | When | Arrangement |
 |---|---|---|
-| [`compete`](compete-cron-builder/SKILL.md) | a hard choice, a root cause, an audit | parallel candidates; oracle first, then blind review, then votes without self-votes; or a deduplicated union of findings |
+| [`compete`](compete-cron-builder/SKILL.md) | one-round proposal comparison, a root cause, an audit | one bounded parallel comparison; oracle first, then blind review, then votes without self-votes; or a deduplicated union of findings |
 | [`execution`](execution-cron-builder/SKILL.md) | a long implementation | one blueprint as a DAG; isolated workers; the master accepts |
 | [`learn`](learn-cron-builder/SKILL.md) | unknown code, migration, translation, outside knowledge | a locked manifest mapped one to one, or a pinned canon |
-| [`optimization`](optimization-cron-builder/SKILL.md) | faster, smaller, cheaper, cleaner | measured loops under a frozen oracle, or design research |
-| [`looper`](looper-cron-builder/SKILL.md) | repeated attempts under a budget | the shared loop and its governance |
+| [`optimization`](optimization-cron-builder/SKILL.md) | faster, smaller, cheaper, cleaner | serial measured comparison under a frozen oracle, or design research |
+| [`looper`](looper-cron-builder/SKILL.md) | external loop granularity or shared governance | an optional layer attached to an item, metric, or surface |
 
 ## How It Holds Together
 
@@ -67,7 +67,8 @@ attempt ─ receipt ─ ADVANCED | STALLED | REGRESSED
 Shapes: `single`, `relay` (model families alternate, fresh sessions, the
 repository is the memory), `review` (a fresh, read-only, non-author reviewer each
 round), `lanes` (parallel attempts, compete selects). `B3_LOOP=full|single|null`
-swaps the loop for ablation.
+swaps the loop for ablation. The looper skill is an optional external layer
+that sets loop granularity and governance.
 
 ## Outside Knowledge
 
@@ -107,14 +108,23 @@ Codex plugin: `codex plugin marketplace add weiyangzen/b3ehive` then
 `codex plugin add b3ehive@b3ehive`. Platform details:
 [docs/agent-platforms.md](docs/agent-platforms.md).
 
+## Start Here
+
+- New installation: [Getting Started](docs/getting-started.md)
+- Choose a task arrangement: [Skill Selection and Use](docs/skill-selection.md)
+- Understand the upgrade: [v1 to v2 Migration](docs/migration-v1-v2.md)
+- Write and review docs: [Writing Style](docs/writing-style.md)
+
 ## Use
 
 ```text
 Use execution-cron-builder for this repository and this blueprint.
 Use compete-cron-builder to pick the root cause; the oracle is `make test`.
 Use learn-cron-builder to build a canon from these specs for BLUEPRINT.md.
-Use optimization-cron-builder in measured mode on this kernel.
-Use looper-cron-builder to govern these loops within a weekly budget.
+Use optimization-cron-builder in measured mode on this kernel. Compare
+candidates serially and re-run the oracle after each candidate.
+Use looper-cron-builder only when an external loop must set granularity or share
+a weekly budget.
 ```
 
 A competition from the shell:
@@ -126,6 +136,10 @@ bin/b3ehive compete --question-type precision \
 ```
 
 The runner comes from `B3EHIVE_AGENT_RUNNER`; `--mock` runs a dry competition.
+
+There is no `b3ehive execution` or `b3ehive learn` command. Those names refer
+to skills that an agent loads and follows. The CLI provides maintenance
+commands and a direct competition runner.
 
 ## Check
 
@@ -162,7 +176,9 @@ Rules moved out of skill bodies live in each skill's `references/lessons.md`.
 - `scripts/`: install, sync, lint, checks
 - `plugins/b3ehive/`: Codex plugin package
 - `docs/`: [concepts](docs/concepts.md), [blueprint](docs/blueprint.md),
-  [platforms](docs/agent-platforms.md), [Codex plugin](docs/codex-plugin.md)
+  [platforms](docs/agent-platforms.md), [Codex plugin](docs/codex-plugin.md),
+  [getting started](docs/getting-started.md), [skill selection](docs/skill-selection.md),
+  [migration](docs/migration-v1-v2.md), and [writing style](docs/writing-style.md)
 
 ## Name And License
 

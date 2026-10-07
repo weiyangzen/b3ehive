@@ -2,7 +2,11 @@
 
 [English](blueprint.md)
 
+第一次运行前，先阅读[开始使用](getting-started.zh-CN.md)和 [Skill 选择与使用](skill-selection.zh-CN.md)。
+
 blueprint 是一次运行的唯一需求源、状态源、依赖源。guard 据此判定何者可做、何者受阻、何者可收。
+
+blueprint 是权威来源。Gantt 或 todo 视图只是只读投影。
 
 ## 条目语法
 
@@ -59,6 +63,6 @@ bootstrap [ ] → claim → submit [_] → master 复跑 → accept [x] → clea
 |---|---|
 | execution | 需求与 checklist 同在一份 Markdown |
 | learn | 由锁定的 `source_manifest.tsv` 派生 `learn_checklist.md` |
-| optimization | `Stage_*_AR_Blueprint.md`（design）；oracle 合同与假设账本（measured） |
+| optimization | `Stage_*_AR_Blueprint.md`（design）；oracle 合同与假设账本（measured，通常串行） |
 | compete | 已定的题型、m、k、oracle |
-| looper | 挂在条目、指标或面上的 loop spec |
+| looper | 可选的外挂 loop spec，挂在条目、指标或面上 |

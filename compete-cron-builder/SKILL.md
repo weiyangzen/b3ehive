@@ -1,12 +1,19 @@
 ---
 name: compete-cron-builder
-description: Runs bounded proposal competitions with n workers and m candidates, selecting by oracle score or independent review, or keeping the union of all valid findings. Use for hard choices, root-cause or repair search, audits, coverage sweeps, and blueprint synthesis. 方案竞争、择优、覆盖审计。
+description: Runs bounded proposal competitions with n workers and m candidates, selecting by oracle score or independent review, or keeping the union of all valid findings. Use for one-round parallel comparison, root-cause or repair search, audits, coverage sweeps, and blueprint synthesis. 方案竞争、并行比较、择优、覆盖审计。
 ---
 
 # Compete
 
+For a user-facing choice guide, read `docs/skill-selection.md`. This skill
+selects proposals or findings; it does not replace the master acceptance step.
+
 core v2 · loop v1, shape `lanes`. Read `references/core.md` and
 `references/loop.md` first; this body adds only competition rules.
+
+Compete is a single-round parallel comparison. It runs a bounded set of
+candidates against one frozen question and selects or unions the results. It
+does not own the serial ratchet used by optimization.
 
 ## Decide
 

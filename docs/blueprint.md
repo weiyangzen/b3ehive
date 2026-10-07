@@ -2,8 +2,13 @@
 
 [中文](blueprint.zh-CN.md)
 
+For a first execution, read [Getting Started](getting-started.md) and
+[Skill Selection and Use](skill-selection.md) first.
+
 A blueprint is the single source of requirements, state, and dependencies for a
 run. Guards read it to decide what is open, blocked, and acceptable.
+
+The blueprint is the authority. A Gantt or todo view is a read-only projection.
 
 ## Item Grammar
 
@@ -62,6 +67,6 @@ bootstrap [ ] → claim → submit [_] → master re-run → accept [x] → clea
 |---|---|
 | execution | requirements plus checklist in one Markdown file |
 | learn | `learn_checklist.md` derived from a locked `source_manifest.tsv` |
-| optimization | `Stage_*_AR_Blueprint.md` (design) or an oracle contract plus hypothesis ledger (measured) |
+| optimization | `Stage_*_AR_Blueprint.md` (design) or an oracle contract plus hypothesis ledger (measured, normally serial) |
 | compete | a decided question type, m, k, and oracle |
-| looper | loop specs attached to items, metrics, or surfaces |
+| looper | optional external loop specs attached to items, metrics, or surfaces |

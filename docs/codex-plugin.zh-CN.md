@@ -2,6 +2,8 @@
 
 [English](codex-plugin.md)
 
+最短安装路径请阅读[开始使用](getting-started.zh-CN.md)。
+
 b3ehive 作为 Codex plugin 打包在 `plugins/b3ehive`，并通过仓库内 marketplace catalog `.agents/plugins/marketplace.json` 暴露。
 
 对 Codex 用户来说，plugin 是推荐分发方式。它把仓库根目录下同一组五个可移植 `SKILL.md` 目录打包成一个命名 package，方便 Codex 一次安装和加载。
@@ -44,7 +46,8 @@ codex plugin marketplace add weiyangzen/b3ehive
 codex plugin add b3ehive@b3ehive
 ```
 
-安装后启动新的 Codex thread，让 Codex 加载 plugin skills。
+安装后启动新的 Codex thread，让 Codex 加载 plugin skills。第一次调用请参考
+[Skill 选择与使用](skill-selection.zh-CN.md)。
 
 ## 使用方式
 
@@ -56,7 +59,8 @@ Use compete-cron-builder to compare local proposals and synthesize a blueprint.
 Use execution-cron-builder for this repo and this blueprint.
 Use learn-cron-builder to learn this source scope into validated docs.
 Use optimization-cron-builder with this design philosophy.
-Use looper-cron-builder to govern these loops with leases and ROI.
+Use looper-cron-builder when an external loop must set granularity or share a
+budget.
 ```
 
 Codex 会在新 session 中加载 plugin skills。如果安装或更新前 session 已经打开，测试 discovery 前先启动新 thread。

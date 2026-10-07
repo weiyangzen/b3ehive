@@ -2,6 +2,8 @@
 
 [中文](agent-platforms.zh-CN.md)
 
+For installation and a first call, read [Getting Started](getting-started.md).
+
 b3ehive skills use the portable `SKILL.md` directory contract. The same skill
 directories can be installed for Codex, Claude Code, Cursor, Grok Build,
 opencode, OpenClaw, and Hermes without maintaining separate copies of the skill
@@ -54,6 +56,9 @@ Hermes.
 The full Codex worker contract lives in
 `execution-cron-builder/references/transport-codex-tui.md`; runner selection and
 disk guards live in each skill's `references/substrate-cron.md`.
+
+These runner details are reference material. A user does not need them for a
+first skill call.
 
 ## Runner Contract
 

@@ -2,6 +2,8 @@
 
 [English](agent-platforms.md)
 
+安装和第一次调用请先阅读[开始使用](getting-started.zh-CN.md)。
+
 b3ehive skills 使用可移植的 `SKILL.md` 目录约定。同一组 skill 目录可以安装到 Codex、Claude Code、Cursor、Grok Build、opencode、OpenClaw 和 Hermes，不需要为不同平台维护多份 skill 正文。
 
 ## 支持目标
@@ -38,6 +40,8 @@ Cursor 和 Grok Build 复用同一套 `name` / `description` frontmatter。Grok 
 Cursor、Grok Build、opencode、OpenClaw 和 Hermes 的是这五个 skill 目录。
 
 完整 Codex worker 契约见 `execution-cron-builder/references/transport-codex-tui.md`；runner 选择与磁盘守卫见各 skill 的 `references/substrate-cron.md`。
+
+这些 runner 细节属于 reference。第一次调用 skill 不需要先阅读它们。
 
 ## Runner Contract
 

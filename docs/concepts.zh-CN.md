@@ -2,20 +2,26 @@
 
 [English](concepts.md)
 
+如果需要选择 skill，先阅读 [Skill 选择与使用](skill-selection.zh-CN.md)。本页
+解释共享模型。
+
 ## 一类工作，一种编排
 
 | 工作 | Skill | 编排 |
 |---|---|---|
-| 难抉择、根因、审计、覆盖 | compete | 并行候选；oracle 优先择一，或去重取并集 |
+| 单轮方案比较、根因、审计、覆盖 | compete | 并行候选；oracle 优先择一，或去重取并集 |
 | 长程实现 | execution | 一份 blueprint 化为 DAG；worker 隔离；master 验收 |
 | 陌生代码、迁移、翻译、外部知识 | learn | 锁定 manifest 一一映射，或建 canon |
-| 更快、更小、更省、更简 | optimization | 冻结 oracle 下的测量循环，或设计研究 |
-| 预算内反复尝试 | looper | 共享 loop 与治理 |
+| 更快、更小、更省、更简 | optimization | 冻结 oracle 下的串行测量比较，或设计研究 |
+| 外挂 loop 粒度或共享治理 | looper | 挂到 item、metric 或 surface 的可选层 |
+
+五个 skill 是可选的编排，不是必经阶段。一个任务可以只用一个 skill，也可以
+组合少量 skill。
 
 ## 三个共享单元
 
 - **core**（`core/core.md`）：七律与定词表；只写一次，同步入每个 skill。
-- **loop**（`looper-cron-builder/loop.md`）：形状、停止规则、ratchet、消融开关；归 looper，余者按名绑定。
+- **loop**（`looper-cron-builder/loop.md`）：形状、停止规则、ratchet、消融开关；其他 skill 按名绑定。looper skill 另外提供可选的外挂挂载和粒度层。
 - **生成物**：gate、harness、receipt、hook、cron 或 flow 配置、ledger。提示词载判断，产物载机制。
 
 ## 七律
@@ -30,7 +36,7 @@
 
 ## 动词即授权
 
-worker claim、submit；oracle measure；非作者评审 judge；master accept、reject、revert；looper lease、pause、retire。lint 拒绝其他搭配，故"只有 master 能收"只存于一张表。
+worker claim、submit；oracle measure；非作者评审 judge；master accept、reject、revert；外部 loop 需要治理时，looper lease、pause、retire。lint 拒绝其他搭配，故“只有 master 能收”只存于一张表。
 
 ## 外部知识
 

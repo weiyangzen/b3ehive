@@ -2,6 +2,8 @@
 
 [中文](codex-plugin.zh-CN.md)
 
+For the shortest installation path, read [Getting Started](getting-started.md).
+
 b3ehive is packaged as a Codex plugin in `plugins/b3ehive` and exposed through
 the repository marketplace catalog at `.agents/plugins/marketplace.json`.
 
@@ -52,6 +54,7 @@ codex plugin add b3ehive@b3ehive
 ```
 
 Start a new Codex thread after installation so Codex can load the plugin skills.
+Use [Skill Selection and Use](skill-selection.md) for the first prompt.
 
 ## Usage
 
@@ -63,7 +66,8 @@ Use compete-cron-builder to compare local proposals and synthesize a blueprint.
 Use execution-cron-builder for this repo and this blueprint.
 Use learn-cron-builder to learn this source scope into validated docs.
 Use optimization-cron-builder with this design philosophy.
-Use looper-cron-builder to govern these loops with leases and ROI.
+Use looper-cron-builder when an external loop must set granularity or share a
+budget.
 ```
 
 Codex loads plugin skills for new sessions. If a session was already open before
