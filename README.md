@@ -23,7 +23,7 @@ loop, and accept nothing they have not re-run.
 |---|---|---|
 | [`compete`](compete-cron-builder/SKILL.md) | a hard choice, a root cause, an audit | parallel candidates; oracle first, then blind review, then votes without self-votes; or a deduplicated union of findings |
 | [`execution`](execution-cron-builder/SKILL.md) | a long implementation | one blueprint as a DAG; isolated workers; the master accepts |
-| [`learn`](learn-cron-builder/SKILL.md) | unknown code, migration, translation, outside knowledge | a locked manifest mapped one to one, or a pinned canon |
+| [`learn`](learn-cron-builder/SKILL.md) | unknown code, migration, translation, outside knowledge | a locked manifest mapped one to one, or a pinned canon; depth `what`, `how`, or `why` |
 | [`optimization`](optimization-cron-builder/SKILL.md) | faster, smaller, cheaper, cleaner | measured loops under a frozen oracle, or design research |
 | [`looper`](looper-cron-builder/SKILL.md) | repeated attempts under a budget | the shared loop and its governance |
 
@@ -134,7 +134,7 @@ scripts/check_all.sh        # sync, lint, unit tests, layout and platform checks
 bin/b3ehive doctor --repo .  # stale installs and controllers
 ```
 
-`evals/scenarios.json` holds fifteen behavior scenarios, three per skill, and the
+`evals/scenarios.json` holds sixteen behavior scenarios, at least three per skill, and the
 ablation matrix that decides which mechanisms stay.
 
 ## v2 At A Glance

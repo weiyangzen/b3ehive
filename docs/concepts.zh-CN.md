@@ -8,7 +8,7 @@
 |---|---|---|
 | 难抉择、根因、审计、覆盖 | compete | 并行候选；oracle 优先择一，或去重取并集 |
 | 长程实现 | execution | 一份 blueprint 化为 DAG；worker 隔离；master 验收 |
-| 陌生代码、迁移、翻译、外部知识 | learn | 锁定 manifest 一一映射，或建 canon |
+| 陌生代码、迁移、翻译、外部知识 | learn | 锁定 manifest 一一映射，或建 canon；深度可选是什么、如何做好、为什么 |
 | 更快、更小、更省、更简 | optimization | 冻结 oracle 下的测量循环，或设计研究 |
 | 预算内反复尝试 | looper | 共享 loop 与治理 |
 

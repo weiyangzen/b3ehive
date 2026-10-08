@@ -12,7 +12,7 @@ b3ehive 把编码 agent 编成蜂群。五个 skill 各司一类工作；共守�
 |---|---|---|
 | [`compete`](compete-cron-builder/SKILL.md) | 难抉择、根因、审计 | 并行候选；先 oracle，次盲审，再计票（自投作废）；或发现去重取并集 |
 | [`execution`](execution-cron-builder/SKILL.md) | 长程实现 | 一份 blueprint 化 DAG；worker 隔离；master 验收 |
-| [`learn`](learn-cron-builder/SKILL.md) | 陌生代码、迁移、翻译、外部知识 | 锁定 manifest 一一映射，或建 canon |
+| [`learn`](learn-cron-builder/SKILL.md) | 陌生代码、迁移、翻译、外部知识 | 锁定 manifest 一一映射，或建 canon；深度可选 `what`、`how`、`why` |
 | [`optimization`](optimization-cron-builder/SKILL.md) | 更快、更小、更省、更简 | 冻结 oracle 下测量循环，或设计研究 |
 | [`looper`](looper-cron-builder/SKILL.md) | 预算内反复尝试 | 共享 loop 与治理 |
 
@@ -93,7 +93,7 @@ scripts/check_all.sh         # 同步、lint、单测、布局与平台校验
 bin/b3ehive doctor --repo .  # 过期安装与控制器
 ```
 
-`evals/scenarios.json`：十五个行为场景（每 skill 三个）与消融矩阵。
+`evals/scenarios.json`：十六个行为场景（每 skill 至少三个）与消融矩阵。
 
 ## v2 一览
 

@@ -36,6 +36,14 @@ Translation tasks often work well with cheaper or uncommon routes, including
 35B-class or A3B-class models, when validators are strong and the domain is not
 high-stakes.
 
+## Depth
+
+- `what`: the mode default above.
+- `how`: standard or high reasoning; evidence lookup dominates cost.
+- `why`: high reasoning, `review` loop shape, history access (commits, issues,
+  design records) when available.
+- Use `depth_map` to spend `why` only where decisions matter.
+
 ## Escalation
 
 Escalate route when:

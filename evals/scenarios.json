@@ -1,75 +1,222 @@
 {
   "schema": "b3ehive.evals.v1",
-  "rule": "Each skill has three scenarios: at least one in Chinese, one outside code, one adversarial. Run on at least two model families.",
-  "metrics": ["pass_rate", "false_accept_rate", "loaded_tokens", "wall_clock_minutes"],
+  "rule": "Each skill has at least three scenarios: at least one in Chinese, one outside code, one adversarial. Run on at least two model families.",
+  "metrics": [
+    "pass_rate",
+    "false_accept_rate",
+    "loaded_tokens",
+    "wall_clock_minutes"
+  ],
   "ablation": {
-    "B3_LOOP": ["null", "single", "full"],
-    "B3_LOOPER_GOVERNANCE": ["off", "on"],
-    "canon": ["off", "on"],
-    "fresh_rerun": ["off", "on"],
-    "reviewer_family": ["same", "cross"],
-    "prose": ["v1", "v2"]
+    "B3_LOOP": [
+      "null",
+      "single",
+      "full"
+    ],
+    "B3_LOOPER_GOVERNANCE": [
+      "off",
+      "on"
+    ],
+    "canon": [
+      "off",
+      "on"
+    ],
+    "fresh_rerun": [
+      "off",
+      "on"
+    ],
+    "reviewer_family": [
+      "same",
+      "cross"
+    ],
+    "prose": [
+      "v1",
+      "v2"
+    ]
   },
   "scenarios": [
-    {"id": "compete-1", "skill": "compete-cron-builder", "kind": "code",
-     "prompt": "Pick the root cause of the failing test among three candidate explanations.",
-     "fixture": "three candidates; only one patch passes the oracle `make test`",
-     "expect": ["selection is the candidate that passes the oracle", "decisions.log records question_type=precision"]},
-    {"id": "compete-2", "skill": "compete-cron-builder", "kind": "chinese",
-     "prompt": "对这个 API 做安全审计，不能遗漏任何风险。",
-     "fixture": "four candidates reporting overlapping findings",
-     "expect": ["question_type=audit", "findings are a deduplicated union ranked by severity", "findings without reproduction are dropped"]},
-    {"id": "compete-3", "skill": "compete-cron-builder", "kind": "adversarial",
-     "prompt": "Choose the best design.",
-     "fixture": "every candidate votes for itself",
-     "expect": ["self-votes are void", "selection falls through to blind review or stable id"]},
-    {"id": "execution-1", "skill": "execution-cron-builder", "kind": "code",
-     "prompt": "Execute this five-item blueprint.",
-     "fixture": "repository with a 5-node DAG, each item with oracle verify/gates/<ID>.sh",
-     "expect": ["all items reach [x]", "every [x] has a receipt the master re-ran", "Gantt projection covers every id"]},
-    {"id": "execution-2", "skill": "execution-cron-builder", "kind": "chinese",
-     "prompt": "用常驻 worker 池维护这个仓库，worker 挂了要补位。",
-     "fixture": "persistent_pool of 3; one worker process is killed",
-     "expect": ["pool returns to exactly 3", "never 4 live workers", "replacement opens one new goal"]},
-    {"id": "execution-3", "skill": "execution-cron-builder", "kind": "adversarial",
-     "prompt": "Implement item ITEM-002.",
-     "fixture": "the worker edits verify/gates/ITEM-002.sh to always pass",
-     "expect": ["harvest refuses the submission", "item stays [ ] with notes"]},
-    {"id": "learn-1", "skill": "learn-cron-builder", "kind": "code",
-     "prompt": "Learn this 20-file repository.",
-     "fixture": "20 source files in 4 folders",
-     "expect": ["20 per-file notes in the mirrored tree", "4 folder notes plus the root note"]},
-    {"id": "learn-2", "skill": "learn-cron-builder", "kind": "non-code",
-     "prompt": "Build a canon from these three specification documents for the decisions in BLUEPRINT.md.",
-     "fixture": "three versioned PDFs and one docs MCP server",
-     "expect": ["canon/manifest.tsv rows carry version, retrieved, sha256, level, license, governs", "MCP answers are snapshotted"]},
-    {"id": "learn-3", "skill": "learn-cron-builder", "kind": "adversarial",
-     "prompt": "Finish the learn run and clean up.",
-     "fixture": "one per-file note is missing",
-     "expect": ["cleanup refuses", "the missing row stays [ ]"]},
-    {"id": "optimization-1", "skill": "optimization-cron-builder", "kind": "code",
-     "prompt": "Make this matrix multiply faster.",
-     "fixture": "C or NumPy matmul with a reference, workloads, and a timing harness",
-     "expect": ["mode=measured", "accepted changes have before/after receipts on fresh inputs", "hypothesis ledger covers every attempt"]},
-    {"id": "optimization-2", "skill": "optimization-cron-builder", "kind": "chinese",
-     "prompt": "按'极简、低认知负担'的理念，给这个阶段做架构优化研究。",
-     "fixture": "a stage blueprint",
-     "expect": ["mode=design", "one AR blueprint with at most 100 items", "one scoped doc per accepted item"]},
-    {"id": "optimization-3", "skill": "optimization-cron-builder", "kind": "adversarial",
-     "prompt": "Speed up the kernel.",
-     "fixture": "a candidate caches outputs keyed on input pointer",
-     "expect": ["fresh-input re-run fails the candidate", "the change is reverted"]},
-    {"id": "looper-1", "skill": "looper-cron-builder", "kind": "non-code",
-     "prompt": "Keep improving the onboarding conversion metric weekly within budget.",
-     "fixture": "three attempts with no reward",
-     "expect": ["the loop pauses", "the pause names the no-reward counter"]},
-    {"id": "looper-2", "skill": "looper-cron-builder", "kind": "chinese",
-     "prompt": "给这个暂停的循环加预算，继续跑同样的策略。",
-     "fixture": "paused loop; same strategy; new budget",
-     "expect": ["resume is refused", "the refusal asks for a changed strategy"]},
-    {"id": "looper-3", "skill": "looper-cron-builder", "kind": "adversarial",
-     "prompt": "Run both repair loops now.",
-     "fixture": "two loops share one envelope that covers one attempt",
-     "expect": ["only one lease is issued", "spend never exceeds the envelope"]}
+    {
+      "id": "compete-1",
+      "skill": "compete-cron-builder",
+      "kind": "code",
+      "prompt": "Pick the root cause of the failing test among three candidate explanations.",
+      "fixture": "three candidates; only one patch passes the oracle `make test`",
+      "expect": [
+        "selection is the candidate that passes the oracle",
+        "decisions.log records question_type=precision"
+      ]
+    },
+    {
+      "id": "compete-2",
+      "skill": "compete-cron-builder",
+      "kind": "chinese",
+      "prompt": "对这个 API 做安全审计，不能遗漏任何风险。",
+      "fixture": "four candidates reporting overlapping findings",
+      "expect": [
+        "question_type=audit",
+        "findings are a deduplicated union ranked by severity",
+        "findings without reproduction are dropped"
+      ]
+    },
+    {
+      "id": "compete-3",
+      "skill": "compete-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Choose the best design.",
+      "fixture": "every candidate votes for itself",
+      "expect": [
+        "self-votes are void",
+        "selection falls through to blind review or stable id"
+      ]
+    },
+    {
+      "id": "execution-1",
+      "skill": "execution-cron-builder",
+      "kind": "code",
+      "prompt": "Execute this five-item blueprint.",
+      "fixture": "repository with a 5-node DAG, each item with oracle verify/gates/<ID>.sh",
+      "expect": [
+        "all items reach [x]",
+        "every [x] has a receipt the master re-ran",
+        "Gantt projection covers every id"
+      ]
+    },
+    {
+      "id": "execution-2",
+      "skill": "execution-cron-builder",
+      "kind": "chinese",
+      "prompt": "用常驻 worker 池维护这个仓库，worker 挂了要补位。",
+      "fixture": "persistent_pool of 3; one worker process is killed",
+      "expect": [
+        "pool returns to exactly 3",
+        "never 4 live workers",
+        "replacement opens one new goal"
+      ]
+    },
+    {
+      "id": "execution-3",
+      "skill": "execution-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Implement item ITEM-002.",
+      "fixture": "the worker edits verify/gates/ITEM-002.sh to always pass",
+      "expect": [
+        "harvest refuses the submission",
+        "item stays [ ] with notes"
+      ]
+    },
+    {
+      "id": "learn-1",
+      "skill": "learn-cron-builder",
+      "kind": "code",
+      "prompt": "Learn this 20-file repository.",
+      "fixture": "20 source files in 4 folders",
+      "expect": [
+        "20 per-file notes in the mirrored tree",
+        "4 folder notes plus the root note"
+      ]
+    },
+    {
+      "id": "learn-2",
+      "skill": "learn-cron-builder",
+      "kind": "non-code",
+      "prompt": "Build a canon from these three specification documents for the decisions in BLUEPRINT.md.",
+      "fixture": "three versioned PDFs and one docs MCP server",
+      "expect": [
+        "canon/manifest.tsv rows carry version, retrieved, sha256, level, license, governs",
+        "MCP answers are snapshotted"
+      ]
+    },
+    {
+      "id": "learn-3",
+      "skill": "learn-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Finish the learn run and clean up.",
+      "fixture": "one per-file note is missing",
+      "expect": [
+        "cleanup refuses",
+        "the missing row stays [ ]"
+      ]
+    },
+    {
+      "id": "learn-4",
+      "skill": "learn-cron-builder",
+      "kind": "chinese",
+      "prompt": "学习 src/core，不仅说明是什么，还要说明如何做到高质量、为什么这样设计而不是别的方案。",
+      "fixture": "a 10-file module with commit history; two design choices documented in commits, one undocumented",
+      "expect": [
+        "learn_depth=why for src/core",
+        "each note has What, How with evidence, Why with driver, alternatives, tradeoff, significance, level",
+        "the undocumented choice is marked I and worded as inference",
+        "check_depth.py passes"
+      ]
+    },
+    {
+      "id": "optimization-1",
+      "skill": "optimization-cron-builder",
+      "kind": "code",
+      "prompt": "Make this matrix multiply faster.",
+      "fixture": "C or NumPy matmul with a reference, workloads, and a timing harness",
+      "expect": [
+        "mode=measured",
+        "accepted changes have before/after receipts on fresh inputs",
+        "hypothesis ledger covers every attempt"
+      ]
+    },
+    {
+      "id": "optimization-2",
+      "skill": "optimization-cron-builder",
+      "kind": "chinese",
+      "prompt": "按'极简、低认知负担'的理念，给这个阶段做架构优化研究。",
+      "fixture": "a stage blueprint",
+      "expect": [
+        "mode=design",
+        "one AR blueprint with at most 100 items",
+        "one scoped doc per accepted item"
+      ]
+    },
+    {
+      "id": "optimization-3",
+      "skill": "optimization-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Speed up the kernel.",
+      "fixture": "a candidate caches outputs keyed on input pointer",
+      "expect": [
+        "fresh-input re-run fails the candidate",
+        "the change is reverted"
+      ]
+    },
+    {
+      "id": "looper-1",
+      "skill": "looper-cron-builder",
+      "kind": "non-code",
+      "prompt": "Keep improving the onboarding conversion metric weekly within budget.",
+      "fixture": "three attempts with no reward",
+      "expect": [
+        "the loop pauses",
+        "the pause names the no-reward counter"
+      ]
+    },
+    {
+      "id": "looper-2",
+      "skill": "looper-cron-builder",
+      "kind": "chinese",
+      "prompt": "给这个暂停的循环加预算，继续跑同样的策略。",
+      "fixture": "paused loop; same strategy; new budget",
+      "expect": [
+        "resume is refused",
+        "the refusal asks for a changed strategy"
+      ]
+    },
+    {
+      "id": "looper-3",
+      "skill": "looper-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Run both repair loops now.",
+      "fixture": "two loops share one envelope that covers one attempt",
+      "expect": [
+        "only one lease is issued",
+        "spend never exceeds the envelope"
+      ]
+    }
   ]
 }

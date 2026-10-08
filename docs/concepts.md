@@ -8,7 +8,7 @@
 |---|---|---|
 | hard choice, root cause, audit, coverage | compete | parallel candidates, oracle-first selection, or a deduplicated union |
 | long implementation | execution | one blueprint as a DAG, isolated workers, master acceptance |
-| unknown code, migration, translation, outside knowledge | learn | a locked manifest mapped one to one, or a pinned canon |
+| unknown code, migration, translation, outside knowledge | learn | a locked manifest mapped one to one, or a pinned canon; depth what, how, or why |
 | faster, smaller, cheaper, or cleaner | optimization | measured loops under a frozen oracle, or design research |
 | repeated attempts under a budget | looper | the shared loop and its governance |
 

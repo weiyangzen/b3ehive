@@ -26,6 +26,10 @@ unknowns
 how to remake or modify this file safely
 ```
 
+At `learn_depth=how` or `why`, add the `## How` and `## Why` sections defined in
+`depth.md`. Transform and translate write them to companion notes under
+`Docs/learn/rationale/`.
+
 ### Transform
 
 Code to code or source contract to target artifact.
