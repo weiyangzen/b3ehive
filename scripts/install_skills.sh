@@ -20,9 +20,14 @@ DEPRECATED_SKILLS=(
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/install_skills.sh [--target codex|claude|cursor|grok|opencode|openclaw|hermes|both|all] [--scope user|project] [--project-dir PATH] [--link] [--dry-run]
+Usage: scripts/install_skills.sh [--target codex|claude|cursor|grok|opencode|openclaw|hermes|both|all|grokbot] [--scope user|project] [--project-dir PATH] [--link] [--dry-run]
 
 Installs b3ehive's five portable SKILL.md directories for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, Hermes, or all supported targets.
+
+--target grokbot installs the grokbot-only set the way grokbot does:
+`unzip grokbot/grokbot-<skill>-skill.zip -d ~/.claude/skills/`. Only grokbot
+loads those skills; their subagents run only as
+`claude --dangerously-skip-permissions`. `all` never includes grokbot.
 
 --link symlinks each skill to this checkout so updates arrive with `git pull`.
 Copies carry a .b3ehive-version stamp that `bin/b3ehive doctor` checks.
@@ -47,6 +52,8 @@ Install roots:
   opencode project:  <project-dir>/.opencode/skills
   OpenClaw project:   <project-dir>/skills
   Hermes project:     <project-dir>/skills
+  grokbot user:       ~/.claude/skills (grokbot-* names only)
+  grokbot project:    <project-dir>/.claude/skills (grokbot-* names only)
 USAGE
 }
 
@@ -91,9 +98,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$target" in
-  codex|claude|cursor|grok|opencode|openclaw|hermes|both|all) ;;
+  codex|claude|cursor|grok|opencode|openclaw|hermes|both|all|grokbot) ;;
   *)
-    echo "--target must be codex, claude, cursor, grok, opencode, openclaw, hermes, both, or all" >&2
+    echo "--target must be codex, claude, cursor, grok, opencode, openclaw, hermes, both, all, or grokbot" >&2
     exit 2
     ;;
 esac
@@ -124,7 +131,7 @@ install_root() {
   if [[ "$scope" == "user" ]]; then
     case "$platform" in
       codex) printf '%s\n' "${HOME}/.codex/skills" ;;
-      claude) printf '%s\n' "${HOME}/.claude/skills" ;;
+      claude|grokbot) printf '%s\n' "${HOME}/.claude/skills" ;;
       cursor) printf '%s\n' "${HOME}/.cursor/skills" ;;
       grok) printf '%s\n' "${GROK_SKILLS_HOME:-${HOME}/.grok/skills}" ;;
       opencode) printf '%s\n' "${XDG_CONFIG_HOME:-${HOME}/.config}/opencode/skills" ;;
@@ -134,7 +141,7 @@ install_root() {
   else
     case "$platform" in
       codex) printf '%s\n' "${project_dir}/.codex/skills" ;;
-      claude) printf '%s\n' "${project_dir}/.claude/skills" ;;
+      claude|grokbot) printf '%s\n' "${project_dir}/.claude/skills" ;;
       cursor) printf '%s\n' "${project_dir}/.cursor/skills" ;;
       grok) printf '%s\n' "${project_dir}/.grok/skills" ;;
       opencode) printf '%s\n' "${project_dir}/.opencode/skills" ;;
@@ -142,6 +149,34 @@ install_root() {
       hermes) printf '%s\n' "${project_dir}/skills" ;;
     esac
   fi
+}
+
+install_grokbot() {
+  local root
+  root="$(install_root grokbot)"
+  if [[ "$dry_run" -eq 0 ]]; then
+    command -v unzip >/dev/null || { echo "Missing dependency: unzip" >&2; exit 2; }
+    mkdir -p "$root"
+  fi
+  for skill in "${SKILLS[@]}"; do
+    local name="grokbot-${skill}"
+    local zip="${ROOT_DIR}/grokbot/${name}-skill.zip" dst="${root}/${name}"
+    if [[ ! -f "$zip" ]]; then
+      echo "Missing grokbot package: ${zip}; run scripts/build_grokbot.py" >&2
+      exit 1
+    fi
+    if [[ "$dry_run" -eq 1 ]]; then
+      echo "[dry-run] unzip ${zip} -d ${root}/ (link=${link})"
+    elif [[ "$link" -eq 1 ]]; then
+      rm -rf "$dst"
+      ln -s "${ROOT_DIR}/grokbot/skills/${name}" "$dst"
+      echo "Linked grokbot: ${dst} -> ${ROOT_DIR}/grokbot/skills/${name}"
+    else
+      rm -rf "$dst"
+      unzip -q "$zip" -d "${root}/"
+      echo "Installed grokbot: ${dst} (${VERSION})"
+    fi
+  done
 }
 
 install_for_platform() {
@@ -198,6 +233,7 @@ case "$target" in
   hermes) platforms=(hermes) ;;
   both) platforms=(codex claude) ;;
   all) platforms=(codex claude cursor grok opencode openclaw hermes) ;;
+  grokbot) install_grokbot; exit 0 ;;
 esac
 
 installed_roots=":"

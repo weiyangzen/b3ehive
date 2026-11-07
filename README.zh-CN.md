@@ -85,6 +85,8 @@ scripts/install_skills.sh --target all --scope user --link
 
 `--link` 以软链接安装，`git pull` 即更新各平台。不加则复制并写版本戳，`bin/b3ehive doctor` 可查漂移。安装路径见 [docs/agent-platforms.zh-CN.md](docs/agent-platforms.zh-CN.md)。
 
+grokbot 使用专用集合：`unzip grokbot/grokbot-<skill>-skill.zip -d ~/.claude/skills/`，或 `scripts/install_skills.sh --target grokbot`。只有 grokbot 加载这些 skill，其 subagent 只以 `claude --dangerously-skip-permissions` 运行。详见 [docs/agent-platforms.zh-CN.md](docs/agent-platforms.zh-CN.md#grokbot-专用-skill-集)。
+
 ## 从这里开始
 
 - 新安装：[开始使用](docs/getting-started.zh-CN.md)
@@ -142,6 +144,20 @@ bin/b3ehive doctor --repo .  # 过期安装与控制器
 | 校验 | 词汇存在性 | 结构与定词 lint、单测、行为评测 |
 
 移出正文的规则，存于各 skill 的 `references/lessons.md`。
+
+## v2.3.1 新增
+
+| | v2.2.0 | v2.3.1 |
+|---|---|---|
+| grokbot | 与 Grok Build 共用安装 | 专用集合：五个 `grokbot-<skill>` 构建 |
+| 包 | skill 目录 | `grokbot/grokbot-<skill>-skill.zip`，`unzip ... -d ~/.claude/skills/` |
+| 谁可加载 | 任何发现该 skill 的宿主 | 仅 grokbot；其他宿主（含 `claude` 子代理）停止 |
+| subagent runtime | 按平台，`auto` 取首个 CLI | 只用 `claude --dangerously-skip-permissions`；不回退 |
+| 他平台文件 | 每份都带 | 去掉 Codex、Cursor 与 Codex TUI transport 文件 |
+| 构建 | 无 | `scripts/build_grokbot.py`，可复现，`--check` 入 `bin/b3ehive check` |
+| 安装与 doctor | 七个目标 | `--target grokbot`；`doctor` 检查 `grokbot-*` 副本 |
+
+该 flag 关闭全部权限检查，`--add-dir` 只指向 claim 的 workspace。完整列表见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 名与许可
 

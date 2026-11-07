@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grokbot Looper"
+  short_description: "Shared loop and budget governance (claude --dangerously-skip-permissions subagents)"
+  default_prompt: "Use $grokbot-looper-cron-builder to govern repeating loops with leases, side-effect gates, ROI, and pause on no reward."

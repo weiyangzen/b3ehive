@@ -9,6 +9,7 @@ Checks behavior-relevant structure, not vocabulary presence:
 - skill bodies declare the core and loop versions they bind
 - v2-authored text pairs no verb with a forbidden subject
 - skill bodies never restate a core or loop sentence
+- grokbot builds carry the load gate and name only the claude runtime
 """
 import os
 import pathlib
@@ -22,6 +23,11 @@ MAX_LINES = 300
 MAX_TOKENS = 3500          # chars / 4; Claude Code re-attaches only 5,000 tokens per skill after compaction
 MAX_DESCRIPTION = 400
 CORE_VERSION, LOOP_VERSION = "core v2", "loop v2"
+GROKBOT_RUNNER = "claude -p --dangerously-skip-permissions"
+GROKBOT_GATE = ["## Grokbot Gate", "Only grokbot loads this skill.", "-d ~/.claude/skills/",
+                "Every subagent call uses only `claude --dangerously-skip-permissions`", GROKBOT_RUNNER]
+OTHER_RUNNERS = re.compile(r"codex -C|codex exec|grok --always-approve|run_cursor_agent|opencode run"
+                           r"|openclaw .*agent --local|hermes chat|--permission-mode")
 
 # Verbs bound to fixed subjects by the core lexicon.
 FORBIDDEN = [
@@ -81,6 +87,38 @@ def sentences(text):
             if len(s.split()) >= 8:
                 out.append(s)
     return out
+
+
+def lint_grokbot():
+    for skill in SKILLS:
+        name = "grokbot-" + skill
+        d = ROOT / "grokbot" / "skills" / name
+        sk = d / "SKILL.md"
+        if not sk.is_file():
+            err(f"{name}: missing SKILL.md; run scripts/build_grokbot.py")
+            continue
+        text = sk.read_text(encoding="utf-8")
+        fm = frontmatter(sk)
+        if fm.get("name") != name:
+            err(f"{name}: frontmatter name must be {name}")
+        desc = str(fm.get("description", ""))
+        if not desc.startswith("Grokbot only.") or len(desc) > MAX_DESCRIPTION:
+            err(f"{name}: description must start with 'Grokbot only.' and fit {MAX_DESCRIPTION} chars (has {len(desc)})")
+        if len(text) // 4 > MAX_TOKENS or text.count("\n") + 1 > MAX_LINES:
+            err(f"{name}: SKILL.md exceeds the line or token budget")
+        for needle in GROKBOT_GATE:
+            if needle not in text:
+                err(f"{name}: grokbot gate lacks '{needle}'")
+        for ref in sorted(set(re.findall(r"`((?:references/[\w.-]+|loop)\.md)`", text))):
+            if not (d / ref).is_file():
+                err(f"{name}: SKILL.md cites missing {ref}")
+        sub = d / "references" / "substrate-cron.md"
+        m = OTHER_RUNNERS.search(sub.read_text(encoding="utf-8")) if sub.is_file() else None
+        if not sub.is_file() or m:
+            err(f"{name}: references/substrate-cron.md must name only the claude runtime ({m.group(0) if m else 'missing'})")
+        for extra in ("agents/openai.yaml", "agents/cursor.yaml", "references/transport-codex-tui.md"):
+            if (d / extra).exists():
+                err(f"{name}: {extra} belongs to another host")
 
 
 def main():
@@ -144,7 +182,10 @@ def main():
             if s in shared:
                 err(f"{skill}: restates a core/loop sentence: '{s[:70]}...'")
 
-    for p in (core_src, loop_src):
+    if (ROOT / "grokbot").is_dir():
+        lint_grokbot()
+
+    for p in (core_src, loop_src, ROOT / "core" / "grokbot-gate.md"):
         if p.is_file():
             body = p.read_text(encoding="utf-8")
             for pattern, why in FORBIDDEN:
@@ -155,7 +196,7 @@ def main():
         for e in errors:
             print(f"ERROR: {e}", file=sys.stderr)
         return 1
-    print("Skill lint passed: frontmatter, budgets, one-level references, synced core and loop, lexicon, no restatement.")
+    print("Skill lint passed: frontmatter, budgets, one-level references, synced core and loop, lexicon, no restatement, grokbot gate.")
     return 0
 
 

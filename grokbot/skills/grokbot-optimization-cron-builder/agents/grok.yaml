@@ -1,0 +1,7 @@
+interface:
+  display_name: "Grokbot Optimization"
+  short_description: "Measured or design-mode optimization (claude --dangerously-skip-permissions subagents)"
+  default_prompt: "Use $grokbot-optimization-cron-builder in measured mode: freeze an oracle contract, profile the baseline, and keep only changes the oracle re-measures as correct and faster."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grokbot Learn"
+  short_description: "Understand, transform, translate, or build a canon (claude --dangerously-skip-permissions subagents)"
+  default_prompt: "Use $grokbot-learn-cron-builder to learn this scope with a locked source manifest and 1:1 coverage, or to build a pinned canon from specs and documentation MCP servers."

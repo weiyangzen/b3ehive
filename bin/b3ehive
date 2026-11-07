@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")/.." && pwd)"
 VERSION="$(cat "${ROOT_DIR}/VERSION")"
 SKILLS=(compete-cron-builder execution-cron-builder learn-cron-builder optimization-cron-builder looper-cron-builder)
+GROKBOT_SKILLS=("${SKILLS[@]/#/grokbot-}")
 
 usage() {
   cat <<USAGE
@@ -15,7 +16,7 @@ b3ehive ${VERSION}
       --mock runs a dry competition.
   b3ehive doctor [--repo PATH]...
       Compare installed skills with this checkout; flag stale controllers.
-  b3ehive sync     Sync core, loop, and the Codex plugin package.
+  b3ehive sync     Sync core, loop, the Codex plugin package, and the grokbot set.
   b3ehive lint     Structure and lexicon lint for the five skills.
   b3ehive check    Every repository check.
 USAGE
@@ -53,18 +54,19 @@ cmd_doctor() {
                "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" "${OPENCLAW_SKILLS_HOME:-$HOME/.openclaw/skills}"
                "${HERMES_SKILLS_HOME:-$HOME/.hermes/skills}")
   for root in "${roots[@]}"; do
-    for skill in "${SKILLS[@]}"; do
-      local dst="${root}/${skill}"
+    for skill in "${SKILLS[@]}" "${GROKBOT_SKILLS[@]}"; do
+      local dst="${root}/${skill}" src="${ROOT_DIR}/${skill}"
+      [[ "$skill" == grokbot-* ]] && src="${ROOT_DIR}/grokbot/skills/${skill}"
       [[ -e "$dst" ]] || continue
       if [[ -L "$dst" ]]; then
         echo "ok      ${dst} -> $(readlink "$dst")"
       elif [[ -f "${dst}/.b3ehive-version" ]]; then
         local want have
-        want="$(digest "${ROOT_DIR}/${skill}")"; have="$(grep '^digest=' "${dst}/.b3ehive-version" | cut -d= -f2)"
+        want="$(digest "$src")"; have="$(grep '^digest=' "${dst}/.b3ehive-version" | cut -d= -f2)"
         if [[ "$want" == "$have" && "$(digest "$dst")" == "$want" ]]; then
           echo "ok      ${dst} (${VERSION})"
         else
-          echo "STALE   ${dst}: reinstall with scripts/install_skills.sh"; status=1
+          echo "STALE   ${dst}: reinstall with scripts/install_skills.sh$([[ "$skill" == grokbot-* ]] && echo ' --target grokbot')"; status=1
         fi
       else
         echo "STALE   ${dst}: unstamped copy (v1 or manual); reinstall"; status=1
@@ -91,7 +93,8 @@ cmd_doctor() {
 case "${1:-}" in
   compete) shift; cmd_compete "$@" ;;
   doctor) shift; cmd_doctor "$@" ;;
-  sync) "${ROOT_DIR}/scripts/sync_core.sh"; "${ROOT_DIR}/scripts/sync_loop.sh"; "${ROOT_DIR}/scripts/sync_codex_plugin.sh" ;;
+  sync) "${ROOT_DIR}/scripts/sync_core.sh"; "${ROOT_DIR}/scripts/sync_loop.sh"; "${ROOT_DIR}/scripts/sync_codex_plugin.sh"
+        python3 "${ROOT_DIR}/scripts/build_grokbot.py" ;;
   lint) python3 "${ROOT_DIR}/scripts/lint_skills.py" ;;
   check) "${ROOT_DIR}/scripts/check_all.sh" ;;
   -h|--help|help|"") usage ;;

@@ -45,10 +45,11 @@ for required in docs/agent-platforms.md scripts/install_skills.sh; do
 done
 
 "${ROOT_DIR}/scripts/install_skills.sh" --target all --scope project --project-dir /tmp/b3ehive-skill-check --dry-run >/dev/null
+"${ROOT_DIR}/scripts/install_skills.sh" --target grokbot --scope project --project-dir /tmp/b3ehive-skill-check --dry-run >/dev/null
 "${ROOT_DIR}/scripts/validate_execution_transport.sh"
 
 if [[ "$errors" -gt 0 ]]; then
   exit 1
 fi
 
-echo "Agent platform validation passed for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes."
+echo "Agent platform validation passed for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, Hermes, and the grokbot set."

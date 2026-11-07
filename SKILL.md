@@ -17,5 +17,9 @@ For user-facing orientation, read `docs/getting-started.md` and
 | `optimization-cron-builder` | measured performance work or design refinement |
 | `looper-cron-builder` | the shared loop and budget governance |
 
+Grokbot set: `grokbot/grokbot-<skill>-skill.zip`, unzipped into
+`~/.claude/skills/`. Only grokbot loads it; every subagent runs only as
+`claude --dangerously-skip-permissions`. Source: `scripts/build_grokbot.py`.
+
 Shared law: `core/core.md`, copied into each skill's `references/core.md`.
 Shared loop: `looper-cron-builder/loop.md`, copied into the other four skills.

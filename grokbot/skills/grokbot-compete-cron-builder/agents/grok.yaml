@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grokbot Compete"
+  short_description: "Oracle-first proposal competition (claude --dangerously-skip-permissions subagents)"
+  default_prompt: "Use $grokbot-compete-cron-builder to run a bounded competition: decide the question type, m, k, and oracle, then select by oracle, blind review, and votes without self-votes."

@@ -128,6 +128,12 @@ checks.
 | OpenClaw | `~/.openclaw/skills/<skill>/` |
 | Hermes | `~/.hermes/skills/<skill>/` |
 
+Grokbot uses its own set: `unzip grokbot/grokbot-<skill>-skill.zip -d
+~/.claude/skills/`, or `scripts/install_skills.sh --target grokbot`. Only
+grokbot loads those skills, and their subagents run only as
+`claude --dangerously-skip-permissions`. Details:
+[docs/agent-platforms.md](docs/agent-platforms.md#grokbot-skill-set).
+
 Codex plugin: `codex plugin marketplace add weiyangzen/b3ehive` then
 `codex plugin add b3ehive@b3ehive`. Platform details:
 [docs/agent-platforms.md](docs/agent-platforms.md).
@@ -195,6 +201,21 @@ ablation matrix that decides which mechanisms stay.
 
 Rules moved out of skill bodies live in each skill's `references/lessons.md`.
 
+## What's New In v2.3.1
+
+| | v2.2.0 | v2.3.1 |
+|---|---|---|
+| grokbot | shares the Grok Build install | own set: five `grokbot-<skill>` builds |
+| package | skill directories | `grokbot/grokbot-<skill>-skill.zip`, `unzip ... -d ~/.claude/skills/` |
+| who loads | any host that finds the skill | grokbot only; other hosts, `claude` subagents included, stop |
+| subagent runtime | per platform, `auto` picks the first CLI | only `claude --dangerously-skip-permissions`; no fallback |
+| other-host files | in every copy | Codex, Cursor, and Codex TUI transport files dropped |
+| build | — | `scripts/build_grokbot.py`, reproducible, `--check` in `bin/b3ehive check` |
+| install and doctor | seven targets | `--target grokbot`; `doctor` checks `grokbot-*` copies |
+
+The flag removes every permission check, so `--add-dir` names the claim
+workspace only. Full list: [CHANGELOG.md](CHANGELOG.md).
+
 ## Repository
 
 - `core/`: shared law and substrate guide (sources of the copies)
@@ -205,6 +226,7 @@ Rules moved out of skill bodies live in each skill's `references/lessons.md`.
 - `tests/`: unit tests for the compete script and the lint
 - `scripts/`: install, sync, lint, checks
 - `plugins/b3ehive/`: Codex plugin package
+- `grokbot/`: grokbot-only skill set and zip packages (generated)
 - `docs/`: [concepts](docs/concepts.md), [blueprint](docs/blueprint.md),
   [platforms](docs/agent-platforms.md), [Codex plugin](docs/codex-plugin.md),
   [getting started](docs/getting-started.md), [skill selection](docs/skill-selection.md),

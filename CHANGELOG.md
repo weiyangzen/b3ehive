@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.3.1 — 2026-11-07
+
+- grokbot: new grokbot-only skill set. Each of the five skills gets a
+  `grokbot-<skill>` build, packed as `grokbot/grokbot-<skill>-skill.zip` for
+  `unzip ... -d ~/.claude/skills/`.
+- grokbot: every build opens with a gate. Only grokbot loads it; other hosts,
+  `claude` subagents included, stop and use the base skill.
+- grokbot: every subagent call uses only `claude --dangerously-skip-permissions`
+  as its agent runtime. The runner template fixes `-p` and the flag, any other
+  runner fails closed, and a missing `claude` stops with
+  `user_action_required`. `references/substrate-cron.md` names only that
+  runtime; Codex, Cursor, and other host adapters are dropped.
+- `scripts/build_grokbot.py` builds the set reproducibly from the base skills,
+  `core/grokbot-gate.md`, and `core/grokbot-runtime.md`; `--check` runs in
+  `scripts/check_all.sh`.
+- install: `scripts/install_skills.sh --target grokbot`; `bin/b3ehive sync`
+  rebuilds the set and `bin/b3ehive doctor` checks installed `grokbot-*`
+  copies.
+- lint: grokbot gate, runtime, and dropped-adapter checks; 7 new unit tests.
+- All five skills, the Codex plugin, and the package move to 2.3.1.
+
 ## 2.2.0 — 2026-10-16
 
 - loop v2: closed result vocabulary (`validated_progress`, `repair_required`,

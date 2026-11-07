@@ -43,6 +43,40 @@ Cursor、Grok Build、opencode、OpenClaw 和 Hermes 的是这五个 skill 目�
 
 这些 runner 细节属于 reference。第一次调用 skill 不需要先阅读它们。
 
+## Grokbot 专用 skill 集
+
+`grokbot/` 存放五个 skill 的 grokbot 专用构建。每个基础 skill 生成
+`grokbot-<skill>`，打包为 `grokbot/grokbot-<skill>-skill.zip`。grokbot 加载时执行：
+
+```bash
+unzip grokbot-<skill>-skill.zip -d ~/.claude/skills/
+```
+
+`scripts/install_skills.sh --target grokbot` 对五个包执行同一命令。`--target all`
+不包含 grokbot 集。
+
+Claude Code 同样读取 `~/.claude/skills`，因此 skill 正文自带门禁：
+
+- 只有 grokbot 加载 `grokbot-*` skill。其他宿主（包括 grokbot 启动的 `claude`
+  子代理）一律停止，改用基础 skill。
+- 所有 subagent 调用只使用 `claude --dangerously-skip-permissions` 作为 agent
+  runtime。不允许其他 runner，不回退，不加 `--permission-mode`。
+
+grokbot runner：
+
+```bash
+claude -p --dangerously-skip-permissions \
+  --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
+  --add-dir "{workspace}" < "{prompt_file}" > "{output_file}"
+```
+
+该 flag 关闭全部权限检查，claim 的 task root 是唯一边界，`--add-dir` 只指向该
+claim 的 workspace。
+
+`scripts/build_grokbot.py` 由基础 skill、`core/grokbot-gate.md` 和
+`core/grokbot-runtime.md` 生成该集合。不要手改 `grokbot/`；改源文件后运行
+`bin/b3ehive sync`。集合过期时 `scripts/check_all.sh` 失败。
+
 ## Runner Contract
 
 Cron-oriented skills 应该用通用的 agent runner 描述 worker 执行，再在安装或仓库 bootstrap 时选择具体平台命令。

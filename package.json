@@ -2,7 +2,7 @@
   "name": "b3ehive",
   "slug": "b3ehive",
   "displayName": "b3ehive - Five Swarm Skills",
-  "version": "2.2.0",
+  "version": "2.3.1",
   "description": "Five portable agent swarm skills for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes: compete, execution, learn, optimization, and looper, bound by one seven-law core and one shared loop.",
   "author": "weiyangzen",
   "license": "MIT",
@@ -61,6 +61,7 @@
     "learn-cron-builder/",
     "optimization-cron-builder/",
     "looper-cron-builder/",
+    "grokbot/",
     "docs/",
     "SKILL.md",
     "README.md",
@@ -128,6 +129,20 @@
     ],
     "installRoot": "~/.grok/skills"
   },
+  "grokbot": {
+    "skills": [
+      "grokbot-compete-cron-builder",
+      "grokbot-execution-cron-builder",
+      "grokbot-learn-cron-builder",
+      "grokbot-optimization-cron-builder",
+      "grokbot-looper-cron-builder"
+    ],
+    "package": "grokbot/<skill>-skill.zip",
+    "installCommand": "unzip grokbot/<skill>-skill.zip -d ~/.claude/skills/",
+    "installRoot": "~/.claude/skills",
+    "loadPolicy": "grokbot-only",
+    "subagentRuntime": "claude --dangerously-skip-permissions"
+  },
   "opencode": {
     "skills": [
       "compete-cron-builder",
@@ -152,6 +167,7 @@
     "check": "scripts/check_all.sh",
     "lint": "python3 scripts/lint_skills.py",
     "sync": "bin/b3ehive sync",
+    "build:grokbot": "python3 scripts/build_grokbot.py",
     "test": "python3 -m unittest discover -s tests"
   }
 }

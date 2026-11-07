@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grokbot Execution"
+  short_description: "Build portable execution crons for claude --dangerously-skip-permissions subagents"
+  default_prompt: "Use $grokbot-execution-cron-builder to build a repository-agnostic blueprint execution cron with isolated claude --dangerously-skip-permissions subagents, exact concurrency accounting, and no hidden child capacity."

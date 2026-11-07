@@ -60,6 +60,42 @@ disk guards live in each skill's `references/substrate-cron.md`.
 These runner details are reference material. A user does not need them for a
 first skill call.
 
+## Grokbot Skill Set
+
+`grokbot/` holds a grokbot-only build of the five skills. Each base skill
+becomes `grokbot-<skill>`, packed as `grokbot/grokbot-<skill>-skill.zip`.
+Grokbot installs a package with:
+
+```bash
+unzip grokbot-<skill>-skill.zip -d ~/.claude/skills/
+```
+
+`scripts/install_skills.sh --target grokbot` runs the same command for all
+five. `--target all` never includes the grokbot set.
+
+Claude Code also reads `~/.claude/skills`, so the skill body carries the gate:
+
+- Only grokbot loads a `grokbot-*` skill. Every other host, a `claude`
+  subagent started by grokbot included, stops and uses the base skill.
+- Every subagent call uses only `claude --dangerously-skip-permissions` as its
+  agent runtime. No other runner, no fallback, no `--permission-mode` flag.
+
+Grokbot runner:
+
+```bash
+claude -p --dangerously-skip-permissions \
+  --model "${CLAUDE_MODEL:-sonnet}" --effort "${CLAUDE_EFFORT:-max}" \
+  --add-dir "{workspace}" < "{prompt_file}" > "{output_file}"
+```
+
+The flag removes every permission check. The claim task root is the only
+fence, so `--add-dir` names the claim workspace only.
+
+`scripts/build_grokbot.py` generates the set from the base skills,
+`core/grokbot-gate.md`, and `core/grokbot-runtime.md`. Do not edit
+`grokbot/` by hand; edit the sources and run `bin/b3ehive sync`.
+`scripts/check_all.sh` fails when the set is stale.
+
 ## Runner Contract
 
 Cron-oriented skills should describe worker execution in terms of an agent

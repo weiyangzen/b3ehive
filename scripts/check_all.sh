@@ -14,6 +14,7 @@ for skill in compete-cron-builder execution-cron-builder learn-cron-builder opti
   diff -rq -x __pycache__ "$skill" "plugins/b3ehive/skills/$skill" >/dev/null || {
     echo "ERROR: plugin copy of ${skill} is stale; run scripts/sync_codex_plugin.sh" >&2; exit 1; }
 done
+python3 scripts/build_grokbot.py --check
 python3 scripts/lint_skills.py
 python3 -m unittest discover -s tests -q
 bash scripts/validate_compete_three_way.sh
