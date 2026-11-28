@@ -72,7 +72,9 @@ reach. Never relabel a missed target as success.
 1. Capture the philosophy in one stable sentence.
 2. Generate one authoritative `Docs/Stage_*_AR_Blueprint.md`: one item per
    optimization topic, at most 100 items (a review-capacity cap), grouped into
-   worker-ownable sections.
+   worker-ownable sections. For multi-layer revisions, classify affected modules
+   as `keep` (non-regression) or `rebuild` and apply the `k + M + N < M * N`
+   factoring test.
 3. Each item gets one doc under `Docs/researches/Stage_*_AR/`, scoped to that
    item, filtered through the philosophy, grounded in mature practice and cited
    canon, ending in concrete recommendations for this repository.

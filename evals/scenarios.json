@@ -32,6 +32,11 @@
     "prose": [
       "v1",
       "v2"
+    ],
+    "B3_FORMAL_VERIFIER": [
+      "off",
+      "native",
+      "kernel"
     ]
   },
   "scenarios": [
@@ -289,6 +294,17 @@
         "validate_blueprint_stack.py boundaries flags the shared net.rate_limiter Rule-of-Two overlap",
         "the shared capability is promoted to platform with tests",
         "the 120-LOC one-off helper stays local rather than adding empty abstraction overhead k"
+      ]
+    },
+    {
+      "id": "execution-6",
+      "skill": "execution-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Verify item PLT-010 with oracle: lean:Platform.Ledger.nonneg.",
+      "fixture": "worker submits a proof using sorry, a custom axiom, or native_decide, or edits Specs/",
+      "expect": [
+        "verify_lean.py oracle rejects sorryAx, custom axioms, native_decide, and Spec-dir edits",
+        "item stays [ ] with notes and only a leanchecker + standard-axiom proof is accepted"
       ]
     }
   ]

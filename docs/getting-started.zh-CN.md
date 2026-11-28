@@ -10,7 +10,7 @@ b3ehive 是一组用于 agent 工作的五个 portable skill。每个 skill 使�
 工作编排。五个 skill 共用 core law、attempt loop 和 evidence 规则。
 
 skill 是给 agent 的 instruction set。它不是新的 `b3ehive` 子命令。
-当前 CLI 提供 `compete`、`doctor`、`sync`、`lint` 和 `check`。
+当前 CLI 提供 `compete`、`validate`、`verify-lean`、`doctor`、`sync`、`lint` 和 `check`。
 
 ## 选择安装路径
 

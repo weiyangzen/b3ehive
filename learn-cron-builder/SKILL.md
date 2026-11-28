@@ -79,7 +79,9 @@ official specs, datasheets, source code, and curated wikis.
 - A license that forbids excerpts leaves a pointer only, enforced by a check.
 - Audit on a schedule for drift, upstream corrections, and wrong content.
 - Other skills cite entries when a decision needs one; the canon never fills
-  every prompt, and ablation measures its value.
+  every prompt, and ablation measures its value. Pin `lean-toolchain` and shared
+  cross-layer contracts in `canon/manifest.tsv` when stacks or formal oracles
+  depend on them.
 - Experience lives in `canon/lessons.tsv` as `lesson` and `incident` rows.
   Validated attempts add rows; agents search before acting
   (`scripts/find_lesson.py search`), at most 20 summaries per query. A row is

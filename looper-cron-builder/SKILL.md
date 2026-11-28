@@ -41,7 +41,8 @@ Field schemas, bridge levels, signal types, and the full ledger set live in
   delete or broad write, protected or authoritative paths, secret exposure,
   identity-level writes. Ordinary reads and owned-path edits pass ungated.
 - Refill normal DAG workers before loop attempts; run heavy ROI reports after
-  refill.
+  refill. On multi-layer stacks, scope loops to `<blueprint_id>#<item_id>` and
+  route Lean proof errors as `repair_required`.
 - Rank eligible loops by priority, ROI, reward recency, and urgency; the
   envelope, not each daemon, caps global concurrency.
 - Classify reward after evidence exists. Primary reward clears the no-reward

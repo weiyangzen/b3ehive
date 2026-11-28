@@ -82,3 +82,6 @@ b3ehive:
     governance: on       # B3_LOOPER_GOVERNANCE=on|off
   core:
     version: v2
+  formal:
+    verifier: auto        # B3_FORMAL_VERIFIER=auto|native|kernel|off
+    toolchain: leanprover/lean4:v4.34.0

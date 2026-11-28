@@ -1,7 +1,7 @@
 {
   "name": "b3ehive",
-  "version": "2.3.1+codex.20261107060341",
-  "description": "Five portable Codex swarm skills for proposal competition, blueprint execution, source and canon learning, measured optimization, and loop governance.",
+  "version": "3.0.0+codex.20261128125500",
+  "description": "Five portable Codex swarm skills with multi-layer blueprint stacks, Occam anti-Cartesian factoring, and Lean 4 formal verification.",
   "author": {
     "name": "Weiyang",
     "url": "https://github.com/weiyangzen"

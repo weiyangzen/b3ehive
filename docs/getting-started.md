@@ -11,7 +11,8 @@ different work arrangement. The skills share a core law, an attempt loop, and
 evidence rules.
 
 A skill is an agent instruction set. It is not a new `b3ehive` subcommand.
-The current CLI provides `compete`, `doctor`, `sync`, `lint`, and `check`.
+The current CLI provides `compete`, `validate`, `verify-lean`, `doctor`,
+`sync`, `lint`, and `check`.
 
 ## Choose an Install Path
 

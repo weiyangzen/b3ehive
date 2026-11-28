@@ -50,9 +50,9 @@ cleanup 需 `[ ]` 与 `[_]` 皆零。blocked、paused 等词是遥测，不代�
 - 多 tick 不动者，guard 可拆为子条目。
 - canon 中 `[I]` 事实未经 gate 证实，依赖它的条目不得收。
 
-## 多层蓝图栈与奥卡姆最小拆解（实验特性）
+## 多层蓝图栈、奥卡姆最小拆解与 Lean 4
 
-单份蓝图能装下就不拆多层。当多个目标共享中台时，用 `blueprint_stack.json` 组织 `master` / `platform` / `leaf` 三层栈，直奔 2,000–5,000 LOC 粒度，仅在复用收益大于常量成本 `k` 时才抽中台，并用 `bin/b3ehive validate stack` 与 `bin/b3ehive validate boundaries` 校验。详见[多层 Blueprint 与奥卡姆最小拆解](multi-layer-and-anti-cartesian.zh-CN.md)。
+单份蓝图能装下就不拆多层。当多个目标共享中台时，用 `blueprint_stack.json` 组织 `master` / `platform` / `leaf` 三层栈，直奔 2,000–5,000 LOC 粒度，仅在复用收益大于常量成本 `k` 时才抽中台，并用 `bin/b3ehive validate stack|boundaries` 与 `bin/b3ehive verify-lean stack` 校验；高价值契约可声明 `oracle: lean:<Module>.<Theorem>`。详见[多层 Blueprint、奥卡姆最小拆解与 Lean 4 校验](multi-layer-and-anti-cartesian.zh-CN.md)。
 
 ## 生命周期
 

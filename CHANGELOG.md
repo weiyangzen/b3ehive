@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.0.0 — 2026-11-28
+
+- Multi-layer blueprint stacks: support three-tier `master` / `platform` /
+  `leaf` stacks via `blueprint_stack.json` (`templates/blueprint-stack.json`)
+  and `execution-cron-builder/scripts/validate_blueprint_stack.py`
+  (`bin/b3ehive validate stack | boundaries | export-ir`).
+- Occam anti-Cartesian factoring: add `Factor` practice and `promote` verb in
+  `core/core.md`, synced into all five skills. Target 2,000–5,000 LOC items
+  directly and promote shared capabilities to `platform` only when `>= 2` real
+  leaves share them and net compression beats abstraction overhead `k`
+  (`k + M + N < M * N`). Enforces zero sibling imports (`leaf ↛ leaf`), zero
+  reverse imports (`platform ↛ leaf`, `harvest: true` for upward extraction
+  edges), and `O(N log N)` prefix-aware `dag_ordered` / `strict_disjoint` path
+  non-interference.
+- Lean 4 formal verification (`formal/b3lean/`, pinned `leanprover/lean4:v4.34.0`,
+  zero Mathlib): pure `Init`-only specification (`Core.lean`) and kernel-proved
+  soundness (`Soundness.lean`) covering global acyclicity (`topo_acyclic_sound`),
+  antichain path non-interference (`dag_ordered_noninterference`), boundary and
+  transitive acceptance safety (`checkBoundaries_sound`,
+  `checkTransitiveAccepted_sound`, `master_only_acceptance`), Occam Rule-of-Two
+  and compression bounds (`occam_no_gain_for_single_leaf`,
+  `occam_factoring_strict_saving`), and Major Revision `keep` non-regression
+  (`major_revision_non_regression`).
+- Anti-gaming Lean runner (`execution-cron-builder/scripts/verify_lean.py`,
+  `bin/b3ehive verify-lean stack | oracle | self-check`): compiled native
+  `b3lean check`, kernel certificate emission (`--cert`, `StackCert.lean` via
+  `rfl`), external `leanchecker`, read-only `Specs/` tamper guard, and strict
+  standard-axiom allowlist (`{propext, Classical.choice, Quot.sound}` — rejects
+  `sorryAx`, custom axioms, and `native_decide`).
+- All five skills, Codex plugin, grokbot skill set, templates, docs, evals, and
+  package move to 3.0.0.
+
 ## 2.3.1 — 2026-11-07
 
 - grokbot: new grokbot-only skill set. Each of the five skills gets a

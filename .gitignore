@@ -67,3 +67,6 @@ build/
 *.tmp
 *.temp
 .cache/
+
+# Lean 4 build artifacts
+.lake/

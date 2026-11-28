@@ -1,4 +1,4 @@
-# Multi-Layer Stacks And Occam Factoring (Experimental)
+# Multi-Layer Stacks, Occam Factoring, And Lean 4 Verification
 
 On-demand detail for `execution-cron-builder/SKILL.md`. Names and paths are
 placeholders.
@@ -66,5 +66,25 @@ Checked by `scripts/validate_blueprint_stack.py`:
   oracles as non-regression gates) vs `rebuild` (delete old code only after new
   gates pass) table and numeric Baseline → Target thresholds.
 - **IR Export**: `scripts/validate_blueprint_stack.py export-ir <manifest>`
-  emits canonical `stack_ir.json` (+ `topo_witness`) for formal verifiers
-  (`formal/b3lean/`).
+  emits canonical `stack_ir.json` (+ `topo_witness`) for formal verification.
+
+## 5. Lean 4 Formal Certification (`formal/b3lean/`)
+
+When Lean `v4.34.0` (`lake`, `lean`, `leanchecker`) is present, certify the
+stack with zero Mathlib overhead:
+
+- **Per-tick native check**: `scripts/verify_lean.py stack <manifest>` runs
+  the compiled `b3lean` binary whose `checkStack_sound` theorem is kernel-proved
+  (`topo_acyclic_sound`, `dag_ordered_noninterference`, `checkBoundaries_sound`,
+  `checkTransitiveAccepted_sound`, `checkRuleOfTwo_sound`,
+  `occam_no_gain_for_single_leaf`, `major_revision_non_regression`).
+- **Release / layer kernel witness**: add `--cert` to emit `StackCert.lean`,
+  prove `StackCertified certIR` by kernel `rfl`, and audit `#print axioms`.
+- **High-value contract oracles (`oracle: lean:<Module>.<Theorem>`)**: use only
+  when formal assurance beats constant `k`. Keep theorem signatures in
+  read-only `Specs/*.lean` outside worker `owned_paths`, and verify with
+  `scripts/verify_lean.py oracle` (`lake build` + external `leanchecker` +
+  allowlist `{propext, Classical.choice, Quot.sound}`; rejects `sorryAx`,
+  custom `axiom`, and `native_decide`).
+- **Degradation**: set `B3_FORMAL_VERIFIER=off` (or omit Lean) to run purely on
+  `validate_blueprint_stack.py`.

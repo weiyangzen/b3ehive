@@ -201,6 +201,17 @@ ablation matrix that decides which mechanisms stay.
 
 Rules moved out of skill bodies live in each skill's `references/lessons.md`.
 
+## What's New In v3.0.0
+
+| Area | v2.3.1 | v3.0.0 |
+|---|---|---|
+| Blueprint topology | single flat blueprint | single blueprint or three-tier stack (`master` / `platform` / `leaf` via `blueprint_stack.json`) |
+| Factoring principle | none | Occam / Kolmogorov factoring (`core/core.md` `Factor` + `promote`): target 2,000–5,000 LOC items; extract to `platform` only when `k + M + N < M * N` |
+| Boundary checks | manual | `bin/b3ehive validate stack \| boundaries \| export-ir` (`dag_ordered` path non-interference, zero `leaf ↛ leaf` and `platform ↛ leaf`, Rule-of-Two) |
+| Formal verification | — | in-repo `formal/b3lean/` (Lean `v4.34.0`, zero Mathlib): `bin/b3ehive verify-lean stack \| oracle \| self-check`, `leanchecker`, and standard-axiom allowlist |
+
+Detail: [Multi-Layer, Factoring, And Lean 4](docs/multi-layer-and-anti-cartesian.md) and [CHANGELOG.md](CHANGELOG.md).
+
 ## What's New In v2.3.1
 
 | | v2.2.0 | v2.3.1 |
@@ -219,6 +230,7 @@ workspace only. Full list: [CHANGELOG.md](CHANGELOG.md).
 ## Repository
 
 - `core/`: shared law and substrate guide (sources of the copies)
+- `formal/b3lean/`: zero-Mathlib Lean 4.34 formal specification and certified checker
 - `*-cron-builder/`: the five skills
 - `evals/`: behavior scenarios and ablation matrix
 - `examples/`: the RSI example prompt

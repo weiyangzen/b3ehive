@@ -209,7 +209,7 @@ is allowed; executable command-shaped occurrences are not.
 - an item without successor, `wait` with `resume_when`, or `no_followup` is
   reopened by the master
 
-## Multi-Layer And Factoring Gate (Experimental)
+## Multi-Layer, Factoring, And Lean Gate
 
 - Every `blueprint_id` and item ID is unique across the stack; local and
   `other#ID` edges are globally acyclic and preserve local `layer` order.
@@ -221,3 +221,7 @@ is allowed; executable command-shaped occurrences are not.
   imports (`platform -> leaf`); shared capabilities promoted by Rule-of-Two
   carry standalone tests and reduce total complexity after constant `k`.
 - Each blueprint maintains its own read-only same-name Gantt.
+- Lean certification (`verify_lean.py`) enforces Spec/Proof path split, external
+  `leanchecker` verification, and standard-axiom allowlist (`propext`,
+  `Classical.choice`, `Quot.sound` only — zero `sorry`, custom `axiom`, or
+  `native_decide`).

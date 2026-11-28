@@ -1,6 +1,6 @@
 ---
 name: b3ehive
-description: Index of b3ehive's five portable swarm skills (compete, execution, learn, optimization, looper) for Codex, Claude Code, Cursor, Grok Build, opencode, OpenClaw, and Hermes.
+description: Index of b3ehive 3.0's five portable swarm skills (compete, execution, learn, optimization, looper) with multi-layer blueprint stacks, Occam anti-Cartesian factoring, and Lean 4 formal verification.
 ---
 
 # b3ehive
@@ -23,3 +23,4 @@ Grokbot set: `grokbot/grokbot-<skill>-skill.zip`, unzipped into
 
 Shared law: `core/core.md`, copied into each skill's `references/core.md`.
 Shared loop: `looper-cron-builder/loop.md`, copied into the other four skills.
+Formal verifier: `formal/b3lean/` (Lean `v4.34.0`, zero Mathlib), invoked via `bin/b3ehive verify-lean`.

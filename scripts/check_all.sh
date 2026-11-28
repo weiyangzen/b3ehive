@@ -21,4 +21,7 @@ bash scripts/validate_compete_three_way.sh
 bash scripts/validate_agent_platforms.sh
 python3 -m json.tool evals/scenarios.json >/dev/null
 for f in bin/b3ehive scripts/*.sh; do bash -n "$f"; done
+if command -v lake >/dev/null && [[ "${B3_FORMAL_VERIFIER:-auto}" != "off" ]]; then
+  python3 execution-cron-builder/scripts/verify_lean.py self-check
+fi
 echo "All b3ehive checks passed."

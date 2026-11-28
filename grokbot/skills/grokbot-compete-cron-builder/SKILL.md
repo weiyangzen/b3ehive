@@ -7,7 +7,7 @@ description: Grokbot only. Subagents run only as claude --dangerously-skip-permi
 
 ## Grokbot Gate
 
-Grokbot build of `compete-cron-builder`, b3ehive 2.3.1.
+Grokbot build of `compete-cron-builder`, b3ehive 3.0.0.
 This section overrides every runner, platform, transport, and subagent rule in
 this skill and in its references.
 
@@ -91,7 +91,9 @@ blueprint m ≤ 5, k 2–3 then synthesis; execution_choice m ≤ 3, k 1.
 In this order:
 
 1. Oracle: every run passes; the worst run's score ranks. Where results can be
-   gamed, add fresh runs (`--oracle-runs`).
+   gamed, add fresh runs (`--oracle-runs`). For formal proof candidates
+   (`oracle: lean:*`), `b3ehive verify-lean oracle` (`leanchecker` +
+   standard-axiom allowlist) decides deterministically.
 2. Blind review: a non-author, read-only reviewer, preferably of another model
    family, judges candidates labeled A/B/C without scores.
 3. Votes from round two; votes for oneself are void.

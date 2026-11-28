@@ -145,6 +145,17 @@ bin/b3ehive doctor --repo .  # 过期安装与控制器
 
 移出正文的规则，存于各 skill 的 `references/lessons.md`。
 
+## v3.0.0 新增
+
+| 维度 | v2.3.1 | v3.0.0 |
+|---|---|---|
+| 蓝图拓扑 | 单份扁平蓝图 | 单份蓝图或三层栈（`master` / `platform` / `leaf`，由 `blueprint_stack.json` 声明） |
+| 拆解原则 | 无 | 奥卡姆 / 最低生成式复杂度（`core/core.md` `Factor` + `promote`）：直奔 2,000–5,000 LOC；仅在 `k + M + N < M * N` 时抽 `platform` |
+| 边界校验 | 手写脚本 | `bin/b3ehive validate stack \| boundaries \| export-ir`（`dag_ordered` 路径不干扰、零 `leaf ↛ leaf` 与 `platform ↛ leaf`、满二晋升） |
+| 形式化校验 | 无 | 同仓 `formal/b3lean/`（Lean `v4.34.0`，零 Mathlib）：`bin/b3ehive verify-lean stack \| oracle \| self-check`、`leanchecker` 与标准公理白名单 |
+
+详见[多层蓝图、奥卡姆最小拆解与 Lean 4 校验](docs/multi-layer-and-anti-cartesian.zh-CN.md)与 [CHANGELOG.md](CHANGELOG.md)。
+
 ## v2.3.1 新增
 
 | | v2.2.0 | v2.3.1 |

@@ -1,13 +1,13 @@
 ---
 name: grokbot-execution-cron-builder
-description: Grokbot only. Subagents run only as claude --dangerously-skip-permissions. Executes one authoritative blueprint or multi-layer stack as a DAG with isolated workers, Occam-minimal factoring, oracle gates, master-only acceptance, checkpoints, and cleanup, on cron, tmux, or in-session substrates. 多层蓝图、反笛卡尔最小拆解、DAG 并行。
+description: Grokbot only. Subagents run only as claude --dangerously-skip-permissions. Executes one blueprint or multi-layer stack as a DAG with isolated workers, Occam anti-Cartesian factoring, Lean 4 formal verification, oracle gates, master-only acceptance, and cleanup. 多层蓝图、反笛卡尔最小拆解、Lean4 校验、DAG 并行。
 ---
 
 # Execution (grokbot)
 
 ## Grokbot Gate
 
-Grokbot build of `execution-cron-builder`, b3ehive 2.3.1.
+Grokbot build of `execution-cron-builder`, b3ehive 3.0.0.
 This section overrides every runner, platform, transport, and subagent rule in
 this skill and in its references.
 
@@ -121,7 +121,7 @@ One file holds requirements and the checklist:
   (`<name>_Blueprint.<ext>` → `<name>_Gantt.<ext>`) every tick and never parse
   it back. Rules: `references/execution-pattern.md` §2.
 
-## Multi-Layer And Factoring (Experimental)
+## Multi-Layer, Factoring, And Lean Verification
 
 Keep one flat blueprint when it fits cleanly. Open a `master` / `platform` /
 `leaf` stack (`blueprint_stack.json`) only when multiple targets share a
@@ -137,8 +137,12 @@ platform:
   One writer (`master` or `steward`) owns `platform` paths.
 - Revisions: minor appends ids and `DECIDE` lines; major marks modules `keep`
   (non-regression) or `rebuild`.
-- Check: `scripts/validate_blueprint_stack.py` (`stack`, `boundaries`,
-  `export-ir`). Detail: `references/stack-and-factoring.md`.
+- Verification: run `scripts/validate_blueprint_stack.py` (`stack`,
+  `boundaries`, `export-ir`) and, when Lean `v4.34.0` is available,
+  `scripts/verify_lean.py stack <manifest> [--cert]` (`formal/b3lean/`).
+  Use `oracle: lean:<Module>.<Theorem>` only where formal assurance beats `k`,
+  with Spec/Proof path split, `leanchecker`, and standard-axiom allowlist.
+  Detail: `references/stack-and-factoring.md`.
 
 ## Claims And Workspaces
 

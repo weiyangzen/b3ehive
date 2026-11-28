@@ -27,7 +27,7 @@
 |---|---|
 | [Core Concepts](concepts.md) | [核心概念](concepts.zh-CN.md) |
 | [Blueprint](blueprint.md) | [Blueprint 蓝图](blueprint.zh-CN.md) |
-| [Multi-Layer & Anti-Cartesian (Exp)](multi-layer-and-anti-cartesian.md) | [多层蓝图与反笛卡尔积（实验）](multi-layer-and-anti-cartesian.zh-CN.md) |
+| [Multi-Layer, Factoring & Lean 4](multi-layer-and-anti-cartesian.md) | [多层蓝图、最小拆解与 Lean 4](multi-layer-and-anti-cartesian.zh-CN.md) |
 | [Codex Plugin](codex-plugin.md) | [Codex Plugin](codex-plugin.zh-CN.md) |
 | [Agent Platform Compatibility](agent-platforms.md) | [Agent 平台兼容性](agent-platforms.zh-CN.md) |
 | [Getting Started](getting-started.md) | [开始使用](getting-started.zh-CN.md) |

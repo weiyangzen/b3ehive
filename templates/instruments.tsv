@@ -1,1 +1,2 @@
 id	probe	capability	skill	playbook
+lean4	lean --version && lake --version	formal-blueprint-verifier	execution-cron-builder	probe toolchain -> export-ir -> verify_lean.py stack/oracle -> leanchecker + strict axiom allowlist
