@@ -27,6 +27,14 @@ class B3ELeanTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("self-check passed", r.stdout)
 
+    def test_standalone_bundled_skill_copy_runs_via_cache(self):
+        bundled = ROOT / "execution-cron-builder" / "scripts" / "b3elean"
+        self.assertTrue((bundled / "lakefile.toml").is_file(), "bundled b3elean must be synced into skill")
+        r = run_vl("self-check", "--b3elean-dir", str(bundled))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        # Ensure installed skill dir stays clean (no .lake created inside skill copy).
+        self.assertFalse((bundled / ".lake").exists())
+
     def test_stack_native_and_kernel_cert_pass(self):
         tmp = pathlib.Path(tempfile.mkdtemp())
         manifest = make_fixture(tmp)

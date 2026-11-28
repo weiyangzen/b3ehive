@@ -15,4 +15,22 @@ for skill in "${SKILLS[@]}"; do
     if [[ $check -eq 1 ]]; then echo "DRIFT: ${skill}/references/${f}" >&2; drift=1; else cp "$src" "$dst"; echo "Synced ${skill}/references/${f}"; fi
   done
 done
+# Sync pure Lean sources from formal/b3elean into execution-cron-builder/scripts/b3elean
+# so installed skills and grokbot zips run standalone when the user provides Lean 4.
+B3ELEAN_SRC="${ROOT_DIR}/formal/b3elean"
+B3ELEAN_DST="${ROOT_DIR}/execution-cron-builder/scripts/b3elean"
+B3ELEAN_FILES=(lean-toolchain lakefile.toml lake-manifest.json B3ELean.lean B3ELean/Core.lean B3ELean/Soundness.lean B3ELean/Main.lean)
+if [[ -d "$B3ELEAN_SRC" ]]; then
+  for rel in "${B3ELEAN_FILES[@]}"; do
+    src="${B3ELEAN_SRC}/${rel}"; dst="${B3ELEAN_DST}/${rel}"
+    [[ -f "$src" ]] || continue
+    if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then continue; fi
+    if [[ $check -eq 1 ]]; then
+      echo "DRIFT: execution-cron-builder/scripts/b3elean/${rel}" >&2; drift=1
+    else
+      mkdir -p "$(dirname "$dst")"; cp "$src" "$dst"
+      echo "Synced execution-cron-builder/scripts/b3elean/${rel}"
+    fi
+  done
+fi
 exit $drift

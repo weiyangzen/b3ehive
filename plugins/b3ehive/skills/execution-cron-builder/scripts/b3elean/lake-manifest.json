@@ -1,0 +1,6 @@
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages": [],
+ "name": "b3elean",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}

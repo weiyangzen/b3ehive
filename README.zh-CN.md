@@ -129,8 +129,8 @@ skill 亮起时，日志给出本页的调用句。顺序是示意。
 ```bash
 scripts/check_all.sh                           # 同步、lint、单测、布局、平台与 b3elean 自检
 bin/b3ehive doctor --repo .                    # 过期安装与控制器
-bin/b3ehive validate stack <manifest.json>     # 多层 DAG、dag_ordered 路径与边界校验
-bin/b3ehive verify-lean stack <manifest.json>  # Lean 4.34 b3elean 认证（--cert 输出内核证人）
+scripts/validate_stack.sh stack <manifest>     # 多层 DAG、dag_ordered 路径、边界与 Gantt 投影
+scripts/verify_b3elean.sh stack <manifest>     # Lean 4.34 b3elean 认证（--cert 输出内核证人）
 ```
 
 `evals/scenarios.json`：二十个行为场景（每 skill 至少三个）与消融矩阵。

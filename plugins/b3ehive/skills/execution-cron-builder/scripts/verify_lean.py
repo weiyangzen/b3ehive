@@ -40,11 +40,35 @@ def find_b3elean_dir(explicit: str = None) -> pathlib.Path:
     if env:
         return pathlib.Path(env).resolve()
     here = pathlib.Path(__file__).resolve()
+    # 1. Prefer in-repo formal/b3elean/ when running from a b3ehive checkout.
     for parent in here.parents:
         cand = parent / "formal" / "b3elean"
         if (cand / "lakefile.toml").is_file():
             return cand
+    # 2. Fall back to the bundled skill copy (`scripts/b3elean/`) for standalone installs.
+    bundled = here.parent / "b3elean"
+    if (bundled / "lakefile.toml").is_file():
+        return bundled
     return pathlib.Path.cwd() / "formal" / "b3elean"
+
+
+def prepare_build_dir(src_dir: pathlib.Path) -> pathlib.Path:
+    """Build in-place for checkout formal/b3elean; stage into cache for installed skill copies."""
+    if src_dir.parent.name == "formal":
+        return src_dir
+    cache_root = pathlib.Path(os.environ.get("XDG_CACHE_HOME") or (pathlib.Path.home() / ".cache"))
+    dst = cache_root / "b3ehive" / "b3elean"
+    dst.mkdir(parents=True, exist_ok=True)
+    for src in sorted(src_dir.rglob("*")):
+        if not src.is_file() or ".lake" in src.parts:
+            continue
+        rel = src.relative_to(src_dir)
+        out = dst / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        raw = src.read_bytes()
+        if not out.is_file() or out.read_bytes() != raw:
+            out.write_bytes(raw)
+    return dst
 
 
 def run_cmd(cmd, cwd=None, stdin_text=None):
@@ -74,33 +98,37 @@ def parse_axioms(output: str, expected_names: list) -> list:
     return errors
 
 
-def ensure_b3elean_built(b3elean_dir: pathlib.Path) -> pathlib.Path:
+def ensure_b3elean_built(b3elean_dir: pathlib.Path) -> tuple:
     if not shutil.which("lake"):
-        raise RuntimeError("lake not found in PATH; install Lean 4 (elan) or set B3_FORMAL_VERIFIER=off")
-    exe = b3elean_dir / ".lake" / "build" / "bin" / "b3elean"
+        raise RuntimeError(
+            "lake not found in PATH; install elan + leanprover/lean4:v4.34.0 or set B3_FORMAL_VERIFIER=off"
+        )
+    work_dir = prepare_build_dir(b3elean_dir)
+    exe = work_dir / ".lake" / "build" / "bin" / "b3elean"
     if not exe.is_file():
-        res = run_cmd(["lake", "build"], cwd=b3elean_dir)
+        res = run_cmd(["lake", "build"], cwd=work_dir)
         if res.returncode != 0:
             raise RuntimeError(f"lake build failed:\n{res.stdout}\n{res.stderr}")
-    return exe
+    return exe, work_dir
 
 
 def cmd_self_check(args) -> int:
     b3elean_dir = find_b3elean_dir(args.b3elean_dir)
     if not (b3elean_dir / "lakefile.toml").is_file():
-        print(f"ERROR: formal/b3elean not found at {b3elean_dir}", file=sys.stderr)
+        print(f"ERROR: b3elean not found at {b3elean_dir}", file=sys.stderr)
         return 2
-    res = run_cmd(["lake", "build"], cwd=b3elean_dir)
+    work_dir = prepare_build_dir(b3elean_dir)
+    res = run_cmd(["lake", "build"], cwd=work_dir)
     if res.returncode != 0:
         print(res.stdout + res.stderr, file=sys.stderr)
         return 1
     for mod in ("B3ELean.Core", "B3ELean.Soundness"):
-        chk = run_cmd(["lake", "env", "leanchecker", mod], cwd=b3elean_dir)
+        chk = run_cmd(["lake", "env", "leanchecker", mod], cwd=work_dir)
         if chk.returncode != 0:
             print(f"ERROR: leanchecker failed on {mod}:\n{chk.stdout}{chk.stderr}", file=sys.stderr)
             return 1
     snippet = "import B3ELean.Soundness\n" + "\n".join(f"#print axioms {t}" for t in SELF_THEOREMS) + "\n"
-    aud = run_cmd(["lake", "env", "lean", "--stdin"], cwd=b3elean_dir, stdin_text=snippet)
+    aud = run_cmd(["lake", "env", "lean", "--stdin"], cwd=work_dir, stdin_text=snippet)
     if aud.returncode != 0:
         print(f"ERROR: axiom audit failed:\n{aud.stdout}{aud.stderr}", file=sys.stderr)
         return 1
@@ -116,7 +144,7 @@ def cmd_self_check(args) -> int:
 def cmd_stack(args) -> int:
     b3elean_dir = find_b3elean_dir(args.b3elean_dir)
     try:
-        exe = ensure_b3elean_built(b3elean_dir)
+        exe, work_dir = ensure_b3elean_built(b3elean_dir)
     except RuntimeError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
@@ -143,7 +171,7 @@ def cmd_stack(args) -> int:
             if gen.returncode != 0:
                 print(gen.stderr or gen.stdout, file=sys.stderr)
                 return gen.returncode
-            kchk = run_cmd(["lake", "env", "lean", "-DwarningAsError=true", str(cert_path)], cwd=b3elean_dir)
+            kchk = run_cmd(["lake", "env", "lean", "-DwarningAsError=true", str(cert_path)], cwd=work_dir)
             if kchk.returncode != 0:
                 print(f"ERROR: kernel cert failed:\n{kchk.stdout}{kchk.stderr}", file=sys.stderr)
                 return 1

@@ -17,6 +17,8 @@ b3ehive ${VERSION}
   b3ehive validate <stack|boundaries|export-ir> MANIFEST [options]
       Validate a multi-layer blueprint stack, check boundaries/Rule-of-Two,
       or export canonical JSON IR.
+  b3ehive gantt MANIFEST [--repo-root DIR] [--check]
+      Render or verify read-only same-name *_Gantt.md companions for a stack.
   b3ehive verify-lean <stack|oracle|self-check> [options]
       Formally certify a blueprint stack or Lean oracle (`formal/b3elean/`).
   b3ehive doctor [--repo PATH]...
@@ -98,6 +100,7 @@ cmd_doctor() {
 case "${1:-}" in
   compete) shift; cmd_compete "$@" ;;
   validate) shift; python3 "${ROOT_DIR}/execution-cron-builder/scripts/validate_blueprint_stack.py" "$@" ;;
+  gantt) shift; python3 "${ROOT_DIR}/execution-cron-builder/scripts/render_stack_gantt.py" "$@" ;;
   verify-lean) shift; python3 "${ROOT_DIR}/execution-cron-builder/scripts/verify_lean.py" "$@" ;;
   doctor) shift; cmd_doctor "$@" ;;
   sync) "${ROOT_DIR}/scripts/sync_core.sh"; "${ROOT_DIR}/scripts/sync_loop.sh"; "${ROOT_DIR}/scripts/sync_codex_plugin.sh"

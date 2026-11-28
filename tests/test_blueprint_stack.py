@@ -203,6 +203,20 @@ class BlueprintStackTests(unittest.TestCase):
         self.assertEqual(cli.returncode, 0, cli.stderr)
         self.assertEqual(cli.stdout, out.read_text())
 
+    def test_render_stack_gantt_and_check(self):
+        r = subprocess.run(
+            [str(ROOT / "bin/b3ehive"), "gantt", str(self.manifest), "--repo-root", str(self.tmp)],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Rendered 4", r.stdout)
+        self.assertTrue((self.tmp / "docs/blueprints/00_Master_Gantt.md").is_file())
+        chk = subprocess.run(
+            [str(ROOT / "bin/b3ehive"), "gantt", str(self.manifest), "--repo-root", str(self.tmp), "--check"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(chk.returncode, 0, chk.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

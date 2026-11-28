@@ -86,7 +86,7 @@ def files_for(skill, version):
     for path in sorted(src.rglob("*")):
         rel = path.relative_to(src).as_posix()
         if not path.is_file() or path.name in SKIP_NAMES or rel in DROP \
-                or "__pycache__" in path.parts or path.suffix == ".pyc":
+                or "__pycache__" in path.parts or ".lake" in path.parts or path.suffix == ".pyc":
             continue
         mode = 0o755 if path.stat().st_mode & stat.S_IXUSR else 0o644
         data = path.read_text(encoding="utf-8") if path.suffix in (".md", ".yaml", ".py", ".tsv") else None

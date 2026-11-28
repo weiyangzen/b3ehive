@@ -184,8 +184,8 @@ commands and a direct competition runner.
 ```bash
 scripts/check_all.sh                          # sync, lint, unit tests, layout, platforms, b3elean self-check
 bin/b3ehive doctor --repo .                   # stale installs and controllers
-bin/b3ehive validate stack <manifest.json>    # multi-layer DAG, dag_ordered paths, boundaries
-bin/b3ehive verify-lean stack <manifest.json> # Lean 4.34 b3elean certified check (--cert for kernel witness)
+scripts/validate_stack.sh stack <manifest>    # multi-layer DAG, dag_ordered paths, boundaries, gantt
+scripts/verify_b3elean.sh stack <manifest>    # Lean 4.34 b3elean certified check (--cert for kernel witness)
 ```
 
 `evals/scenarios.json` holds twenty behavior scenarios, at least three per skill, and the
