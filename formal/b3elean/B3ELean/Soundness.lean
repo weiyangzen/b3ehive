@@ -1,10 +1,10 @@
 /-
-  B3Lean.Soundness — Executable witness checkers + kernel-verified soundness
+  B3ELean.Soundness — Executable witness checkers + kernel-verified soundness
   and meta-theorems (Init-only, zero sorry, standard axioms only).
 -/
-import B3Lean.Core
+import B3ELean.Core
 
-namespace B3Lean
+namespace B3ELean
 
 /-! ### 1. Topological Witness Checker & Acyclicity Proof (T1) -/
 
@@ -288,4 +288,4 @@ theorem checkStack_sound (ir : StackIR) (h : checkStack ir = true) :
     itemsBounded   := checkItemsBounded_sound ir hItems
   }
 
-end B3Lean
+end B3ELean

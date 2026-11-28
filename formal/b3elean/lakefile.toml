@@ -1,0 +1,10 @@
+name = "b3elean"
+version = "3.0.0"
+defaultTargets = ["B3ELean", "b3elean"]
+
+[[lean_lib]]
+name = "B3ELean"
+
+[[lean_exe]]
+name = "b3elean"
+root = "B3ELean.Main"

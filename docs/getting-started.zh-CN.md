@@ -26,7 +26,7 @@ codex plugin add b3ehive@b3ehive
 如果使用 portable skill，安装五个 skill 目录：
 
 ```bash
-git clone -b v2 https://github.com/weiyangzen/b3ehive.git
+git clone https://github.com/weiyangzen/b3ehive.git
 cd b3ehive
 scripts/install_skills.sh --target all --scope user --link
 ```

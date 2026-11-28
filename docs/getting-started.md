@@ -28,7 +28,7 @@ Start a new Codex thread after installation.
 For portable skills, install the five skill directories:
 
 ```bash
-git clone -b v2 https://github.com/weiyangzen/b3ehive.git
+git clone https://github.com/weiyangzen/b3ehive.git
 cd b3ehive
 scripts/install_skills.sh --target all --scope user --link
 ```

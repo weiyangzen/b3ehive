@@ -1,15 +1,15 @@
 /-
-  B3Lean.Main — CLI entry point for `b3lean check` and `b3lean cert`.
+  B3ELean.Main — CLI entry point for `b3elean check` and `b3elean cert`.
   Decodes `b3ehive-stack-ir/v1` JSON emitted by `validate_blueprint_stack.py export-ir`.
 -/
 import Lean.Data.Json
-import B3Lean.Core
-import B3Lean.Soundness
+import B3ELean.Core
+import B3ELean.Soundness
 
 open Lean (Json)
-open B3Lean
+open B3ELean
 
-namespace B3Lean.CLI
+namespace B3ELean.CLI
 
 def splitNodeId (s : String) : Except String NodeId :=
   match s.splitOn "#" with
@@ -190,10 +190,10 @@ def renderStackIR (ir : StackIR) : String :=
 
 def emitCertLean (ir : StackIR) : String :=
   String.intercalate "\n" [
-    "import B3Lean.Core",
-    "import B3Lean.Soundness",
+    "import B3ELean.Core",
+    "import B3ELean.Soundness",
     "",
-    "open B3Lean",
+    "open B3ELean",
     "",
     s!"def certIR : StackIR :=\n{renderStackIR ir}",
     "",
@@ -205,53 +205,53 @@ def emitCertLean (ir : StackIR) : String :=
   ]
 
 def usage : String :=
-  "Usage:\n  b3lean check <stack_ir.json>\n  b3lean cert <stack_ir.json> [-o <StackCert.lean>]"
+  "Usage:\n  b3elean check <stack_ir.json>\n  b3elean cert <stack_ir.json> [-o <StackCert.lean>]"
 
-end B3Lean.CLI
+end B3ELean.CLI
 
 def main (args : List String) : IO UInt32 := do
   match args with
   | ["check", path] =>
     let txt ← IO.FS.readFile path
-    match B3Lean.CLI.parseStackIR txt with
+    match B3ELean.CLI.parseStackIR txt with
     | .error e =>
       IO.eprintln s!"ERROR: {e}"
       return 2
     | .ok ir =>
-      if B3Lean.checkStack ir then
-        IO.println s!"b3lean CERTIFIED: {ir.nodes.length} nodes, {ir.edges.length} edges (checkStack_sound)."
+      if B3ELean.checkStack ir then
+        IO.println s!"b3elean CERTIFIED: {ir.nodes.length} nodes, {ir.edges.length} edges (checkStack_sound)."
         return 0
       else
-        let fails := B3Lean.CLI.reportFailures ir
-        IO.eprintln s!"b3lean FAILED invariants: {String.intercalate ", " fails}"
+        let fails := B3ELean.CLI.reportFailures ir
+        IO.eprintln s!"b3elean FAILED invariants: {String.intercalate ", " fails}"
         return 1
   | ["cert", path] =>
     let txt ← IO.FS.readFile path
-    match B3Lean.CLI.parseStackIR txt with
+    match B3ELean.CLI.parseStackIR txt with
     | .error e =>
       IO.eprintln s!"ERROR: {e}"
       return 2
     | .ok ir =>
-      if !B3Lean.checkStack ir then
-        let fails := B3Lean.CLI.reportFailures ir
-        IO.eprintln s!"b3lean FAILED invariants before cert emission: {String.intercalate ", " fails}"
+      if !B3ELean.checkStack ir then
+        let fails := B3ELean.CLI.reportFailures ir
+        IO.eprintln s!"b3elean FAILED invariants before cert emission: {String.intercalate ", " fails}"
         return 1
-      IO.print (B3Lean.CLI.emitCertLean ir)
+      IO.print (B3ELean.CLI.emitCertLean ir)
       return 0
   | ["cert", path, "-o", outPath] =>
     let txt ← IO.FS.readFile path
-    match B3Lean.CLI.parseStackIR txt with
+    match B3ELean.CLI.parseStackIR txt with
     | .error e =>
       IO.eprintln s!"ERROR: {e}"
       return 2
     | .ok ir =>
-      if !B3Lean.checkStack ir then
-        let fails := B3Lean.CLI.reportFailures ir
-        IO.eprintln s!"b3lean FAILED invariants before cert emission: {String.intercalate ", " fails}"
+      if !B3ELean.checkStack ir then
+        let fails := B3ELean.CLI.reportFailures ir
+        IO.eprintln s!"b3elean FAILED invariants before cert emission: {String.intercalate ", " fails}"
         return 1
-      IO.FS.writeFile outPath (B3Lean.CLI.emitCertLean ir)
-      IO.println s!"b3lean wrote kernel certificate: {outPath}"
+      IO.FS.writeFile outPath (B3ELean.CLI.emitCertLean ir)
+      IO.println s!"b3elean wrote kernel certificate: {outPath}"
       return 0
   | _ =>
-    IO.eprintln B3Lean.CLI.usage
+    IO.eprintln B3ELean.CLI.usage
     return 2

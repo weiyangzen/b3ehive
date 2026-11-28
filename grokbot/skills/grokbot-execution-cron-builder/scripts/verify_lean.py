@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Lean 4 formal verifier and anti-gaming oracle runner for b3ehive (b3lean).
+"""Lean 4 formal verifier and anti-gaming oracle runner for b3ehive (b3elean).
 
 Subcommands:
-  stack       Export stack IR and certify via `b3lean check` (and optional `--cert`
+  stack       Export stack IR and certify via `b3elean check` (and optional `--cert`
               kernel certificate + axiom audit).
   oracle      Verify a blueprint item's `oracle: lean:<Module>.<Theorem>` with
               `lake build`, external `leanchecker`, strict `#print axioms`
               allowlist, and optional read-only Spec-dir protection.
-  self-check  Build `formal/b3lean`, run `leanchecker`, and audit all theorems.
+  self-check  Build `formal/b3elean`, run `leanchecker`, and audit all theorems.
 """
 import argparse
 import os
@@ -20,20 +20,20 @@ import tempfile
 
 ALLOWED_AXIOMS = {"propext", "Classical.choice", "Quot.sound"}
 SELF_THEOREMS = [
-    "B3Lean.topo_acyclic_sound",
-    "B3Lean.dag_ordered_noninterference",
-    "B3Lean.checkBoundaries_sound",
-    "B3Lean.checkTransitiveAccepted_sound",
-    "B3Lean.checkRuleOfTwo_sound",
-    "B3Lean.master_only_acceptance",
-    "B3Lean.occam_no_gain_for_single_leaf",
-    "B3Lean.occam_factoring_strict_saving",
-    "B3Lean.major_revision_non_regression",
-    "B3Lean.checkStack_sound",
+    "B3ELean.topo_acyclic_sound",
+    "B3ELean.dag_ordered_noninterference",
+    "B3ELean.checkBoundaries_sound",
+    "B3ELean.checkTransitiveAccepted_sound",
+    "B3ELean.checkRuleOfTwo_sound",
+    "B3ELean.master_only_acceptance",
+    "B3ELean.occam_no_gain_for_single_leaf",
+    "B3ELean.occam_factoring_strict_saving",
+    "B3ELean.major_revision_non_regression",
+    "B3ELean.checkStack_sound",
 ]
 
 
-def find_b3lean_dir(explicit: str = None) -> pathlib.Path:
+def find_b3elean_dir(explicit: str = None) -> pathlib.Path:
     if explicit:
         return pathlib.Path(explicit).resolve()
     env = os.environ.get("B3EHIVE_LEAN_DIR")
@@ -41,10 +41,10 @@ def find_b3lean_dir(explicit: str = None) -> pathlib.Path:
         return pathlib.Path(env).resolve()
     here = pathlib.Path(__file__).resolve()
     for parent in here.parents:
-        cand = parent / "formal" / "b3lean"
+        cand = parent / "formal" / "b3elean"
         if (cand / "lakefile.toml").is_file():
             return cand
-    return pathlib.Path.cwd() / "formal" / "b3lean"
+    return pathlib.Path.cwd() / "formal" / "b3elean"
 
 
 def run_cmd(cmd, cwd=None, stdin_text=None):
@@ -74,33 +74,33 @@ def parse_axioms(output: str, expected_names: list) -> list:
     return errors
 
 
-def ensure_b3lean_built(b3lean_dir: pathlib.Path) -> pathlib.Path:
+def ensure_b3elean_built(b3elean_dir: pathlib.Path) -> pathlib.Path:
     if not shutil.which("lake"):
         raise RuntimeError("lake not found in PATH; install Lean 4 (elan) or set B3_FORMAL_VERIFIER=off")
-    exe = b3lean_dir / ".lake" / "build" / "bin" / "b3lean"
+    exe = b3elean_dir / ".lake" / "build" / "bin" / "b3elean"
     if not exe.is_file():
-        res = run_cmd(["lake", "build"], cwd=b3lean_dir)
+        res = run_cmd(["lake", "build"], cwd=b3elean_dir)
         if res.returncode != 0:
             raise RuntimeError(f"lake build failed:\n{res.stdout}\n{res.stderr}")
     return exe
 
 
 def cmd_self_check(args) -> int:
-    b3lean_dir = find_b3lean_dir(args.b3lean_dir)
-    if not (b3lean_dir / "lakefile.toml").is_file():
-        print(f"ERROR: formal/b3lean not found at {b3lean_dir}", file=sys.stderr)
+    b3elean_dir = find_b3elean_dir(args.b3elean_dir)
+    if not (b3elean_dir / "lakefile.toml").is_file():
+        print(f"ERROR: formal/b3elean not found at {b3elean_dir}", file=sys.stderr)
         return 2
-    res = run_cmd(["lake", "build"], cwd=b3lean_dir)
+    res = run_cmd(["lake", "build"], cwd=b3elean_dir)
     if res.returncode != 0:
         print(res.stdout + res.stderr, file=sys.stderr)
         return 1
-    for mod in ("B3Lean.Core", "B3Lean.Soundness"):
-        chk = run_cmd(["lake", "env", "leanchecker", mod], cwd=b3lean_dir)
+    for mod in ("B3ELean.Core", "B3ELean.Soundness"):
+        chk = run_cmd(["lake", "env", "leanchecker", mod], cwd=b3elean_dir)
         if chk.returncode != 0:
             print(f"ERROR: leanchecker failed on {mod}:\n{chk.stdout}{chk.stderr}", file=sys.stderr)
             return 1
-    snippet = "import B3Lean.Soundness\n" + "\n".join(f"#print axioms {t}" for t in SELF_THEOREMS) + "\n"
-    aud = run_cmd(["lake", "env", "lean", "--stdin"], cwd=b3lean_dir, stdin_text=snippet)
+    snippet = "import B3ELean.Soundness\n" + "\n".join(f"#print axioms {t}" for t in SELF_THEOREMS) + "\n"
+    aud = run_cmd(["lake", "env", "lean", "--stdin"], cwd=b3elean_dir, stdin_text=snippet)
     if aud.returncode != 0:
         print(f"ERROR: axiom audit failed:\n{aud.stdout}{aud.stderr}", file=sys.stderr)
         return 1
@@ -109,14 +109,14 @@ def cmd_self_check(args) -> int:
         for e in errs:
             print(f"ERROR: {e}", file=sys.stderr)
         return 1
-    print(f"b3lean self-check passed: lake build, leanchecker, and {len(SELF_THEOREMS)} theorems clean.")
+    print(f"b3elean self-check passed: lake build, leanchecker, and {len(SELF_THEOREMS)} theorems clean.")
     return 0
 
 
 def cmd_stack(args) -> int:
-    b3lean_dir = find_b3lean_dir(args.b3lean_dir)
+    b3elean_dir = find_b3elean_dir(args.b3elean_dir)
     try:
-        exe = ensure_b3lean_built(b3lean_dir)
+        exe = ensure_b3elean_built(b3elean_dir)
     except RuntimeError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
@@ -143,7 +143,7 @@ def cmd_stack(args) -> int:
             if gen.returncode != 0:
                 print(gen.stderr or gen.stdout, file=sys.stderr)
                 return gen.returncode
-            kchk = run_cmd(["lake", "env", "lean", "-DwarningAsError=true", str(cert_path)], cwd=b3lean_dir)
+            kchk = run_cmd(["lake", "env", "lean", "-DwarningAsError=true", str(cert_path)], cwd=b3elean_dir)
             if kchk.returncode != 0:
                 print(f"ERROR: kernel cert failed:\n{kchk.stdout}{kchk.stderr}", file=sys.stderr)
                 return 1
@@ -215,13 +215,13 @@ def main(argv=None) -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sp_self = sub.add_parser("self-check")
-    sp_self.add_argument("--b3lean-dir", help="Path to formal/b3lean")
+    sp_self.add_argument("--b3elean-dir", help="Path to formal/b3elean")
 
     sp_stack = sub.add_parser("stack")
     sp_stack.add_argument("manifest", help="Path to blueprint_stack.json")
     sp_stack.add_argument("--repo-root", help="Repository root")
     sp_stack.add_argument("--cert", action="store_true", help="Emit and kernel-check StackCert.lean")
-    sp_stack.add_argument("--b3lean-dir", help="Path to formal/b3lean")
+    sp_stack.add_argument("--b3elean-dir", help="Path to formal/b3elean")
 
     sp_oracle = sub.add_parser("oracle")
     sp_oracle.add_argument("target", help="Target theorem as [lean:]<Module>.<Theorem>")

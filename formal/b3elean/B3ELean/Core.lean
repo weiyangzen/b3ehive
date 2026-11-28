@@ -1,8 +1,8 @@
 /-
-  B3Lean.Core — Pure Init-only specification types and invariants for b3ehive
+  B3ELean.Core — Pure Init-only specification types and invariants for b3ehive
   multi-layer blueprint stacks and Occam anti-Cartesian factoring.
 -/
-namespace B3Lean
+namespace B3ELean
 
 inductive Role where
   | master
@@ -171,7 +171,7 @@ def KeepsPriorOracles {Mod Oracle : Type}
     (rev1 rev2 : RevisionSpec Mod Oracle) (kept : List Mod) : Prop :=
   ∀ m ∈ kept, ∀ o ∈ rev1.oracles m, o ∈ rev2.oracles m
 
-/-- Combined stack invariants certified by B3Lean. -/
+/-- Combined stack invariants certified by B3ELean. -/
 structure StackCertified (ir : StackIR) : Prop where
   acyclic         : IsAcyclic ir.edges
   localLayers     : LocalLayersMonotonic ir
@@ -181,4 +181,4 @@ structure StackCertified (ir : StackIR) : Prop where
   ruleOfTwo       : RuleOfTwoClean ir
   itemsBounded    : ItemsBounded ir
 
-end B3Lean
+end B3ELean

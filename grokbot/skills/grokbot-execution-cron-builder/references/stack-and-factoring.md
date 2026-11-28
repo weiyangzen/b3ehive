@@ -68,13 +68,13 @@ Checked by `scripts/validate_blueprint_stack.py`:
 - **IR Export**: `scripts/validate_blueprint_stack.py export-ir <manifest>`
   emits canonical `stack_ir.json` (+ `topo_witness`) for formal verification.
 
-## 5. Lean 4 Formal Certification (`formal/b3lean/`)
+## 5. Lean 4 Formal Certification (`formal/b3elean/`)
 
 When Lean `v4.34.0` (`lake`, `lean`, `leanchecker`) is present, certify the
 stack with zero Mathlib overhead:
 
 - **Per-tick native check**: `scripts/verify_lean.py stack <manifest>` runs
-  the compiled `b3lean` binary whose `checkStack_sound` theorem is kernel-proved
+  the compiled `b3elean` binary whose `checkStack_sound` theorem is kernel-proved
   (`topo_acyclic_sound`, `dag_ordered_noninterference`, `checkBoundaries_sound`,
   `checkTransitiveAccepted_sound`, `checkRuleOfTwo_sound`,
   `occam_no_gain_for_single_leaf`, `major_revision_non_regression`).

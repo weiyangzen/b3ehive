@@ -2,7 +2,9 @@
 
 [English](README.md)
 
-**五编排，一律，一环。**
+**五编排，一律，一环，Lean 4 形式化校验。**
+
+`v3.0.0` 正式版：内置多层 Blueprint 栈、奥卡姆反笛卡尔最小拆解，以及同仓零 Mathlib 的 Lean `v4.34.0` 校验器 [`b3elean`](formal/b3elean/)。
 
 b3ehive 把编码 agent 编成蜂群。五个 skill 各司一类工作；共守一部短律，共用一个尝试循环；未经复跑，一概不收。
 
@@ -11,7 +13,7 @@ b3ehive 把编码 agent 编成蜂群。五个 skill 各司一类工作；共守�
 | Skill | 用于 | 编排 |
 |---|---|---|
 | [`compete`](compete-cron-builder/SKILL.md) | 单轮方案比较、根因、审计 | 一轮有边界的并行比较；先 oracle，次盲审，再计票（自投作废）；或发现去重取并集 |
-| [`execution`](execution-cron-builder/SKILL.md) | 长程实现 | 一份 blueprint 化 DAG；worker 隔离；master 验收 |
+| [`execution`](execution-cron-builder/SKILL.md) | 长程实现或多目标矩阵 | 单份 blueprint 或 `master` / `platform` / `leaf` 三层栈化 DAG；奥卡姆最小拆解；worker 隔离；`b3elean` 认证；master 验收 |
 | [`learn`](learn-cron-builder/SKILL.md) | 陌生代码、迁移、翻译、外部知识 | 锁定 manifest 一一映射，或建 canon；深度可选 `what`、`how`、`why` |
 | [`optimization`](optimization-cron-builder/SKILL.md) | 更快、更小、更省、更简 | 冻结 oracle 下的串行测量比较，或设计研究 |
 | [`looper`](looper-cron-builder/SKILL.md) | 外挂 loop 粒度或共享治理 | 挂到 item、metric 或 surface 的可选层 |
@@ -79,7 +81,7 @@ b3ehive 不内置领域知识。CUDA 文档 MCP、kernel wiki、Nsight Compute s
 ## 安装
 
 ```bash
-git clone -b v2 https://github.com/weiyangzen/b3ehive.git && cd b3ehive
+git clone https://github.com/weiyangzen/b3ehive.git && cd b3ehive
 scripts/install_skills.sh --target all --scope user --link
 ```
 
@@ -91,7 +93,8 @@ grokbot 使用专用集合：`unzip grokbot/grokbot-<skill>-skill.zip -d ~/.clau
 
 - 新安装：[开始使用](docs/getting-started.zh-CN.md)
 - 按任务选择编排：[Skill 选择与使用](docs/skill-selection.zh-CN.md)
-- 理解升级：[v1 到 v2 迁移](docs/migration-v1-v2.zh-CN.md)
+- 多层蓝图、最小拆解与 `b3elean`：[多层蓝图、最小拆解与 Lean 4 校验](docs/multi-layer-and-anti-cartesian.zh-CN.md)
+- 理解 v1 到 v2 演进：[v1 到 v2 迁移](docs/migration-v1-v2.zh-CN.md)
 - 编写和审查文档：[写作规范](docs/writing-style.zh-CN.md)
 
 ## 使用
@@ -124,8 +127,10 @@ skill 亮起时，日志给出本页的调用句。顺序是示意。
 ## 检查
 
 ```bash
-scripts/check_all.sh         # 同步、lint、单测、布局与平台校验
-bin/b3ehive doctor --repo .  # 过期安装与控制器
+scripts/check_all.sh                           # 同步、lint、单测、布局、平台与 b3elean 自检
+bin/b3ehive doctor --repo .                    # 过期安装与控制器
+bin/b3ehive validate stack <manifest.json>     # 多层 DAG、dag_ordered 路径与边界校验
+bin/b3ehive verify-lean stack <manifest.json>  # Lean 4.34 b3elean 认证（--cert 输出内核证人）
 ```
 
 `evals/scenarios.json`：二十个行为场景（每 skill 至少三个）与消融矩阵。
@@ -152,7 +157,7 @@ bin/b3ehive doctor --repo .  # 过期安装与控制器
 | 蓝图拓扑 | 单份扁平蓝图 | 单份蓝图或三层栈（`master` / `platform` / `leaf`，由 `blueprint_stack.json` 声明） |
 | 拆解原则 | 无 | 奥卡姆 / 最低生成式复杂度（`core/core.md` `Factor` + `promote`）：直奔 2,000–5,000 LOC；仅在 `k + M + N < M * N` 时抽 `platform` |
 | 边界校验 | 手写脚本 | `bin/b3ehive validate stack \| boundaries \| export-ir`（`dag_ordered` 路径不干扰、零 `leaf ↛ leaf` 与 `platform ↛ leaf`、满二晋升） |
-| 形式化校验 | 无 | 同仓 `formal/b3lean/`（Lean `v4.34.0`，零 Mathlib）：`bin/b3ehive verify-lean stack \| oracle \| self-check`、`leanchecker` 与标准公理白名单 |
+| 形式化校验 | 无 | 同仓 `formal/b3elean/`（Lean `v4.34.0`，零 Mathlib）：`bin/b3ehive verify-lean stack \| oracle \| self-check`、`leanchecker` 与标准公理白名单 |
 
 详见[多层蓝图、奥卡姆最小拆解与 Lean 4 校验](docs/multi-layer-and-anti-cartesian.zh-CN.md)与 [CHANGELOG.md](CHANGELOG.md)。
 

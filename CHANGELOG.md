@@ -14,7 +14,7 @@
   reverse imports (`platform ↛ leaf`, `harvest: true` for upward extraction
   edges), and `O(N log N)` prefix-aware `dag_ordered` / `strict_disjoint` path
   non-interference.
-- Lean 4 formal verification (`formal/b3lean/`, pinned `leanprover/lean4:v4.34.0`,
+- Lean 4 formal verification (`formal/b3elean/`, pinned `leanprover/lean4:v4.34.0`,
   zero Mathlib): pure `Init`-only specification (`Core.lean`) and kernel-proved
   soundness (`Soundness.lean`) covering global acyclicity (`topo_acyclic_sound`),
   antichain path non-interference (`dag_ordered_noninterference`), boundary and
@@ -25,7 +25,7 @@
   (`major_revision_non_regression`).
 - Anti-gaming Lean runner (`execution-cron-builder/scripts/verify_lean.py`,
   `bin/b3ehive verify-lean stack | oracle | self-check`): compiled native
-  `b3lean check`, kernel certificate emission (`--cert`, `StackCert.lean` via
+  `b3elean check`, kernel certificate emission (`--cert`, `StackCert.lean` via
   `rfl`), external `leanchecker`, read-only `Specs/` tamper guard, and strict
   standard-axiom allowlist (`{propext, Classical.choice, Quot.sound}` — rejects
   `sorryAx`, custom axioms, and `native_decide`).

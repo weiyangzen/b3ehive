@@ -139,7 +139,7 @@ platform:
   (non-regression) or `rebuild`.
 - Verification: run `scripts/validate_blueprint_stack.py` (`stack`,
   `boundaries`, `export-ir`) and, when Lean `v4.34.0` is available,
-  `scripts/verify_lean.py stack <manifest> [--cert]` (`formal/b3lean/`).
+  `scripts/verify_lean.py stack <manifest> [--cert]` (`formal/b3elean/`).
   Use `oracle: lean:<Module>.<Theorem>` only where formal assurance beats `k`,
   with Spec/Proof path split, `leanchecker`, and standard-axiom allowlist.
   Detail: `references/stack-and-factoring.md`.

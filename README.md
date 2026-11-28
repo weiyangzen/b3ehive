@@ -2,8 +2,10 @@
 
 [中文](README.zh-CN.md)
 
-**Five swarm skills. One law. One loop.**
+**Five swarm skills. One law. One loop. Verified in Lean 4.**
 
+[![Release: v3.0.0](https://img.shields.io/badge/Release-v3.0.0-brightgreen)](https://github.com/weiyangzen/b3ehive/releases/tag/v3.0.0)
+[![Lean 4.34](https://img.shields.io/badge/Lean-4.34.0-blueviolet)](formal/b3elean/)
 [![Codex](https://img.shields.io/badge/Codex-Skill-blue)](https://github.com/openai/codex)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-orange)](https://docs.anthropic.com/en/docs/claude-code)
 [![Cursor](https://img.shields.io/badge/Cursor-Skill-black)](https://cursor.com)
@@ -22,7 +24,7 @@ loop, and accept nothing they have not re-run.
 | Skill | When | Arrangement |
 |---|---|---|
 | [`compete`](compete-cron-builder/SKILL.md) | one-round proposal comparison, a root cause, an audit | one bounded parallel comparison; oracle first, then blind review, then votes without self-votes; or a deduplicated union of findings |
-| [`execution`](execution-cron-builder/SKILL.md) | a long implementation | one blueprint as a DAG; isolated workers; the master accepts |
+| [`execution`](execution-cron-builder/SKILL.md) | a long implementation or multi-target stack | one blueprint or `master` / `platform` / `leaf` stack as a DAG; Occam factoring; isolated workers; `b3elean` certification; the master accepts |
 | [`learn`](learn-cron-builder/SKILL.md) | unknown code, migration, translation, outside knowledge | a locked manifest mapped one to one, or a pinned canon; depth `what`, `how`, or `why` |
 | [`optimization`](optimization-cron-builder/SKILL.md) | faster, smaller, cheaper, cleaner | serial measured comparison under a frozen oracle, or design research |
 | [`looper`](looper-cron-builder/SKILL.md) | external loop granularity or shared governance | an optional layer attached to an item, metric, or surface |
@@ -110,7 +112,7 @@ master accepts every change, and every instrument change is revertible.
 ## Install
 
 ```bash
-git clone -b v2 https://github.com/weiyangzen/b3ehive.git && cd b3ehive
+git clone https://github.com/weiyangzen/b3ehive.git && cd b3ehive
 scripts/install_skills.sh --target all --scope user --link
 ```
 
@@ -142,7 +144,8 @@ Codex plugin: `codex plugin marketplace add weiyangzen/b3ehive` then
 
 - New installation: [Getting Started](docs/getting-started.md)
 - Choose a task arrangement: [Skill Selection and Use](docs/skill-selection.md)
-- Understand the upgrade: [v1 to v2 Migration](docs/migration-v1-v2.md)
+- Multi-layer stacks, Occam factoring, and `b3elean`: [Multi-Layer, Factoring & Lean 4](docs/multi-layer-and-anti-cartesian.md)
+- Understand the v1 → v2 change: [v1 to v2 Migration](docs/migration-v1-v2.md)
 - Write and review docs: [Writing Style](docs/writing-style.md)
 
 ## Use
@@ -179,8 +182,10 @@ commands and a direct competition runner.
 ## Check
 
 ```bash
-scripts/check_all.sh        # sync, lint, unit tests, layout and platform checks
-bin/b3ehive doctor --repo .  # stale installs and controllers
+scripts/check_all.sh                          # sync, lint, unit tests, layout, platforms, b3elean self-check
+bin/b3ehive doctor --repo .                   # stale installs and controllers
+bin/b3ehive validate stack <manifest.json>    # multi-layer DAG, dag_ordered paths, boundaries
+bin/b3ehive verify-lean stack <manifest.json> # Lean 4.34 b3elean certified check (--cert for kernel witness)
 ```
 
 `evals/scenarios.json` holds twenty behavior scenarios, at least three per skill, and the
@@ -208,7 +213,7 @@ Rules moved out of skill bodies live in each skill's `references/lessons.md`.
 | Blueprint topology | single flat blueprint | single blueprint or three-tier stack (`master` / `platform` / `leaf` via `blueprint_stack.json`) |
 | Factoring principle | none | Occam / Kolmogorov factoring (`core/core.md` `Factor` + `promote`): target 2,000–5,000 LOC items; extract to `platform` only when `k + M + N < M * N` |
 | Boundary checks | manual | `bin/b3ehive validate stack \| boundaries \| export-ir` (`dag_ordered` path non-interference, zero `leaf ↛ leaf` and `platform ↛ leaf`, Rule-of-Two) |
-| Formal verification | — | in-repo `formal/b3lean/` (Lean `v4.34.0`, zero Mathlib): `bin/b3ehive verify-lean stack \| oracle \| self-check`, `leanchecker`, and standard-axiom allowlist |
+| Formal verification | — | in-repo `formal/b3elean/` (Lean `v4.34.0`, zero Mathlib): `bin/b3ehive verify-lean stack \| oracle \| self-check`, `leanchecker`, and standard-axiom allowlist |
 
 Detail: [Multi-Layer, Factoring, And Lean 4](docs/multi-layer-and-anti-cartesian.md) and [CHANGELOG.md](CHANGELOG.md).
 
@@ -230,7 +235,7 @@ workspace only. Full list: [CHANGELOG.md](CHANGELOG.md).
 ## Repository
 
 - `core/`: shared law and substrate guide (sources of the copies)
-- `formal/b3lean/`: zero-Mathlib Lean 4.34 formal specification and certified checker
+- `formal/b3elean/`: zero-Mathlib Lean 4.34 formal specification and certified checker
 - `*-cron-builder/`: the five skills
 - `evals/`: behavior scenarios and ablation matrix
 - `examples/`: the RSI example prompt

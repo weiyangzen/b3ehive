@@ -23,4 +23,4 @@ Grokbot set: `grokbot/grokbot-<skill>-skill.zip`, unzipped into
 
 Shared law: `core/core.md`, copied into each skill's `references/core.md`.
 Shared loop: `looper-cron-builder/loop.md`, copied into the other four skills.
-Formal verifier: `formal/b3lean/` (Lean `v4.34.0`, zero Mathlib), invoked via `bin/b3ehive verify-lean`.
+Formal verifier: `formal/b3elean/` (Lean `v4.34.0`, zero Mathlib), invoked via `bin/b3ehive verify-lean`.

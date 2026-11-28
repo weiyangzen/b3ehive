@@ -9,7 +9,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VERIFY_LEAN = ROOT / "execution-cron-builder" / "scripts" / "verify_lean.py"
 VALIDATOR = ROOT / "execution-cron-builder" / "scripts" / "validate_blueprint_stack.py"
-B3LEAN_DIR = ROOT / "formal" / "b3lean"
+B3ELEAN_DIR = ROOT / "formal" / "b3elean"
 HAS_LEAN = bool(shutil.which("lake") and shutil.which("lean"))
 
 sys.path.insert(0, str(ROOT / "tests"))
@@ -21,21 +21,21 @@ def run_vl(*args):
 
 
 @unittest.skipUnless(HAS_LEAN, "Lean 4 (lake/lean) not installed")
-class B3LeanTests(unittest.TestCase):
+class B3ELeanTests(unittest.TestCase):
     def test_self_check_builds_and_audits_clean_axioms(self):
-        r = run_vl("self-check", "--b3lean-dir", str(B3LEAN_DIR))
+        r = run_vl("self-check", "--b3elean-dir", str(B3ELEAN_DIR))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("self-check passed", r.stdout)
 
     def test_stack_native_and_kernel_cert_pass(self):
         tmp = pathlib.Path(tempfile.mkdtemp())
         manifest = make_fixture(tmp)
-        r = run_vl("stack", str(manifest), "--repo-root", str(tmp), "--cert", "--b3lean-dir", str(B3LEAN_DIR))
+        r = run_vl("stack", str(manifest), "--repo-root", str(tmp), "--cert", "--b3elean-dir", str(B3ELEAN_DIR))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("b3lean CERTIFIED", r.stdout)
+        self.assertIn("b3elean CERTIFIED", r.stdout)
         self.assertIn("kernel cert verified", r.stdout)
 
-    def test_b3lean_rejects_corrupted_ir_invariants(self):
+    def test_b3elean_rejects_corrupted_ir_invariants(self):
         tmp = pathlib.Path(tempfile.mkdtemp())
         manifest = make_fixture(tmp)
         ir_path = tmp / "ir.json"
@@ -44,8 +44,8 @@ class B3LeanTests(unittest.TestCase):
             capture_output=True, text=True,
         )
         self.assertEqual(exp.returncode, 0, exp.stderr)
-        exe = B3LEAN_DIR / ".lake" / "build" / "bin" / "b3lean"
-        self.assertTrue(exe.is_file(), "b3lean binary should exist after self-check")
+        exe = B3ELEAN_DIR / ".lake" / "build" / "bin" / "b3elean"
+        self.assertTrue(exe.is_file(), "b3elean binary should exist after self-check")
 
         # Tamper 1: inject leaf-to-leaf edge -> boundary_clean must fail.
         ir = json.loads(ir_path.read_text())

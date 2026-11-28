@@ -18,7 +18,7 @@ b3ehive ${VERSION}
       Validate a multi-layer blueprint stack, check boundaries/Rule-of-Two,
       or export canonical JSON IR.
   b3ehive verify-lean <stack|oracle|self-check> [options]
-      Formally certify a blueprint stack or Lean oracle (`formal/b3lean/`).
+      Formally certify a blueprint stack or Lean oracle (`formal/b3elean/`).
   b3ehive doctor [--repo PATH]...
       Compare installed skills with this checkout; flag stale controllers.
   b3ehive sync     Sync core, loop, the Codex plugin package, and the grokbot set.

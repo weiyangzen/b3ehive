@@ -4,7 +4,7 @@
 
 b3ehive v3.0.0 adds minimal support for multi-layer blueprint stacks, Occam
 anti-Cartesian factoring, and Lean 4 formal certification inside
-`formal/b3lean/`.
+`formal/b3elean/`.
 
 ## Principle: Minimum Generative Complexity
 
@@ -51,10 +51,10 @@ bin/b3ehive validate export-ir blueprint_stack.json --repo-root . -o stack_ir.js
 - **Major**: open `<Name>_Rev2_Blueprint.md` with a `keep` (inherits prior
   oracles as non-regression gates) vs `rebuild` table and numeric targets.
 
-## Lean 4 Formal Certification (`formal/b3lean/`)
+## Lean 4 Formal Certification (`formal/b3elean/`)
 
 Pinned to `leanprover/lean4:v4.34.0` with **zero Mathlib** (`Init` / `Std`
-only). Proves four irreducible theorem groups once (`B3Lean/Soundness.lean`):
+only). Proves four irreducible theorem groups once (`B3ELean/Soundness.lean`):
 global DAG acyclicity (`topo_acyclic_sound`), antichain path non-interference
 (`dag_ordered_noninterference`), boundary and acceptance safety
 (`checkBoundaries_sound`, `checkTransitiveAccepted_sound`,
