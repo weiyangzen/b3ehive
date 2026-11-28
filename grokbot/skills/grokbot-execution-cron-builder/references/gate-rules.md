@@ -208,3 +208,16 @@ is allowed; executable command-shaped occurrences are not.
 - a receipt fingerprint changes when an untracked file changes
 - an item without successor, `wait` with `resume_when`, or `no_followup` is
   reopened by the master
+
+## Multi-Layer And Factoring Gate (Experimental)
+
+- Every `blueprint_id` and item ID is unique across the stack; local and
+  `other#ID` edges are globally acyclic and preserve local `layer` order.
+- Under `dag_ordered`, any two items with overlapping or nested `owned_paths`
+  are ordered in the global DAG; under `strict_disjoint`, no paths overlap.
+- Transitive `[x]` closure holds across blueprints; no `leaf` depends on a
+  sibling `leaf`; `platform -> leaf` edges require `harvest: true`.
+- Source scans find zero sibling imports (`leaf_i -> leaf_j`) and zero reverse
+  imports (`platform -> leaf`); shared capabilities promoted by Rule-of-Two
+  carry standalone tests and reduce total complexity after constant `k`.
+- Each blueprint maintains its own read-only same-name Gantt.

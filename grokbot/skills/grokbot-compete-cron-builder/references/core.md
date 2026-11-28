@@ -5,8 +5,10 @@ stated here once; a skill adds only its local rules.
 
 ## Laws
 
-1. One authority. A run has one blueprint. States: `[ ]` open, `[_]` submitted,
-   `[x]` accepted. Runtime words such as paused, done, or blocked are telemetry.
+1. One authority. A run has one blueprint. A multi-layer stack keeps one
+   blueprint per scope under one stack manifest. States: `[ ]` open, `[_]`
+   submitted, `[x]` accepted. Runtime words such as paused, done, or blocked
+   are telemetry.
 2. Oracle first. Each item names its judge before work: a gate when one can
    exist, else a non-author reviewer with a written protocol. A missing oracle is
    the first item to build. Workers never touch oracles, fixtures, baselines, or
@@ -46,12 +48,17 @@ another subject is an error.
 | cite | reference a canon entry by id | any |
 | log | record instrument friction | any |
 | decide | write a `DECIDE` line | whoever chooses |
+| promote | move a shared capability into the platform layer | steward, master |
 
 ## Practice
 
 - Decide: log each nontrivial choice as
   `DECIDE <param>=<value> because <reason>; else <fallback>`. Fixed numbers serve
   only safety, budget, external reality, or compatibility.
+- Factor: aim for minimal generative complexity. Share a capability in a
+  platform layer only when real reuse beats abstraction overhead `k`
+  (`k + M + N < M * N`); target 2,000-5,000 LOC items rather than
+  micro-splitting or monolithic duplication.
 - Compose: a skill calls another inside the caller's lease. The callee submits.
   Depth stays at most 3 unless the blueprint says otherwise.
 - Mechanize: a rule that must never break becomes a generated check (gate, hook,

@@ -54,6 +54,15 @@ telemetry and never replace a mark.
 - A guard may split an item stuck across ticks into children.
 - An `[I]` canon fact blocks dependent acceptance until a gate confirms it.
 
+## Multi-Layer Stacks And Occam Factoring (Experimental)
+
+Stay on one blueprint when it fits cleanly. When multiple targets share a
+platform, bind `master` / `platform` / `leaf` blueprints through
+`blueprint_stack.json`, target 2,000–5,000 LOC items, promote shared
+capabilities only when reuse beats constant overhead `k`, and check with
+`bin/b3ehive validate stack` and `bin/b3ehive validate boundaries`. Detail:
+[Multi-Layer Blueprints And Occam Factoring](multi-layer-and-anti-cartesian.md).
+
 ## Lifecycle
 
 ```text

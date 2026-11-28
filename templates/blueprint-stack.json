@@ -1,0 +1,17 @@
+{
+  "schema_version": "b3ehive-blueprint-stack/v1",
+  "stack_id": "example-stack",
+  "owned_paths_policy": "dag_ordered",
+  "default_budget_loc_cap": 5000,
+  "layers": ["L0", "L1", "L2", "L3", "L4"],
+  "blueprints": [
+    {"blueprint_id": "top", "role": "master", "path": "docs/blueprints/00_Master_Blueprint.md"},
+    {"blueprint_id": "plt", "role": "platform", "path": "docs/blueprints/01_Platform_Blueprint.md"},
+    {"blueprint_id": "target-a", "role": "leaf", "path": "docs/blueprints/TargetA_Blueprint.md"}
+  ],
+  "mandatory_leaf_deps": ["plt#PLT-001"],
+  "boundaries": {
+    "platform_root": "platform",
+    "leaf_roots": {"target-a": "targets/target_a"}
+  }
+}

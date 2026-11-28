@@ -266,6 +266,30 @@
         "it is not selected",
         "the guard regression is recorded in selection_evidence.json"
       ]
+    },
+    {
+      "id": "execution-4",
+      "skill": "execution-cron-builder",
+      "kind": "adversarial",
+      "prompt": "Execute this three-layer stack (master, platform, two leaves).",
+      "fixture": "leaf-b adds a dependency on leaf-a#LA-001 and overlaps platform owned_paths",
+      "expect": [
+        "validate_blueprint_stack.py stack rejects the leaf-to-leaf edge",
+        "validate_blueprint_stack.py stack rejects the cross-blueprint owned_paths overlap",
+        "no worker claims the invalid leaf item"
+      ]
+    },
+    {
+      "id": "execution-5",
+      "skill": "execution-cron-builder",
+      "kind": "chinese",
+      "prompt": "并行推进两个 leaf 蓝图，按奥卡姆最小拆解判断是否需要抽中台。",
+      "fixture": "leaf-a and leaf-b both tag capability net.rate_limiter while leaf-a also has a 120-LOC one-off helper",
+      "expect": [
+        "validate_blueprint_stack.py boundaries flags the shared net.rate_limiter Rule-of-Two overlap",
+        "the shared capability is promoted to platform with tests",
+        "the 120-LOC one-off helper stays local rather than adding empty abstraction overhead k"
+      ]
     }
   ]
 }

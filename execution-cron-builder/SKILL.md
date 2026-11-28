@@ -1,6 +1,6 @@
 ---
 name: execution-cron-builder
-description: Executes one authoritative blueprint as a DAG with isolated workers, oracle gates, master-only acceptance, checkpoints, and cleanup, on cron, tmux, or in-session substrates. Use for long implementation runs or to repair an execution controller. 蓝图执行、DAG 并行。
+description: Executes one authoritative blueprint or multi-layer stack as a DAG with isolated workers, Occam-minimal factoring, oracle gates, master-only acceptance, checkpoints, and cleanup, on cron, tmux, or in-session substrates. 多层蓝图、反笛卡尔最小拆解、DAG 并行。
 ---
 
 # Execution
@@ -75,6 +75,25 @@ One file holds requirements and the checklist:
 - Regenerate the read-only same-name Gantt projection
   (`<name>_Blueprint.<ext>` → `<name>_Gantt.<ext>`) every tick and never parse
   it back. Rules: `references/execution-pattern.md` §2.
+
+## Multi-Layer And Factoring (Experimental)
+
+Keep one flat blueprint when it fits cleanly. Open a `master` / `platform` /
+`leaf` stack (`blueprint_stack.json`) only when multiple targets share a
+platform:
+
+- Grain: aim directly for 2,000–5,000 LOC items; avoid both monoliths and
+  micro-items whose coordination constant `k` outweighs their gain.
+- Factoring: promote a capability to `platform` only when `>= 2` real leaves
+  share it and extraction reduces total description length (`k + M + N < M*N`);
+  otherwise keep it local without speculative registries or extra ceremony.
+- Boundaries: `leaf` never imports or depends on a sibling `leaf`; `platform`
+  never imports a `leaf` (`platform -> leaf` DAG edges require `harvest: true`).
+  One writer (`master` or `steward`) owns `platform` paths.
+- Revisions: minor appends ids and `DECIDE` lines; major marks modules `keep`
+  (non-regression) or `rebuild`.
+- Check: `scripts/validate_blueprint_stack.py` (`stack`, `boundaries`,
+  `export-ir`). Detail: `references/stack-and-factoring.md`.
 
 ## Claims And Workspaces
 
@@ -177,6 +196,8 @@ two unlike fixture repositories share no constants. Full list:
 - `references/core.md`, `references/loop.md`: shared laws and loop
 - `references/execution-pattern.md`: specification, Gantt, isolation, admission,
   tick, integration, cleanup, observability
+- `references/stack-and-factoring.md`: three-tier stacks, Occam factoring,
+  revisions, and boundary checks
 - `references/transport-codex-tui.md`: Codex worker transport
 - `references/gate-rules.md`: generated gates and the full validation list
 - `references/substrate-cron.md`: cron, tmux, runners, disk guards
